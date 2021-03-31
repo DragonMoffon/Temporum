@@ -1,5 +1,8 @@
 import arcade
+
 import constants as c
+import mapdata
+import player
 import isometric
 
 
@@ -13,6 +16,10 @@ class TemporumWindow(arcade.Window):
         # The Views
         self.game = GameView()
         self.title = TitleView()
+
+        # View data
+        self.view_x = -c.SCREEN_WIDTH/2
+        self.view_y = -c.SCREEN_HEIGHT/2
 
         # Always start with the title
         self.show_view(self.title)
@@ -30,12 +37,35 @@ class GameView(arcade.View):
 
     def __init__(self):
         super().__init__()
-        # The tile lists.
-        self.ground_tiles = isometric.IsoList()
+        # Map Handler
+        self.map_handler = mapdata.MapHandler()
+
+        # The tile lists
+        self.shown_tiles = self.map_handler.apply_shown()
+
+        # The player info
+        self.player = player.Player(0, 9, self.map_handler.ground_layer, self)
+        self.shown_tiles.append(self.player)
+        self.shown_tiles.reorder_isometric()
 
     def on_draw(self):
         arcade.start_render()
-        self.ground_tiles.draw()
+        self.shown_tiles.draw()
+        """
+        Debugging loop
+        
+        for y_dex, y in enumerate(self.map_handler.ground_layer):
+            for x_dex, x in enumerate(y):
+                x_pos, y_pos, z_pos = isometric.cast_to_iso(x_dex, y_dex, self.map_handler.ground_layer)
+                arcade.draw_text(f"{x}", x_pos, y_pos, arcade.color.WHITE)
+        """
+
+    def on_show(self):
+        view_x, view_y = self.window.view_x, self.window.view_y
+        arcade.set_viewport(view_x, view_x+c.SCREEN_WIDTH, view_y, view_y+c.SCREEN_HEIGHT)
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        self.player.on_key_press(symbol)
 
 
 class TitleView(arcade.View):

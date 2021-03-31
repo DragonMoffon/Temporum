@@ -1,21 +1,57 @@
+from dataclasses import dataclass
+from typing import Union
+from pathlib import Path
+
 import arcade
 
+import constants as c
 
-def xy_rotate_map(value_map):
+
+@dataclass()
+class IsoTexture:
     """
-    :param value_map: The 2D array which holds the data to be rotated
-    :return: It returns the rotated map. The X rows become the Y columns and vice-versa
+    location: str = ""
+    mod_x: float = .0
+    mod_y: float = .0
+
+    s_x: int = 0
+    s_y: int = 0
+
+    width: int = 0
+    height: int = 0
     """
-    map_width, map_height = len(value_map[0]), len(value_map)
 
-    # Create the new list
-    rotated_map = [[] for i in range(map_width)]
-    for y in value_map:
-        for index_x, x in enumerate(y):
-            # Take the x values and insert them into the columns so the entire map becomes rotated.
-            rotated_map[map_width-1-index_x].insert(0, x)
+    location: Union[str, Path] = ""
+    mod_x: float = .0
+    mod_y: float = .0
 
-    return rotated_map
+    s_x: int = 0
+    s_y: int = 0
+
+    width: int = 0
+    height: int = 0
+
+
+class IsoSprite(arcade.Sprite):
+    """
+    The base isometric tile class, basically just the arcade.Sprite with methods and variables for isometric casting.
+    """
+    def __init__(self, e_x, e_y, x, y, z, iso_data: IsoTexture):
+        super().__init__(iso_data.location, c.SPRITE_SCALE,
+                         iso_data.s_x, iso_data.s_y,
+                         iso_data.width, iso_data.height)
+        # The center positions of the tile.
+        self.center_x = x + iso_data.mod_x*c.SPRITE_SCALE
+        self.center_y = y + iso_data.mod_y*c.SPRITE_SCALE
+        self.center_z = z
+
+        # the mod_x, and mod_y
+        self.mod_x = iso_data.mod_x
+        self.mod_y = iso_data.mod_y
+
+        # The euclidean position of the sprite.
+        self.e_x = e_x
+        self.e_y = e_y
 
 
 class IsoList(arcade.SpriteList):
@@ -31,9 +67,47 @@ class IsoList(arcade.SpriteList):
 
         This does slow down the one draw frame it happens however, This is hopefully unnoticeable.
         """
-        self.sprite_list = sorted(self.sprite_list, key=lambda tile: tile.z)
+        self.sprite_list = sorted(self.sprite_list, key=lambda tile: tile.center_z)
 
         for idx, sprite in enumerate(self.sprite_list):
             self.sprite_idx[sprite] = idx
 
         self._vao1 = None
+
+
+class IsoLayer:
+
+    def __init__(self, layer_data, map_data, sprite_data):
+        self.layer_data = layer_data
+        self.map_data = map_data
+        self.tiles = sprite_data
+        self.shown = True
+
+
+def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0):
+    """
+    Casts the imputed Euclidean x and y co-ordinates to the equivalent isometric x, y, z co-ordinates
+
+    :param e_x: The Euclidean X that is to be cast to Isometric.
+    :param e_y: The Euclidean Y that is to be cast to Isometric.
+    :param e_map: The 2D array which the tile is in.
+    :param iso_list: The IsoList the sprite which has the e_x, e_y.
+    :param z_mod: A z_mod which is added to put the object above or below anything with the same e_x and e_y.
+    :return: the isometric x, y, z found.
+    """
+    # Find the needed values
+    map_width, map_height = len(e_map), len(e_map[0])
+    centered_x = e_x - map_width/2
+    centered_y = e_y - map_width/2
+
+    # because the sprites are already cast to the ~30 degrees for the isometric the only needed rotations is the
+    # 45 degrees. However since cos and sin 45 are both 0.707 they are removed from the system as it simply makes
+    # the cast smaller
+    iso_x = (centered_x - centered_y) * (c.TILE_WIDTH*c.SPRITE_SCALE)/2
+    iso_y = (centered_x + centered_y) * (c.TILE_HEIGHT*c.SPRITE_SCALE)/2
+    iso_z = (map_width - e_x) + (map_height - e_y) + z_mod
+
+    # reorder the IsoList then return the calculated values.
+    if iso_list is not None:
+        iso_list.reorder_isometric()
+    return iso_x, iso_y, iso_z
