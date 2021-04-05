@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Union
 from pathlib import Path
+from math import *
 
 import arcade
 
@@ -53,6 +54,14 @@ class IsoSprite(arcade.Sprite):
         self.e_x = e_x
         self.e_y = e_y
 
+    def new_pos(self, e_x, e_y, e_map, iso_list=None, z_mod=0, debug=False):
+        self.center_x, self.center_y, self.center_z = cast_to_iso(e_x, e_y, e_map, None, z_mod, debug)
+        iso_list.reorder_isometric()
+        self.center_x += self.mod_x*c.SPRITE_SCALE
+        self.center_y += self.mod_y*c.SPRITE_SCALE
+        self.e_x = e_x
+        self.e_y = e_y
+
 
 class IsoList(arcade.SpriteList):
     """
@@ -84,7 +93,7 @@ class IsoLayer:
         self.shown = True
 
 
-def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0):
+def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0, debug=False):
     """
     Casts the imputed Euclidean x and y co-ordinates to the equivalent isometric x, y, z co-ordinates
 
@@ -93,21 +102,31 @@ def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0):
     :param e_map: The 2D array which the tile is in.
     :param iso_list: The IsoList the sprite which has the e_x, e_y.
     :param z_mod: A z_mod which is added to put the object above or below anything with the same e_x and e_y.
+    :param debug: The test simply outputs the final outputs for debugging.
     :return: the isometric x, y, z found.
     """
     # Find the needed values
     map_width, map_height = len(e_map), len(e_map[0])
-    centered_x = e_x - map_width/2
-    centered_y = e_y - map_width/2
 
     # because the sprites are already cast to the ~30 degrees for the isometric the only needed rotations is the
     # 45 degrees. However since cos and sin 45 are both 0.707 they are removed from the system as it simply makes
     # the cast smaller
-    iso_x = (centered_x - centered_y) * (c.TILE_WIDTH*c.SPRITE_SCALE)/2
-    iso_y = (centered_x + centered_y) * (c.TILE_HEIGHT*c.SPRITE_SCALE)/2
+    iso_x = (e_x - e_y) * (c.TILE_WIDTH*c.SPRITE_SCALE)/2
+    iso_y = (e_x + e_y) * (c.TILE_HEIGHT*c.SPRITE_SCALE)/2
     iso_z = (map_width - e_x) + (map_height - e_y) + z_mod
 
     # reorder the IsoList then return the calculated values.
     if iso_list is not None:
         iso_list.reorder_isometric()
+    if debug:
+        print(iso_x, iso_y, iso_z)
     return iso_x, iso_y, iso_z
+
+
+def cast_from_iso(x, y, e_map):
+    relative_x = x/(c.TILE_WIDTH*c.SPRITE_SCALE) + y/(c.TILE_HEIGHT*c.SPRITE_SCALE)
+    relative_y = ((2*y)/(c.TILE_HEIGHT*c.SPRITE_SCALE)) - relative_x
+
+    map_width, map_height = len(e_map), len(e_map[0])
+
+    return floor(relative_x), floor(relative_y)
