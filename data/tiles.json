@@ -1,0 +1,185 @@
+{
+    "files": ["assets/iso_tile_refrence_wall_sheet.png"],
+    "tiles": [
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 0,
+            "start_x": 0,
+            "start_y": 0,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 0,
+            "start_y": 320,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 0, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 160,
+            "start_y": 320,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 0, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 320,
+            "start_y": 320,
+            "width": 160,
+            "height": 320,
+            "directions": [0, 1, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 480,
+            "start_y": 320,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 1, 0]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 0,
+            "start_y": 640,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 0, 0, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 160,
+            "start_y": 640,
+            "width": 160,
+            "height": 320,
+            "directions": [0, 0, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 320,
+            "start_y": 640,
+            "width": 160,
+            "height": 320,
+            "directions": [0, 1, 1, 0]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 480,
+            "start_y": 640,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 0, 0]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 0,
+            "start_y": 960,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 160,
+            "start_y": 960,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 320,
+            "start_y": 960,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 480,
+            "start_y": 960,
+            "width": 160,
+            "height": 320,
+            "directions": [1, 1, 1, 1]
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 0,
+            "start_y": 1280,
+            "width": 160,
+            "height": 320,
+            "directions": null
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 160,
+            "start_y": 1280,
+            "width": 160,
+            "height": 320,
+            "directions": null
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 320,
+            "start_y": 1280,
+            "width": 160,
+            "height": 320,
+            "directions": null
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 20,
+            "start_x": 480,
+            "start_y": 1280,
+            "width": 160,
+            "height": 320,
+            "directions": null
+        },
+        {
+            "texture": 0,
+            "mod_x": 0,
+            "mod_y": 0,
+            "start_x": 0,
+            "start_y": 0,
+            "width": 0,
+            "height": 0,
+            "directions": null
+        }
+    ]
+}
