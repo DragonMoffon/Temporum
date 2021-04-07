@@ -1,76 +1,59 @@
+import numpy as np
+
 import arcade
+
 import tiles
 import isometric
-
-
-def xy_rotate_map(value_map):
-    """
-    :param value_map: The 2D array which holds the data to be rotated
-    :return: It returns the rotated map. The X rows become the Y columns and vice-versa.
-
-    The function rotates a 2D list array. so that the X rows become the Y columns.
-    If looking at at array that has x = 0, y = 0 in the top left corner, like so:
-    [0, 0, 1, 0],
-    [1, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 1, 0, 0],
-    [1, 0, 0, 1]
-
-    It would be rotated and flipped to become:
-    [1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1],
-    [0, 1, 0, 0, 0],
-    [1, 0, 0, 1, 0]
-
-    This can also be visualised as the list pivoting 90 degrees clockwise before flipping vertically.
-    The reason for this complicated maneuver is so the point x = 0, y = 0 becomes the last value in
-    the list so it is cast to the highest place on the screen.
-
-    """
-    map_width, map_height = len(value_map[0]), len(value_map)
-
-    # Create the new list
-    rotated_map = [[] for i in range(map_width)]
-    for y in value_map:
-        for index_x, x in enumerate(y):
-            # Take the x values and insert them into the columns so the entire map becomes rotated.
-            rotated_map[map_width-1-index_x].insert(0, x)
-
-    """
-    Debug loop
-    
-    for layer in rotated_map:
-        print(layer)
-    """
-    return rotated_map
 
 
 class MapHandler:
 
     def __init__(self):
         # Read the map. This will later be a list of maps depending on the area.
-        self.map = arcade.read_tmx("tiled/tilemaps/mvp.tmx")
+        self.map = arcade.read_tmx("tiled/tilemaps/LoadingBay.tmx")
 
         # Save the layers for the map in a dictionary
         self.layers = None
         self.ground_layer = None
+        self.map_width, self.map_height = 0, 0
         self.load_map(self.map)
 
     def load_map(self, map_data):
+        """
+        The load map scrip runs through the provided map and creates an IsoLayer object for each layer which stores many
+        different values, these include the raw tile values as a 2D array and the tile sprites in a 2D numpy array.
+
+        These IsoLayers are then stored by their name in a dictionary.
+        :param map_data: The tmx map the layers are loaded from
+        """
         self.layers = {}
         for layer_num, layer_data in enumerate(map_data.layers):
+            # Create the IsoList for the tiles, renames the layers raw tile 2D array for better readability,
+            # and create the 2D numpy array
             tile_list = isometric.IsoList()
-            flipped_data = xy_rotate_map(layer_data.layer_data)
+            map_data = layer_data.layer_data
+            tile_map = np.empty((len(map_data[0]), len(map_data)), isometric.IsoSprite)
 
-            for e_y, y in enumerate(flipped_data):
+            # Find the center Z modifier of the layer any tile ordering can be done properly.
+            if layer_data.properties is not None and "z_mod" in layer_data.properties:
+                z_mod = layer_data.properties["z_mod"]
+            else:
+                z_mod = 0
+
+            # Loop through the tile data.
+            for e_y, y in enumerate(map_data):
                 for e_x, x in enumerate(y):
+                    # If there is a tile in found in the data create the appropriate tile.
                     if x:
-                        px, py, pz = isometric.cast_to_iso(e_x, e_y, flipped_data, tile_list)
-                        tile = isometric.IsoSprite(e_x, e_y, px, py, pz, tiles.find_iso_data(x))
+                        # take the x and y coord of the tile in the map data to create he isometric position
+                        iso_x, iso_y, iso_z = isometric.cast_to_iso(e_x, e_y, map_data, tile_list, z_mod)
+                        tile = isometric.IsoSprite(e_x, e_y, iso_x, iso_y, iso_z, tiles.find_iso_data(x))
                         tile_list.append(tile)
+                        tile_map[e_x, e_y] = tile
             tile_list.reorder_isometric()
-            self.layers[layer_data.name] = isometric.IsoLayer(layer_data, flipped_data, tile_list)
+            self.layers[layer_data.name] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map)
         self.ground_layer = self.layers['ground_layer'].map_data
+        self.map_width, self.map_height = len(self.ground_layer), len(self.ground_layer[0])
 
     def apply_shown(self):
         all_tiles = isometric.IsoList()

@@ -37,18 +37,25 @@ class IsoSprite(arcade.Sprite):
     """
     The base isometric tile class, basically just the arcade.Sprite with methods and variables for isometric casting.
     """
-    def __init__(self, e_x, e_y, x, y, z, iso_data: IsoTexture):
-        super().__init__(iso_data.location, c.SPRITE_SCALE,
-                         iso_data.s_x, iso_data.s_y,
-                         iso_data.width, iso_data.height)
+    def __init__(self, e_x, e_y, x, y, z, iso_data: dict):
+        if isinstance(iso_data, dict):
+            iso_texture: IsoTexture = iso_data['texture']
+        else:
+            iso_texture: IsoTexture = iso_data
+        super().__init__(iso_texture.location, c.SPRITE_SCALE,
+                         iso_texture.s_x, iso_texture.s_y,
+                         iso_texture.width, iso_texture.height)
         # The center positions of the tile.
-        self.center_x = x + iso_data.mod_x*c.SPRITE_SCALE
-        self.center_y = y + iso_data.mod_y*c.SPRITE_SCALE
+        self.center_x = x + iso_texture.mod_x*c.SPRITE_SCALE
+        self.center_y = y + iso_texture.mod_y*c.SPRITE_SCALE
         self.center_z = z
 
         # the mod_x, and mod_y
-        self.mod_x = iso_data.mod_x
-        self.mod_y = iso_data.mod_y
+        self.mod_x = iso_texture.mod_x
+        self.mod_y = iso_texture.mod_y
+
+        # The isometric data
+        self.iso_data = iso_data
 
         # The euclidean position of the sprite.
         self.e_x = e_x
@@ -56,9 +63,9 @@ class IsoSprite(arcade.Sprite):
 
     def new_pos(self, e_x, e_y, e_map, iso_list=None, z_mod=0, debug=False):
         self.center_x, self.center_y, self.center_z = cast_to_iso(e_x, e_y, e_map, None, z_mod, debug)
-        iso_list.reorder_isometric()
         self.center_x += self.mod_x*c.SPRITE_SCALE
         self.center_y += self.mod_y*c.SPRITE_SCALE
+        iso_list.reorder_isometric()
         self.e_x = e_x
         self.e_y = e_y
 
@@ -86,10 +93,11 @@ class IsoList(arcade.SpriteList):
 
 class IsoLayer:
 
-    def __init__(self, layer_data, map_data, sprite_data):
+    def __init__(self, layer_data, map_data, sprite_data, tile_map):
         self.layer_data = layer_data
         self.map_data = map_data
         self.tiles = sprite_data
+        self.tile_map = tile_map
         self.shown = True
 
 
@@ -106,14 +114,17 @@ def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0, debug=False)
     :return: the isometric x, y, z found.
     """
     # Find the needed values
-    map_width, map_height = len(e_map), len(e_map[0])
+    map_width, map_height = len(e_map[0]), len(e_map)
+
+    e_x -= map_width/2
+    e_y -= map_height/2
 
     # because the sprites are already cast to the ~30 degrees for the isometric the only needed rotations is the
     # 45 degrees. However since cos and sin 45 are both 0.707 they are removed from the system as it simply makes
     # the cast smaller
-    iso_x = (e_x - e_y) * (c.TILE_WIDTH*c.SPRITE_SCALE)/2
-    iso_y = (e_x + e_y) * (c.TILE_HEIGHT*c.SPRITE_SCALE)/2
-    iso_z = (map_width - e_x) + (map_height - e_y) + z_mod
+    iso_x = (e_x - e_y) * ((c.TILE_WIDTH*c.SPRITE_SCALE)/2)
+    iso_y = -(e_x + e_y) * ((c.TILE_HEIGHT*c.SPRITE_SCALE)/2)
+    iso_z = e_x + e_y + z_mod
 
     # reorder the IsoList then return the calculated values.
     if iso_list is not None:
@@ -124,9 +135,12 @@ def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0, debug=False)
 
 
 def cast_from_iso(x, y, e_map):
-    relative_x = x/(c.TILE_WIDTH*c.SPRITE_SCALE) + y/(c.TILE_HEIGHT*c.SPRITE_SCALE)
-    relative_y = ((2*y)/(c.TILE_HEIGHT*c.SPRITE_SCALE)) - relative_x
+    relative_x = x/(c.TILE_WIDTH*c.SPRITE_SCALE) - y/(c.TILE_HEIGHT*c.SPRITE_SCALE) + 1
+    relative_y = -x/(c.TILE_WIDTH*c.SPRITE_SCALE) - y/(c.TILE_HEIGHT*c.SPRITE_SCALE) + 1
 
-    map_width, map_height = len(e_map), len(e_map[0])
+    map_width, map_height = len(e_map[0]), len(e_map)
+
+    relative_x += map_width / 2
+    relative_y += map_height / 2
 
     return floor(relative_x), floor(relative_y)
