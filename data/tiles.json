@@ -139,7 +139,7 @@
             "start_y": 1280,
             "width": 160,
             "height": 320,
-            "directions": null
+            "directions": [0, 0, 0, 0]
         },
         {
             "texture": 0,
@@ -149,7 +149,7 @@
             "start_y": 1280,
             "width": 160,
             "height": 320,
-            "directions": null
+            "directions": [0, 0, 0, 0]
         },
         {
             "texture": 0,
@@ -159,7 +159,7 @@
             "start_y": 1280,
             "width": 160,
             "height": 320,
-            "directions": null
+            "directions": [0, 0, 0, 0]
         },
         {
             "texture": 0,
@@ -169,7 +169,7 @@
             "start_y": 1280,
             "width": 160,
             "height": 320,
-            "directions": null
+            "directions": [0, 0, 0, 0]
         },
         {
             "texture": 0,
@@ -179,7 +179,7 @@
             "start_y": 0,
             "width": 0,
             "height": 0,
-            "directions": null
+            "directions": [0, 0, 0, 0]
         }
     ]
 }

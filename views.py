@@ -4,6 +4,7 @@ import constants as c
 import mapdata
 import player
 import isometric
+import algorithms
 import shaders
 
 
@@ -47,7 +48,7 @@ class GameView(arcade.View):
         self.shown_tiles = self.map_handler.apply_shown()
 
         # The player info
-        self.player = player.Player(10, 36, self.map_handler.ground_layer, self)
+        self.player = player.Player(9, 18, self.map_handler.ground_layer, self)
         self.shown_tiles.append(self.player)
 
         # Mouse Select
@@ -70,6 +71,9 @@ class GameView(arcade.View):
         arcade.start_render()
         self.shown_tiles.draw()
         arcade.draw_point(0, 0, arcade.color.RAW_UMBER, 5)
+
+        # Debugging of the map_handler
+        # self.map_handler.debug_draw(True)
         """
         # Debugging Shader
         self.test_program['screen_pos'] = self.window.view_x, self.window.view_y
@@ -83,6 +87,19 @@ class GameView(arcade.View):
                 x_pos, y_pos, z_pos = isometric.cast_to_iso(x_dex, y_dex, self.map_handler.ground_layer)
                 arcade.draw_text(f"{x_dex}, {y_dex}", x_pos, y_pos, arcade.color.WHITE)
                 """
+
+    def on_update(self, delta_time: float):
+        if self.player.current_path is not None:
+            player = self.player
+            current_node = self.map_handler.path_finding_map.points[player.e_y, player.e_x]
+            if current_node in self.player.current_path:
+                current_index = self.player.current_path.index(current_node)
+                if current_index < len(self.player.current_path)-1:
+                    next_node = self.player.current_path[current_index+1].location
+                    self.player.new_pos(next_node[0], next_node[1],
+                                        self.map_handler.ground_layer, self.shown_tiles)
+                else:
+                    self.player.current_path = None
 
     def on_show(self):
         view_x, view_y = self.window.view_x, self.window.view_y
@@ -102,20 +119,24 @@ class GameView(arcade.View):
 
     def on_mouse_drag(self, x: float, y: float, dx: float, dy: float, _buttons: int, _modifiers: int):
         if _buttons == 2:
-            self.window.view_x -= round(dx/3)
-            self.window.view_y -= round(dy/3)
+            self.window.view_x -= round(dx)
+            self.window.view_y -= round(dy)
             arcade.set_viewport(self.window.view_x, self.window.view_x + c.SCREEN_WIDTH,
                                 self.window.view_y, self.window.view_y + c.SCREEN_HEIGHT)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        if self.selected_tile is None:
-            self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y,
-                                                 self.map_handler.ground_layer)
-            self.shown_tiles.append(self.selected_tile)
-            self.shown_tiles.reorder_isometric()
-        else:
-            self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y,
-                                       self.map_handler.ground_layer, self.shown_tiles, 0.1)
+        if button == 1:
+            if self.selected_tile is None:
+                self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y,
+                                                     self.map_handler.ground_layer)
+                self.shown_tiles.append(self.selected_tile)
+                self.shown_tiles.reorder_isometric()
+            else:
+                self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y,
+                                           self.map_handler.ground_layer, self.shown_tiles, 0.1)
+            self.player.current_path = algorithms.path_2d(self.map_handler.path_finding_map,
+                                                          (self.player.e_y, self.player.e_x),
+                                                          (self.selected_tile.e_y, self.selected_tile.e_x))
 
 
 class TitleView(arcade.View):

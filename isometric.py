@@ -40,8 +40,10 @@ class IsoSprite(arcade.Sprite):
     def __init__(self, e_x, e_y, x, y, z, iso_data: dict):
         if isinstance(iso_data, dict):
             iso_texture: IsoTexture = iso_data['texture']
+            directions = iso_data['directions']
         else:
             iso_texture: IsoTexture = iso_data
+            directions = None
         super().__init__(iso_texture.location, c.SPRITE_SCALE,
                          iso_texture.s_x, iso_texture.s_y,
                          iso_texture.width, iso_texture.height)
@@ -55,7 +57,8 @@ class IsoSprite(arcade.Sprite):
         self.mod_y = iso_texture.mod_y
 
         # The isometric data
-        self.iso_data = iso_data
+        self.iso_texture = iso_texture
+        self.direction = directions
 
         # The euclidean position of the sprite.
         self.e_x = e_x
@@ -65,7 +68,8 @@ class IsoSprite(arcade.Sprite):
         self.center_x, self.center_y, self.center_z = cast_to_iso(e_x, e_y, e_map, None, z_mod, debug)
         self.center_x += self.mod_x*c.SPRITE_SCALE
         self.center_y += self.mod_y*c.SPRITE_SCALE
-        iso_list.reorder_isometric()
+        if iso_list is not None:
+            iso_list.reorder_isometric()
         self.e_x = e_x
         self.e_y = e_y
 
@@ -101,7 +105,7 @@ class IsoLayer:
         self.shown = True
 
 
-def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0, debug=False):
+def cast_to_iso(e_x, e_y, e_map=None, iso_list: IsoList = None, z_mod=0, debug=False):
     """
     Casts the imputed Euclidean x and y co-ordinates to the equivalent isometric x, y, z co-ordinates
 
@@ -113,8 +117,12 @@ def cast_to_iso(e_x, e_y, e_map, iso_list: IsoList = None, z_mod=0, debug=False)
     :param debug: The test simply outputs the final outputs for debugging.
     :return: the isometric x, y, z found.
     """
-    # Find the needed values
-    map_width, map_height = len(e_map[0]), len(e_map)
+    if e_map is not None:
+        # Find the needed values
+        map_width, map_height = len(e_map[0]), len(e_map)
+    else:
+        map_width = 20
+        map_height = 20
 
     e_x -= map_width/2
     e_y -= map_height/2

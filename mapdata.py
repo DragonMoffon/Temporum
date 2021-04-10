@@ -4,19 +4,23 @@ import arcade
 
 import tiles
 import isometric
+import algorithms
 
 
 class MapHandler:
 
     def __init__(self):
         # Read the map. This will later be a list of maps depending on the area.
-        self.map = arcade.read_tmx("tiled/tilemaps/LoadingBay.tmx")
+        self.map = arcade.read_tmx("tiled/tilemaps/mvp.tmx")
 
         # Save the layers for the map in a dictionary
         self.layers = None
         self.ground_layer = None
         self.map_width, self.map_height = 0, 0
         self.load_map(self.map)
+
+        # The path finding data
+        self.path_finding_map = algorithms.PathFindingGrid(self)
 
     def load_map(self, map_data):
         """
@@ -62,3 +66,7 @@ class MapHandler:
                 all_tiles.extend(layer.tiles)
         all_tiles.reorder_isometric()
         return all_tiles
+
+    def debug_draw(self, a_star=False):
+        if a_star:
+            self.path_finding_map.draw()
