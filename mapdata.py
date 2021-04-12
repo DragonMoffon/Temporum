@@ -17,6 +17,7 @@ class MapHandler:
         self.layers = None
         self.ground_layer = None
         self.map_width, self.map_height = 0, 0
+        self.map_size = [self.map_width, self.map_height]
         self.load_map(self.map)
 
         # The path finding data
@@ -37,6 +38,9 @@ class MapHandler:
             tile_list = isometric.IsoList()
             map_data = layer_data.layer_data
             tile_map = np.empty((len(map_data[0]), len(map_data)), isometric.IsoSprite)
+            if layer_data.name == "ground_layer":
+                self.map_width, self.map_height = len(map_data), len(map_data[0])
+                self.map_size = [self.map_width, self.map_height]
 
             # Find the center Z modifier of the layer any tile ordering can be done properly.
             if layer_data.properties is not None and "z_mod" in layer_data.properties:
@@ -50,14 +54,13 @@ class MapHandler:
                     # If there is a tile in found in the data create the appropriate tile.
                     if x:
                         # take the x and y coord of the tile in the map data to create he isometric position
-                        iso_x, iso_y, iso_z = isometric.cast_to_iso(e_x, e_y, map_data, tile_list, z_mod)
-                        tile = isometric.IsoSprite(e_x, e_y, iso_x, iso_y, iso_z, tiles.find_iso_data(x))
+                        iso_x, iso_y, iso_z = isometric.cast_to_iso(e_x, e_y, self.map_size, z_mod)
+                        tile = isometric.IsoSprite(e_x, e_y, iso_x, iso_y, iso_z, tiles.find_iso_data(x), z_mod)
                         tile_list.append(tile)
                         tile_map[e_x, e_y] = tile
             tile_list.reorder_isometric()
             self.layers[layer_data.name] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map)
         self.ground_layer = self.layers['ground_layer'].map_data
-        self.map_width, self.map_height = len(self.ground_layer), len(self.ground_layer[0])
 
     def apply_shown(self):
         all_tiles = isometric.IsoList()

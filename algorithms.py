@@ -136,6 +136,5 @@ def reconstruct_path(came_from: dict, start: GridNode, end: GridNode):
         path.append(current)
         current = came_from[current]
 
-    path.append(start)
     path.reverse()
     return path

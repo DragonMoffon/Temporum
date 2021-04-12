@@ -1,4 +1,5 @@
 import arcade
+from isometric import IsoList
 
 """
 VARIABLES
@@ -17,6 +18,8 @@ WINDOW_NAME, FULLSCREEN = "Temporum: The Melclex Incident", True
 # Movement dictionary
 DIRECTIONS = {(0, -1): 0, (1, 0): 1, (0, 1): 2, (-1, 0): 3}
 
+# The Isolist That holds all isometric items
+ISO_LIST = IsoList()
 """
 FUNCTIONS
 """
@@ -24,3 +27,13 @@ FUNCTIONS
 
 def clamp(value, low=0, high=1):
     return min(max(value, low), high)
+
+
+def iso_append(item):
+    global ISO_LIST
+    ISO_LIST.append(item)
+
+
+def iso_extend(iterable):
+    for item in iterable:
+        iso_append(item)
