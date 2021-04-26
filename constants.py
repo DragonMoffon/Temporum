@@ -29,11 +29,17 @@ def clamp(value, low=0, high=1):
     return min(max(value, low), high)
 
 
+def round_to_x(value, x):
+    return round(value/x)*x
+
+
 def iso_append(item):
     global ISO_LIST
     ISO_LIST.append(item)
+    ISO_LIST.reorder_isometric()
 
 
 def iso_extend(iterable):
     for item in iterable:
         iso_append(item)
+    ISO_LIST.reorder_isometric()

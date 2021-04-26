@@ -3,6 +3,7 @@ import time
 import arcade
 
 import isometric
+import algorithms
 
 
 class ActionHandler:

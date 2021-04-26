@@ -22,6 +22,8 @@ class Player(isometric.IsoSprite):
         self.current_path = None
         self.check_path = None
         self.action_handler: turn.ActionHandler = None
+        self.paths = algorithms.path_2d(self.game_view.map_handler.path_finding_map, (self.e_y, self.e_x))
+        self.edge = None
 
     def on_key_press(self, key, shift):
         if self.current_path is not None and key == arcade.key.ENTER:
@@ -37,14 +39,10 @@ class Player(isometric.IsoSprite):
 
     def find_move(self, selected_tile, shift):
         if shift and self.current_path is not None:
-            location = self.current_path[-1].location
-            self.check_path = algorithms.path_2d(self.game_view.map_handler.path_finding_map,
-                                                 (location[1], location[0]),
-                                                 (selected_tile.e_y, selected_tile.e_x))
+            pass
         else:
-            self.check_path = algorithms.path_2d(self.game_view.map_handler.path_finding_map,
-                                                 (self.e_y, self.e_x),
-                                                 (selected_tile.e_y, selected_tile.e_x))
+            self.check_path = algorithms.reconstruct_path(self.game_view.map_handler.path_finding_map, self.paths[0],
+                                                          (self.e_y, self.e_x), (selected_tile.e_y, selected_tile.e_x))
 
     def set_move(self, shift):
         if self.current_path is not None and shift:
@@ -57,6 +55,10 @@ class Player(isometric.IsoSprite):
             path = self.current_path
             self.current_path = None
             self.action_handler.actions.append(turn.Move(path))
+
+    def new_pos(self, e_x, e_y, map_size=None, debug=False):
+        super().new_pos(e_x, e_y, map_size, debug)
+        self.paths = algorithms.path_2d(self.game_view.map_handler.path_finding_map, (self.e_y, self.e_x))
 
 
 class Select(isometric.IsoSprite):

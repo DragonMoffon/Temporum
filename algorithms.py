@@ -7,6 +7,20 @@ import arcade
 import constants as c
 import isometric
 
+GRID_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 320, 0, 160, 320)
+SOUTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 0, 320, 160, 320)
+EAST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 160, 320, 160, 320)
+NORTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 320, 320, 160, 320)
+WEST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 480, 320, 160, 320)
+DIRECTIONS = {0: NORTH, 1: EAST, 2: SOUTH, 3: WEST, 4: GRID_ISO_DATA}
+
+
+class GridSprite(isometric.IsoSprite):
+
+    def __init__(self, location: tuple, direction=4):
+        x, y, z = isometric.cast_to_iso(location[0], location[1], z_mod=0.5)
+        super().__init__(location[0], location[1], x, y, z, DIRECTIONS[direction], 0.5)
+
 
 class GridNode:
 
@@ -14,6 +28,13 @@ class GridNode:
         self.directions: list[GridNode, GridNode, GridNode, GridNode] = [None, None, None, None]
         self.cost = cost
         self.location: tuple[int, int] = location
+        self.node_sprite = GridSprite(location)
+
+    def show_self(self):
+        c.iso_append(self.node_sprite)
+
+    def remove_self(self):
+        self.node_sprite.remove_from_sprite_lists()
 
     def __le__(self, other):
         return id(self) <= id(other)
@@ -100,41 +121,71 @@ def astar_heuristic(a: tuple = (int, int), b: tuple = (int, int)):
     return sqrt((x1-x2)**2 + (y1-y2)**2)
 
 
-def path_2d(grid_2d: PathFindingGrid, start_xy, end_xy):
-    start = grid_2d.points[start_xy]
-    end = grid_2d.points[end_xy]
+def path_2d(grid_2d: PathFindingGrid, start_yx):
+    start: GridNode = grid_2d.points[start_yx]
+    frontier = PriorityQueue()
+    frontier.put(0, start)
+    came_from = dict()
+    cost_so_far = dict()
+    costs_loaded = dict()
+    edges = dict()
+    came_from[start] = None
+    cost_so_far[start] = 0
+    costs_loaded[0] = [start]
+    if None is start.directions:
+        edges[0] = [start]
+
+    while not frontier.empty():
+        current = frontier.get()
+
+        for dirs in current.directions:
+            if dirs is not None:
+                new_cost = cost_so_far[current] + dirs.cost
+                if dirs not in cost_so_far or cost_so_far[dirs] > new_cost:
+                    cost_so_far[dirs] = new_cost
+                    frontier.put(new_cost, dirs)
+                    came_from[dirs] = current
+                    if new_cost not in costs_loaded:
+                        costs_loaded[new_cost] = [dirs]
+                    else:
+                        costs_loaded[new_cost].append(dirs)
+            else:
+                current_cost = cost_so_far[current]
+                if current_cost not in edges:
+                    costs_loaded[current_cost] = [current]
+                elif current not in costs_loaded[current_cost].append(current):
+                    costs_loaded[current_cost].append(current)
+
+    return came_from, cost_so_far, costs_loaded
+
+
+def find_edge(max_distance, cost_so_far, costs_loaded):
+    edged = []
+    for node in costs_loaded[max_distance]:
+        for index, direction in enumerate(node.directions):
+            sprite = None
+            if direction is not None:
+                if max_distance < cost_so_far[direction]:
+                    sprite = GridSprite(node.location, index)
+            else:
+                sprite = GridSprite(node.location, index)
+
+            if sprite is not None:
+                edged.append(sprite)
+                c.iso_append(sprite)
+    return edged
+
+
+def reconstruct_path(grid_2d: PathFindingGrid, came_from: dict, start_yx: tuple, end_yx: tuple):
+    start = grid_2d.points[start_yx]
+    end = grid_2d.points[end_yx]
     if end is not None:
-        frontier = PriorityQueue()
-        frontier.put(0, start)
-        came_from = dict()
-        cost_so_far = dict()
-        came_from[start] = None
-        cost_so_far[start] = 0
+        current = end
+        path: list[GridNode] = []
+        while current != start:
+            path.append(current)
+            current = came_from[current]
 
-        while not frontier.empty():
-            current = frontier.get()
-
-            for dirs in current.directions:
-                if dirs is not None:
-                    new_cost = cost_so_far[current] + dirs.cost
-                    if dirs not in cost_so_far or cost_so_far[dirs] > new_cost:
-                        cost_so_far[dirs] = new_cost
-                        priority = new_cost + astar_heuristic(dirs.location, end.location)
-                        frontier.put(priority, dirs)
-                        came_from[dirs] = current
-
-            if current == end:
-                break
-        return reconstruct_path(came_from, start, end)
+        path.reverse()
+        return path
     return None
-
-
-def reconstruct_path(came_from: dict, start: GridNode, end: GridNode):
-    current = end
-    path: list[GridNode] = []
-    while current != start:
-        path.append(current)
-        current = came_from[current]
-
-    path.reverse()
-    return path
