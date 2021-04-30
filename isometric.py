@@ -97,12 +97,18 @@ class IsoList(arcade.SpriteList):
 
 class IsoLayer:
 
-    def __init__(self, layer_data, map_data, sprite_data, tile_map):
+    def __init__(self, layer_data, map_data, sprite_data, tile_map, shown=True):
         self.layer_data = layer_data
         self.map_data = map_data
         self.tiles = sprite_data
         self.tile_map = tile_map
-        self.shown = True
+        self.shown = shown
+
+
+@dataclass()
+class IsoRoom:
+    room_walls: arcade.SpriteList
+    shown: bool = True
 
 
 def cast_to_iso(e_x, e_y, map_size=None, z_mod=0, debug=False):

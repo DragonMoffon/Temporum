@@ -40,6 +40,20 @@ def iso_append(item):
 
 
 def iso_extend(iterable):
+    changed = False
     for item in iterable:
-        iso_append(item)
-    ISO_LIST.reorder_isometric()
+        if item not in ISO_LIST:
+            changed = True
+            iso_append(item)
+    if changed:
+        ISO_LIST.reorder_isometric()
+
+
+def iso_strip(iterable):
+    changed = False
+    for item in iterable:
+        if item in ISO_LIST:
+            changed = True
+            ISO_LIST.remove(item)
+    if changed:
+        ISO_LIST.reorder_isometric()

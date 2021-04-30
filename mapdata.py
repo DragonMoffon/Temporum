@@ -5,6 +5,7 @@ import arcade
 import tiles
 import isometric
 import algorithms
+import constants as c
 
 
 class MapHandler:
@@ -18,6 +19,8 @@ class MapHandler:
         self.ground_layer = None
         self.map_width, self.map_height = 0, 0
         self.map_size = [self.map_width, self.map_height]
+        self.rooms = {}
+        self.hidden_room = None
         self.load_map(self.map)
 
         # The path finding data
@@ -43,10 +46,13 @@ class MapHandler:
                 self.map_size = [self.map_width, self.map_height]
 
             # Find the center Z modifier of the layer any tile ordering can be done properly.
-            if layer_data.properties is not None and "z_mod" in layer_data.properties:
-                z_mod = layer_data.properties["z_mod"]
-            else:
-                z_mod = 0
+            z_mod = 0
+            shown = True
+            if layer_data.properties is not None:
+                if "z_mod" in layer_data.properties:
+                    z_mod = layer_data.properties["z_mod"]
+                if "shown" in layer_data.properties:
+                    shown = layer_data.properties['shown']
 
             # Loop through the tile data.
             for e_y, y in enumerate(map_data):
@@ -58,8 +64,20 @@ class MapHandler:
                         tile = isometric.IsoSprite(e_x, e_y, iso_x, iso_y, iso_z, tiles.find_iso_data(x), z_mod)
                         tile_list.append(tile)
                         tile_map[e_x, e_y] = tile
+                        if layer_data.name == "room_data":
+                            if x not in self.rooms:
+                                room = isometric.IsoRoom(arcade.SpriteList())
+                                print(id(room.room_walls))
+                                tile = self.layers['wall_layer'].tile_map[e_x, e_y]
+                                if tile is not None:
+                                    room.room_walls.append(tile)
+                                self.rooms[x] = room
+                            else:
+                                tile = self.layers['wall_layer'].tile_map[e_x, e_y]
+                                if tile is not None:
+                                    self.rooms[x].room_walls.append(tile)
             tile_list.reorder_isometric()
-            self.layers[layer_data.name] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map)
+            self.layers[layer_data.name] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map, shown)
         self.ground_layer = self.layers['ground_layer'].map_data
 
     def apply_shown(self):
@@ -69,6 +87,16 @@ class MapHandler:
                 all_tiles.extend(layer.tiles)
         all_tiles.reorder_isometric()
         return all_tiles
+
+    def hide_room(self, e_x, e_y):
+        room = self.layers['room_data'].map_data[e_y][e_x]
+        if room:
+            room_to_hide = self.rooms[room]
+            if self.hidden_room != room_to_hide:
+                if self.hidden_room is not None:
+                    c.iso_extend(self.hidden_room.room_walls)
+                self.hidden_room = room_to_hide
+                c.iso_strip(self.hidden_room.room_walls)
 
     def debug_draw(self, a_star=False):
         if a_star:

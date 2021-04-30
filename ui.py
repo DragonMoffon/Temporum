@@ -139,8 +139,6 @@ class Tab(Sprite):
                 if tab not in self.parent_list:
                     tab.center_x = self.game_view.window.view_x + tab.rel_x
 
-            print("x", new_value-self.game_view.window.view_x)
-
     center_x = property(_get_center_x, _set_center_x)
 
     def _get_center_y(self) -> float:
@@ -163,8 +161,6 @@ class Tab(Sprite):
             for tab in self.tabs:
                 if tab not in self.parent_list:
                     tab.center_y = self.game_view.window.view_y + tab.rel_y
-
-            print("y", new_value-self.game_view.window.view_y)
 
     center_y = property(_get_center_y, _set_center_y)
 

@@ -77,6 +77,11 @@ class GameView(arcade.View):
         # keys for held checks
         self.shift = False
 
+        # Debugging tools
+        self.test_sprite = arcade.Sprite("assets/iso_tile_refrence.png", scale=5)
+        self.test_list = arcade.SpriteList()
+        self.test_list.append(self.test_sprite)
+
         # Shader Programs
         """
         # Debugging shader
@@ -169,6 +174,7 @@ class GameView(arcade.View):
         if 0 <= e_x < self.map_handler.map_width and 0 <= e_y < self.map_handler.map_height:
             if e_x != self.select_tile.e_x or e_y != self.select_tile.e_y:
                 self.select_tile.new_pos(e_x, e_y, map_size)
+                self.map_handler.hide_room(e_x, e_y)
                 c.ISO_LIST.reorder_isometric()
             if self.turn_handler.current_actor is not None and self.turn_handler.current_actor.actor == self.player:
                 self.player.find_move(self.select_tile, self.shift)

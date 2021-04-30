@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="1">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="1">
  <tileset firstgid="1" source="../tilesets/basic_tiles.tsx"/>
  <layer id="1" name="ground_layer" width="20" height="20">
+  <properties>
+   <property name="shown" type="bool" value="true"/>
+  </properties>
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,
@@ -27,6 +30,7 @@
  </layer>
  <layer id="2" name="wall_layer" width="20" height="20">
   <properties>
+   <property name="shown" type="bool" value="true"/>
    <property name="z_mod" type="float" value="0.75"/>
   </properties>
   <data encoding="csv">
@@ -50,6 +54,33 @@
 3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,
 3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,
 11,4,4,4,4,4,4,4,7,0,0,8,4,4,4,4,4,4,4,12
+</data>
+ </layer>
+ <layer id="3" name="room_data" width="20" height="20">
+  <properties>
+   <property name="shown" type="bool" value="false"/>
+  </properties>
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1,1,1,1,1,1,1,2,2,2,1,1,1,1,2,2,2,1,1,
+0,1,1,1,1,1,1,1,2,2,2,1,1,1,1,2,2,2,1,1,
+0,1,1,1,1,1,1,1,2,2,2,1,1,1,1,2,2,2,1,1,
+0,1,1,1,1,1,1,1,2,2,2,1,1,1,1,2,2,2,1,1,
+0,1,1,1,1,1,1,1,2,2,2,1,1,1,1,2,2,2,1,1,
+0,1,1,1,1,1,1,1,2,2,2,1,1,1,1,2,2,2,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 </data>
  </layer>
 </map>
