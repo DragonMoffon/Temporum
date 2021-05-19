@@ -7,11 +7,11 @@ import arcade
 import constants as c
 import isometric
 
-GRID_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 320, 0, 160, 320)
-SOUTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 0, 320, 160, 320)
-EAST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 160, 320, 160, 320)
-NORTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 320, 320, 160, 320)
-WEST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 480, 320, 160, 320)
+GRID_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 320, 0, 160, 320)
+SOUTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 0, 320, 160, 320)
+EAST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 160, 320, 160, 320)
+NORTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 320, 320, 160, 320)
+WEST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 480, 320, 160, 320)
 DIRECTIONS = {0: NORTH, 1: EAST, 2: SOUTH, 3: WEST, 4: GRID_ISO_DATA}
 
 
@@ -71,11 +71,11 @@ class PathFindingGrid:
                 if self.map_data.ground_layer[y_dex][x_dex]:
                     cur_node = GridNode((x_dex, y_dex))
                     self.points[y_dex, x_dex] = cur_node
-                    current_tile = self.map_data.layers['wall_layer'].tile_map[x_dex, y_dex]
+                    current_tile = self.map_data.layers['map']['1']['wall'].tile_map[x_dex, y_dex]
                     for direction in dirs:
                         n_x = c.clamp(x_dex+direction[0], 0, len(self.points)-1)
                         n_y = c.clamp(y_dex+direction[1], 0, len(row)-1)
-                        neighbor_tile = self.map_data.layers["wall_layer"].tile_map[n_x, n_y]
+                        neighbor_tile = self.map_data.layers['map']['1']['wall'].tile_map[n_x, n_y]
                         neighbor = self.points[n_y, n_x]
                         if n_x != x_dex or n_y != y_dex:
                             cur_neigh_dir = c.DIRECTIONS[direction]
@@ -84,11 +84,11 @@ class PathFindingGrid:
                             cur_check = False
 
                             if current_tile is None\
-                                    or current_tile is not None and current_tile.direction[neigh_cur_dir]:
+                                    or current_tile[0] is not None and current_tile[0].direction[neigh_cur_dir]:
                                 cur_check = True
 
                             if neighbor_tile is None or\
-                                    neighbor_tile is not None and neighbor_tile.direction[cur_neigh_dir]:
+                                    neighbor_tile[0] is not None and neighbor_tile[0].direction[cur_neigh_dir]:
                                 neigh_check = True
 
                             if neigh_check and cur_check:

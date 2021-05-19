@@ -6,19 +6,18 @@ import isometric
 import algorithms
 import constants as c
 
-PLAYER_ISO_DATA = isometric.IsoTexture("assets/iso_player_character.png", .0, 45.0, 0, 0, 160, 320)
-SELECTED_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 0, 0, 160, 320)
-HOVER_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", .0, 20.0, 160, 0, 160, 320)
+PLAYER_ISO_DATA = isometric.IsoTexture("assets/iso_player_character.png", None, .0, 45.0, .0, 0, 0, 160, 320)
+SELECTED_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 0, 0, 160, 320)
+HOVER_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 160, 0, 160, 320)
 
 
 class Player(isometric.IsoSprite):
 
     def __init__(self, e_x, e_y, e_map, game_view):
         x, y, z = isometric.cast_to_iso(e_x, e_y, (len(e_map), len(e_map[0])), z_mod=0.5)
-        super().__init__(e_x, e_y, x, y, z, PLAYER_ISO_DATA, z_mod=0.5)
+        super().__init__(e_x, e_y, x, y, z, PLAYER_ISO_DATA, z_mod=0.2)
         self.ground_map = e_map
         self.game_view = game_view
-        self.walls = game_view.map_handler.layers['wall_layer'].tile_map
         self.current_path = None
         self.check_path = None
         self.action_handler: turn.ActionHandler = None
@@ -59,6 +58,7 @@ class Player(isometric.IsoSprite):
     def new_pos(self, e_x, e_y, map_size=None, debug=False):
         super().new_pos(e_x, e_y, map_size, debug)
         self.paths = algorithms.path_2d(self.game_view.map_handler.path_finding_map, (self.e_y, self.e_x))
+        self.game_view.map_handler.run_display('player', self.e_x, self.e_y)
 
 
 class Select(isometric.IsoSprite):

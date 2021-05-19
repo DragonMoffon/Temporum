@@ -1,5 +1,4 @@
 import arcade
-import pyglet
 
 import constants as c
 import mapdata
@@ -7,7 +6,15 @@ import player
 import isometric
 import ui
 import turn
+import interaction
 import shaders
+
+
+class Mouse(arcade.Sprite):
+
+    def __init__(self):
+        super().__init__("assets/ui/cursor.png", c.SPRITE_SCALE)
+        self._points = (-22.5, 22.5), (-22, 22.5), (-22, 22), (-22.5, 22)
 
 
 class TemporumWindow(arcade.Window):
@@ -19,7 +26,7 @@ class TemporumWindow(arcade.Window):
         super().__init__(c.SCREEN_WIDTH, c.SCREEN_HEIGHT, c.WINDOW_NAME, fullscreen=c.FULLSCREEN)
         arcade.set_background_color(arcade.color.BLACK)
         self.set_mouse_visible(False)
-        self.mouse = arcade.Sprite("assets/ui/cursor.png", c.SPRITE_SCALE)
+        self.mouse = Mouse()
 
         # View data
         self.view_x = c.round_to_x(-c.SCREEN_WIDTH/2, 5*c.SPRITE_SCALE)
@@ -53,8 +60,9 @@ class GameView(arcade.View):
         # Map Handler
         self.map_handler = mapdata.MapHandler()
 
-        # The tile lists
-        c.iso_extend(self.map_handler.apply_shown())
+        # Conversation Handler
+        self.convo_handler = interaction.load_conversation()
+        print(self.convo_handler)
 
         # The player info
         self.player = player.Player(9, 18, self.map_handler.ground_layer, self)
@@ -148,7 +156,7 @@ class GameView(arcade.View):
                 """
 
         self.window.mouse.draw()
-        arcade.draw_point(self.window.mouse.center_x, self.window.mouse.center_y, arcade.color.RADICAL_RED, 2)
+        self.map_handler.debug_draw()
 
     def on_update(self, delta_time: float):
         self.turn_handler.update()
@@ -174,7 +182,7 @@ class GameView(arcade.View):
         if 0 <= e_x < self.map_handler.map_width and 0 <= e_y < self.map_handler.map_height:
             if e_x != self.select_tile.e_x or e_y != self.select_tile.e_y:
                 self.select_tile.new_pos(e_x, e_y, map_size)
-                self.map_handler.hide_room(e_x, e_y)
+                self.map_handler.run_display('mouse', e_x, e_y)
                 c.ISO_LIST.reorder_isometric()
             if self.turn_handler.current_actor is not None and self.turn_handler.current_actor.actor == self.player:
                 self.player.find_move(self.select_tile, self.shift)
@@ -193,7 +201,7 @@ class GameView(arcade.View):
             if self.pressed is None and len(dragged):
                 dragged[-1].on_drag(dx, dy, (self.window.view_x + x, self.window.view_y + y))
                 self.pressed = dragged[-1]
-            elif self.pressed is not None:
+            elif self.pressed is not None and self.pressed.pressed_button is None:
                 self.pressed.on_drag(dx, dy, (self.window.view_x + x, self.window.view_y + y))
 
     def on_mouse_release(self, x: float, y: float, button: int,
@@ -219,6 +227,12 @@ class GameView(arcade.View):
                                                self.map_handler.map_size)
                 if self.player.check_path is not None:
                     self.player.set_move(self.shift)
+
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
+        pressed = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
+        if len(pressed):
+            self.pressed: ui.Tab = pressed[-1]
+            self.pressed.on_scroll(scroll_y)
 
 
 class TitleView(arcade.View):

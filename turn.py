@@ -105,13 +105,14 @@ class TurnHandler:
         self.turn_timer = time.time()
 
     def draw(self):
-        if self.current_actor is not None:
-            self.current_actor.draw()
-            arcade.draw_text(f"{self.current_actor.actor}, {self.current_actor.initiative_cost}",
-                             0, 0, arcade.color.WHITE)
-        else:
-            arcade.draw_text(str(self.current_actor),
-                             0, 0, arcade.color.WHITE)
+        pass
+        # if self.current_actor is not None:
+        #     self.current_actor.draw()
+        #     arcade.draw_text(f"{self.current_actor.actor}, {self.current_actor.initiative_cost}",
+        #                      0, 0, arcade.color.WHITE)
+        # else:
+        #     arcade.draw_text(str(self.current_actor),
+        #                      0, 0, arcade.color.WHITE)
 
 
 class Turn:

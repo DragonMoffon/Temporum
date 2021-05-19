@@ -10,21 +10,11 @@ import constants as c
 
 @dataclass()
 class IsoTexture:
-    """
-    location: str = ""
-    mod_x: float = .0
-    mod_y: float = .0
-
-    s_x: int = 0
-    s_y: int = 0
-
-    width: int = 0
-    height: int = 0
-    """
-
     location: Union[str, Path] = ""
+    hidden: Union[str, Path] = None
     mod_x: float = .0
     mod_y: float = .0
+    mod_z: float = .0
 
     s_x: int = 0
     s_y: int = 0
@@ -50,12 +40,12 @@ class IsoSprite(arcade.Sprite):
         # The center positions of the tile.
         self.center_x = x + iso_texture.mod_x*c.SPRITE_SCALE
         self.center_y = y + iso_texture.mod_y*c.SPRITE_SCALE
-        self.center_z = z
+        self.center_z = z + iso_texture.mod_z
 
         # the mod_x, and mod_y
         self.mod_x = iso_texture.mod_x
         self.mod_y = iso_texture.mod_y
-        self.mod_z = z_mod
+        self.mod_z = z_mod + iso_texture.mod_z
 
         # The isometric data
         self.iso_texture = iso_texture
@@ -64,6 +54,14 @@ class IsoSprite(arcade.Sprite):
         # The euclidean position of the sprite.
         self.e_x = e_x
         self.e_y = e_y
+
+        # textures for functions
+        self.base = self.texture
+        if iso_texture.hidden is not None:
+            self.hidden = arcade.load_texture(iso_texture.hidden, iso_texture.s_x, iso_texture.s_y,
+                                              iso_texture.width, iso_texture.height)
+        else:
+            self.hidden = None
 
     def new_pos(self, e_x, e_y, map_size=None, debug=False):
         self.center_x, self.center_y, self.center_z = cast_to_iso(e_x, e_y, map_size, self.mod_z, debug)

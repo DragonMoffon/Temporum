@@ -1,0 +1,80 @@
+{
+    "initiate": "Player Talking Start",
+    "response": "NPC Response",
+    "inputs": {
+        "One \"one\"": {
+            "initiate": "Player One, one",
+            "response": "NPC One, one",
+            "inputs": {
+                "One \"two\"": {
+                    "initiate": "Player One, two",
+                    "response": "NPC One, two",
+                    "inputs": {
+                        "One \"three\"": {
+                            "initiate": "Player One, three",
+                            "response": "NPC One, three",
+                            "inputs": {
+                                "One \"four\"": {
+                                    "initiate": "Player One, four",
+                                    "response": "NPC One, four",
+                                    "inputs": {
+                                        "One \"five\"": {
+                                            "initiate": "Player One, five",
+                                            "response": "NPC One, five",
+                                            "inputs": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "Two \"one\"": {
+                            "initiate": "Player Two, one",
+                            "response": "NPC Two, one",
+                            "inputs": {
+                                "Two \"two\"": {
+                                    "initiate": "Player Two, two",
+                                    "response": "NPC Two, two",
+                                    "inputs": {
+                                        "Two \"three\"": {
+                                            "initiate": "Player Two, three",
+                                            "response": "NPC Two, three",
+                                            "inputs": {
+                                                "Two \"four\"": {
+                                                    "initiate": "Player Two, four",
+                                                    "response": "NPC Two, four",
+                                                    "inputs": {
+                                                        "Two \"five\"": "Three \"one\"_Four \"one\""
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Three \"one\"": {
+            "initiate": "Player Three, one",
+            "response": "NPC Three, one",
+            "inputs": {
+                "Three \"two\"": {
+                    "initiate": "Player Three, two",
+                    "response": "NPC Three, one",
+                    "inputs": {
+                        "Three \"three\"": "One \"one\"_One \"two\""
+                    }
+                },
+                "Four \"one\"": {
+                    "initiate": "Player Four, one",
+                    "response": "NPC Four, one",
+                    "inputs": {
+                        "Four \"two\"": "One \"one\"_One \"two\"_Two \"one\"_Two \"two\"_Two \"three\""
+                    }
+                }
+            }
+        }
+    }
+}
