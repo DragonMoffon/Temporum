@@ -24,10 +24,18 @@ DIRECTIONS = {(0, -1): 0, (1, 0): 1, (0, 1): 2, (-1, 0): 3}
 # The Isolist That holds all isometric items
 ISO_LIST = IsoList()
 
+# Map Information
+CURRENT_MAP_SIZE = 0, 0
+
 
 """
 FUNCTIONS
 """
+
+
+def set_map_size(size):
+    global CURRENT_MAP_SIZE
+    CURRENT_MAP_SIZE = tuple(size)
 
 
 def clamp(value, low=0, high=1):
@@ -40,7 +48,6 @@ def round_to_x(value, x):
 
 def iso_append(item):
     ISO_LIST.append(item)
-    ISO_LIST.reorder_isometric()
 
 
 def iso_extend(iterable: iter):
@@ -50,7 +57,7 @@ def iso_extend(iterable: iter):
             changed = True
             iso_append(item)
     if changed:
-        ISO_LIST.reorder_isometric()
+        ISO_LIST.changed = changed
 
 
 def iso_strip(iterable: iter):
@@ -77,5 +84,8 @@ def iso_show(iterable: iter):
             show.append(item)
     iso_extend(show)
 
+
+def iso_changed():
+    ISO_LIST.changed = True
 
 

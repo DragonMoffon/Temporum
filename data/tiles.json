@@ -1,170 +1,313 @@
 {
     "files": [
         {"file": "assets/iso_tile_refrence_wall_sheet.png", "width": 160, "height": 320},
-        {"file": "assets/iso_tile_hidden_wall_sheet.png", "width": 160, "height": 320}],
+        {"file": "assets/iso_tile_hidden_wall_sheet.png", "width": 160, "height": 320},
+        {"file": "assets/POI/1-1.png", "width": 160, "height": 320},
+        {"file": "assets/POI/2-1.png", "width": 160, "height": 320}],
     "tiles": [
         {
             "texture": 0,
             "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 0,
-            "mod_z": 0,
-            "start_x": 0,
-            "start_y": 0,
-            "directions": [1, 1, 1, 1]
+            "mods" : [0, 0, 0],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0.3],
+            "directions": [0, 1, 1, 1],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0.3],
+            "directions": [1, 1, 1, 0],
+            "pieces" : [
+                {
+                    "start_x": 160,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0.2],
+            "directions": [1, 1, 0, 1],
+            "pieces" : [
+                {
+                    "start_x": 320,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0.1],
+            "directions": [1, 0, 1, 1],
+            "pieces" : [
+                {
+                    "start_x": 480,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0.3],
+            "directions": [0, 1, 1, 0],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 320
+                },
+                {
+                    "start_x": 160,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0],
+            "directions": [1, 1, 0, 0],
+            "pieces" : [
+                {
+                    "mod_w": 0.2,
+                    "start_x": 160,
+                    "start_y": 320
+                },
+                {
+                    "mod_w": 0.1,
+                    "start_x": 320,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0],
+            "directions": [1, 0, 0, 1],
+            "pieces" : [
+                {
+                    "mod_w": 0.2,
+                    "start_x": 320,
+                    "start_y": 320
+                },
+                {
+                    "mod_w": 0.1,
+                    "start_x": 480,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0],
+            "directions": [0, 0, 1, 1],
+            "pieces" : [
+                {
+                    "mod_w": 0.1,
+                    "start_x": 480,
+                    "start_y": 320
+                },
+                {
+                    "mod_w": 0.3,
+                    "start_x": 0,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0.3],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 640
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 1,
+            "mods" : [0, 20, 0],
+            "pieces" : [
+                {
+                    "start_x": 160,
+                    "start_y": 640
+                }
+            ]
         },
         {
             "texture": 0,
             "hidden": 1,
             "mod_x": 0,
             "mod_y": 20,
-            "mod_z": 0.3,
-            "start_x": 0,
-            "start_y": 320,
-            "directions": [0, 1, 1, 1]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0.3,
-            "start_x": 160,
-            "start_y": 320,
-            "directions": [1, 1, 1, 0]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0.2,
+            "mod_w": 0,
             "start_x": 320,
-            "start_y": 320,
-            "directions": [1, 1, 0, 1]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0.1,
-            "start_x": 480,
-            "start_y": 320,
-            "directions": [1, 0, 1, 1]
-        },
-        {
-            "splits": [2, 3],
-            "mod_z": [0.3, 0.3],
-            "directions": [0, 1, 1, 0]
-        },
-        {
-            "splits": [3, 4],
-            "directions": [1, 1, 0, 0]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0.2,
-            "start_x": 320,
-            "start_y": 640,
-            "directions": [1, 0, 0, 1]
-        },
-        {
-            "splits": [5, 2],
-            "directions": [0, 0, 1, 1]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 0,
             "start_y": 960,
             "directions": [1, 1, 1, 1]
         },
         {
             "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 160,
-            "start_y": 960,
-            "directions": [1, 1, 1, 1]
+            "hidden": 0,
+            "mods" : [0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 320,
+                    "start_y": 640
+                }
+            ]
         },
         {
             "texture": 0,
             "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 320,
-            "start_y": 960,
-            "directions": [1, 1, 1, 1]
+            "mods" : [0, 20, 0],
+            "directions": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "start_x": 480,
+                    "start_y": 640
+                }
+            ]
         },
         {
             "texture": 0,
             "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 480,
-            "start_y": 960,
-            "directions": [1, 1, 1, 1]
+            "mods" : [0, 20, 0.3],
+            "directions": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 960
+                }
+            ]
         },
         {
             "texture": 0,
             "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 0,
-            "start_y": 1280,
-            "directions": [0, 0, 0, 0]
+            "mods" : [0, 20, 0],
+            "directions": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 160,
+                    "start_y": 960
+                }
+            ]
         },
         {
             "texture": 0,
             "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 160,
-            "start_y": 1280,
-            "directions": [0, 0, 0, 0]
+            "mods" : [0, 20, 0],
+            "directions": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 320,
+                    "start_y": 960
+                }
+            ]
         },
         {
             "texture": 0,
             "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 320,
-            "start_y": 1280,
-            "directions": [0, 0, 0, 0]
+            "mods" : [0, 20, 0],
+            "directions": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 480,
+                    "start_y": 960
+                }
+            ]
+        },
+        {
+            "texture": 2,
+            "hidden": 2,
+            "mods" : [0, 0, 0.24],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 2,
+            "hidden": 2,
+            "mods" : [0, 0, 0.24],
+            "pieces" : [
+                {
+                    "start_x": 160,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 3,
+            "hidden": 3,
+            "mods" : [0, 0, 0.24],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "start_x": 0,
+                    "start_y": 0
+                },
+                {
+                    "relative_pos": [0, 1],
+                    "start_x": 160,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 3,
+            "hidden": 3,
+            "mods" : [0, 0, 0.24],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "start_x": 0,
+                    "start_y": 320
+                },
+                {
+                    "relative_pos": [1, 0],
+                    "start_x": 160,
+                    "start_y": 320
+                }
+            ]
         },
         {
             "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 20,
-            "mod_z": 0,
-            "start_x": 480,
-            "start_y": 1280,
-            "directions": [0, 0, 0, 0]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mod_x": 0,
-            "mod_y": 0,
-            "mod_z": 0,
-            "start_x": 0,
-            "start_y": 0,
-            "directions": [0, 0, 0, 0]
+            "hidden": 0,
+            "mods": [0, 0, 0],
+            "direction": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
         }
     ]
 }

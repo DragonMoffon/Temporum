@@ -5,21 +5,6 @@ import numpy as np
 import arcade
 
 import constants as c
-import isometric
-
-GRID_ISO_DATA = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 320, 0, 160, 320)
-SOUTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 0, 320, 160, 320)
-EAST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 160, 320, 160, 320)
-NORTH = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 320, 320, 160, 320)
-WEST = isometric.IsoTexture("assets/iso_select_tile_sheet.png", None, .0, 20.0, .0, 480, 320, 160, 320)
-DIRECTIONS = {0: NORTH, 1: EAST, 2: SOUTH, 3: WEST, 4: GRID_ISO_DATA}
-
-
-class GridSprite(isometric.IsoSprite):
-
-    def __init__(self, location: tuple, direction=4):
-        x, y, z = isometric.cast_to_iso(location[0], location[1], z_mod=0.5)
-        super().__init__(location[0], location[1], x, y, z, DIRECTIONS[direction], 0.5)
 
 
 class GridNode:
@@ -28,13 +13,6 @@ class GridNode:
         self.directions: list[GridNode, GridNode, GridNode, GridNode] = [None, None, None, None]
         self.cost = cost
         self.location: tuple[int, int] = location
-        self.node_sprite = GridSprite(location)
-
-    def show_self(self):
-        c.iso_append(self.node_sprite)
-
-    def remove_self(self):
-        self.node_sprite.remove_from_sprite_lists()
 
     def __le__(self, other):
         return id(self) <= id(other)
@@ -61,7 +39,7 @@ class PathFindingGrid:
 
     def __init__(self, map_data):
         self.map_data = map_data
-        self.points = np.empty([map_data.map_width, map_data.map_height], GridNode)
+        self.points = np.empty([c.CURRENT_MAP_SIZE[1], c.CURRENT_MAP_SIZE[0]], GridNode)
         self.find_neighbors()
 
     def find_neighbors(self):
@@ -71,13 +49,13 @@ class PathFindingGrid:
                 if self.map_data.ground_layer[y_dex][x_dex]:
                     cur_node = GridNode((x_dex, y_dex))
                     self.points[y_dex, x_dex] = cur_node
-                    current_tile = self.map_data.layers['map']['1']['wall'].tile_map[x_dex, y_dex]
+                    current_tile = self.map_data.layers['1']['wall'].tile_map[x_dex, y_dex]
                     for direction in dirs:
-                        n_x = c.clamp(x_dex+direction[0], 0, len(self.points)-1)
-                        n_y = c.clamp(y_dex+direction[1], 0, len(row)-1)
-                        neighbor_tile = self.map_data.layers['map']['1']['wall'].tile_map[n_x, n_y]
-                        neighbor = self.points[n_y, n_x]
-                        if n_x != x_dex or n_y != y_dex:
+                        n_x = x_dex+direction[0]
+                        n_y = y_dex+direction[1]
+                        if n_x < len(row) and n_y < len(self.points):
+                            neighbor_tile = self.map_data.layers['1']['wall'].tile_map[n_x, n_y]
+                            neighbor = self.points[n_y, n_x]
                             cur_neigh_dir = c.DIRECTIONS[direction]
                             neigh_cur_dir = (cur_neigh_dir+2) % 4
                             neigh_check = False
@@ -100,92 +78,110 @@ class PathFindingGrid:
                                 # cur_node.directions[cur_neigh_dir] = neighbor
                                 # neighbor.directions[neigh_cur_dir] = cur_node
 
-    def draw(self):
-        dirs = ((0, -0.25), (0.25, 0), (0, 0.25), (-0.25, 0))
-        for y_dex, point_row in enumerate(self.points):
-            for x_dex, value in enumerate(point_row):
-                if value is not None:
-                    for dir_dex, direction in enumerate(dirs):
-                        t_x = x_dex+direction[0]
-                        t_y = y_dex+direction[1]
-                        iso_x, iso_y, iso_z = isometric.cast_to_iso(t_x, t_y)
-                        if value.directions[dir_dex] is None:
-                            arcade.draw_point(iso_x, iso_y-60, arcade.color.RADICAL_RED, 5)
-                        else:
-                            arcade.draw_point(iso_x, iso_y-60, arcade.color.WHITE, 5)
-
 
 def astar_heuristic(a: tuple = (int, int), b: tuple = (int, int)):
     x1, y1 = a
     x2, y2 = b
-    return sqrt((x1-x2)**2 + (y1-y2)**2)
+    return (x1-x2)**2 + (y1-y2)**2
 
 
-def path_2d(grid_2d: PathFindingGrid, start_yx):
+def path_2d(grid_2d: PathFindingGrid, start_yx, max_dist: int = 20):
+    """
+    :param grid_2d: The Grid That has the GridNodes and other data
+    :param start_yx: The starting x and y position.
+    :param max_dist: The maximum distance a tile can be before it stops processing.
+    :return: The came_from and cost_so_far dictionaries, and if player is true it also returns costs_loaded and edges.
+    """
     start: GridNode = grid_2d.points[start_yx]
     frontier = PriorityQueue()
     frontier.put(0, start)
+    # came_from uses a GridNode as a key and gives another grid node which it came from. This Dict is used to create
+    # paths that go from the end to the start.
     came_from = dict()
+    # cost_so_far uses a Gridnode as a key and gives how much this node costs.
     cost_so_far = dict()
+    # costs_loaded uses a float as a key and gives a list of all the nodes that have this cost. So all nodes with a cost
+    # of 1 are stored in a list, all nodes with a cost of 2 are in a list etc.
     costs_loaded = dict()
-    edges = dict()
+    # edges is a list of all nodes that have and edge.
+    edges = []
+
+    # Sets up the start node in all of the lists.
     came_from[start] = None
     cost_so_far[start] = 0
     costs_loaded[0] = [start]
-    if None is start.directions:
-        edges[0] = [start]
+    if None in start.directions:
+        edges.append(start)
 
+    # The Path Grid Loop.
     while not frontier.empty():
+        # Gets the GridNode with the lowest cost.
         current = frontier.get()
 
+        # Looks at each direction in the GridNode for the next in the path.
         for dirs in current.directions:
+            # If there is a connection in this direction
             if dirs is not None:
+                # find the cost for this node.
                 new_cost = cost_so_far[current] + dirs.cost
-                if dirs not in cost_so_far or cost_so_far[dirs] > new_cost:
-                    cost_so_far[dirs] = new_cost
-                    frontier.put(new_cost, dirs)
-                    came_from[dirs] = current
-                    if new_cost not in costs_loaded:
-                        costs_loaded[new_cost] = [dirs]
-                    else:
-                        costs_loaded[new_cost].append(dirs)
+                if new_cost <= max_dist:
+                    # If the cost is new or lower than the previous cost add it to the queue
+                    if dirs not in cost_so_far or cost_so_far[dirs] > new_cost:
+                        cost_so_far[dirs] = new_cost
+                        frontier.put(new_cost, dirs)
+                        came_from[dirs] = current
+                        if new_cost not in costs_loaded:
+                            costs_loaded[new_cost] = [dirs]
+                        else:
+                            costs_loaded[new_cost].append(dirs)
             else:
-                current_cost = cost_so_far[current]
-                if current_cost not in edges:
-                    costs_loaded[current_cost] = [current]
-                elif current not in costs_loaded[current_cost].append(current):
-                    costs_loaded[current_cost].append(current)
+                # If the node has a none in a direction then it is an edge.
+                if current not in edges:
+                    edges.append(current)
 
-    return came_from, cost_so_far, costs_loaded
-
-
-def find_edge(max_distance, cost_so_far, costs_loaded):
-    edged = []
-    for node in costs_loaded[max_distance]:
-        for index, direction in enumerate(node.directions):
-            sprite = None
-            if direction is not None:
-                if max_distance < cost_so_far[direction]:
-                    sprite = GridSprite(node.location, index)
-            else:
-                sprite = GridSprite(node.location, index)
-
-            if sprite is not None:
-                edged.append(sprite)
-                c.iso_append(sprite)
-    return edged
+    edges = sorted(edges, key=lambda edge: cost_so_far[edge])
+    return came_from, cost_so_far, costs_loaded, edges
 
 
 def reconstruct_path(grid_2d: PathFindingGrid, came_from: dict, start_yx: tuple, end_yx: tuple):
     start = grid_2d.points[start_yx]
     end = grid_2d.points[end_yx]
-    if end is not None:
+    if end is None:
+        best = 10000
+        dirs = (0, 1), (0, -1), (1, 0), (-1, 0)
+        for direction in dirs:
+            pos = c.clamp(end_yx[1]+direction[0], 0, 19), c.clamp(end_yx[0]+direction[1], 0, 19)
+            distance = astar_heuristic(pos, (start_yx[1], start_yx[0]))
+            if distance < best:
+                new_end = grid_2d.points[(pos[1], pos[0])]
+                if new_end is not None:
+                    best = distance
+                    end = new_end
+
+    if end is not None or end not in came_from:
         current = end
         path: list[GridNode] = []
         while current != start:
             path.append(current)
-            current = came_from[current]
+            if current in came_from:
+                current = came_from[current]
+            else:
+                return []
 
         path.reverse()
         return path
-    return None
+    return []
+
+
+def create_bot(e_x, e_y, grid_2d):
+    import isometric
+
+    bot_text = isometric.IsoTexture("assets/iso_player_character.png", None, .0, 45.0, .25, 0, 0, 160, 320)
+
+    class SimpleMoveBot(isometric.IsoActor):
+
+        def __init__(self):
+            super().__init__(e_x, e_y, bot_text)
+            self.set_grid(grid_2d)
+
+    return SimpleMoveBot()

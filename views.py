@@ -1,3 +1,5 @@
+import random
+
 import arcade
 
 import constants as c
@@ -7,6 +9,7 @@ import isometric
 import ui
 import turn
 import interaction
+import algorithms
 import shaders
 
 
@@ -62,14 +65,17 @@ class GameView(arcade.View):
 
         # Conversation Handler
         self.convo_handler = interaction.load_conversation()
-        print(self.convo_handler)
 
         # The player info
-        self.player = player.Player(9, 18, self.map_handler.ground_layer, self)
+        self.player = player.Player(25, 25, self)
         c.iso_append(self.player)
 
+        # A Test Bot
+        self.test_bot = algorithms.create_bot(26, 25, algorithms.PathFindingGrid(self.map_handler))
+        c.iso_append(self.test_bot)
+
         # Mouse Select
-        self.select_tile = player.Select(0, 0, 0.1, self.map_handler.map_size)
+        self.select_tile = player.Select(0, 0, 0.1)
         c.iso_append(self.select_tile)
 
         self.selected_tile: player.Selected = None
@@ -79,23 +85,25 @@ class GameView(arcade.View):
         self.master_tab = ui.MasterTab(self)
         self.pressed = None
 
-        # Turn handler
-        self.turn_handler = turn.TurnHandler(self, self.player, [])
+        # Turn System
+        self.turn_handler = turn.TurnHandler([self.player.action_handler, self.test_bot.action_handler])
 
         # keys for held checks
         self.shift = False
 
         # Debugging tools
-        self.test_sprite = arcade.Sprite("assets/iso_tile_refrence.png", scale=5)
         self.test_list = arcade.SpriteList()
-        self.test_list.append(self.test_sprite)
+
+        # player action data
+        self.selected_action = 'move'
+        self.pending_action = None
+        self.current_handler = None
 
         # Shader Programs
-        """
+
         # Debugging shader
-        self.test_program, self.buffer, self.description, self.triangle_geometry \
-            = shaders.setup_fullscreen_shader(self.window.ctx, "shaders/isometric_test_fs.glsl")
-        """
+        # self.test_program, self.buffer, self.description, self.triangle_geometry \
+        #     = shaders.setup_fullscreen_shader(self.window.ctx, "shaders/isometric_test_fs.glsl")
 
         # Last action: reorder the shown isometric sprites
         c.ISO_LIST.reorder_isometric()
@@ -104,48 +112,35 @@ class GameView(arcade.View):
         arcade.start_render()
         c.ISO_LIST.draw()
         arcade.draw_point(0, 0, arcade.color.RAW_UMBER, 5)
+        self.turn_handler.on_draw()
+        if self.pending_action is not None:
+            self.pending_action.draw()
+
         for element in self.ui_elements:
             element.draw()
-        self.turn_handler.draw()
-        if self.player.check_path is not None:
-            prev_node = None
-            for index, node in enumerate(self.player.check_path):
-                if prev_node is not None:
-                    px, py, pz = isometric.cast_to_iso(prev_node.location[0], prev_node.location[1])
 
-                    loss_mod = 0
-                    if self.player.current_path is not None and self.shift:
-                        loss_mod = len(self.player.current_path)
-                    nx, ny, nz = isometric.cast_to_iso(node.location[0], node.location[1])
-
-                    if index < self.player.action_handler.calculate_remaining() - loss_mod:
-                        arcade.draw_line(px, py-55,
-                                         nx, ny-55,
-                                         arcade.color.ELECTRIC_BLUE, 2)
-                    else:
-                        arcade.draw_line(px, py-55,
-                                         nx, ny-55,
-                                         arcade.color.RADICAL_RED, 2)
-                prev_node = node
-
-        if self.player.current_path is not None:
-            prev_node = None
-            for node in self.player.current_path:
-                if prev_node is not None:
-                    px, py, pz = isometric.cast_to_iso(prev_node.location[0], prev_node.location[1])
-                    nx, ny, nz = isometric.cast_to_iso(node.location[0], node.location[1])
-                    arcade.draw_line(px, py - 55,
-                                     nx, ny - 55,
-                                     (27, 40, 149), 2)
-                prev_node = node
+        """
+        if self.player.path_finding_grid is not None:
+            dirs = ((0, -0.25), (0.25, 0), (0, 0.25), (-0.25, 0))
+            for y_dex, point_row in enumerate(self.player.path_finding_grid.points):
+                for x_dex, value in enumerate(point_row):
+                    if value is not None:
+                        for dir_dex, direction in enumerate(dirs):
+                            t_x = x_dex + direction[0]
+                            t_y = y_dex + direction[1]
+                            iso_x, iso_y, iso_z = isometric.cast_to_iso(t_x, t_y)
+                            if value.directions[dir_dex] is None:
+                                arcade.draw_point(iso_x, iso_y - 60, arcade.color.RADICAL_RED, 5)
+                            else:
+                                arcade.draw_point(iso_x, iso_y - 60, arcade.color.WHITE, 5)
+        """
 
         # Debugging of the map_handler
         # self.map_handler.debug_draw(True)
-        """
+
         # Debugging Shader
-        self.test_program['screen_pos'] = self.window.view_x, self.window.view_y
-        self.triangle_geometry.render(self.test_program, mode=self.window.ctx.TRIANGLES)
-        """
+        # self.test_program['screen_pos'] = self.window.view_x, self.window.view_y
+        # self.triangle_geometry.render(self.test_program, mode=self.window.ctx.TRIANGLES)
 
         """
         # Debugging loop.
@@ -159,17 +154,31 @@ class GameView(arcade.View):
         self.map_handler.debug_draw()
 
     def on_update(self, delta_time: float):
-        self.turn_handler.update()
+        # Debug FPS
+        # print(f"FPS: {1/delta_time}")
+        self.turn_handler.on_update(delta_time)
+        if self.current_handler != self.turn_handler.current_handler:
+            if self.turn_handler.current_handler == self.player.action_handler:
+                self.set_pending_action()
+                self.process_action()
+
+            self.current_handler = self.turn_handler.current_handler
+
+        if self.turn_handler.current_handler == self.test_bot.action_handler and \
+                self.test_bot.action_handler.current_action is None and self.test_bot.action_handler.initiative > 0:
+            self.test_bot.load_paths()
+            move_location = random.choice(self.test_bot.path_finding_data[2]
+                                          [self.test_bot.action_handler.initiative]).location
+            self.test_bot.action_handler.current_action = turn.ACTIONS['move'](move_location,
+                                                                               self.test_bot.action_handler)
 
     def on_show(self):
         view_x, view_y = self.window.view_x, self.window.view_y
         arcade.set_viewport(view_x, view_x+c.SCREEN_WIDTH, view_y, view_y+c.SCREEN_HEIGHT)
 
     def on_key_press(self, symbol: int, modifiers: int):
-        if symbol == arcade.key.LSHIFT:
-            self.shift = True
-        elif self.turn_handler.current_actor.actor == self.player:
-            self.player.on_key_press(symbol, self.shift)
+        if symbol == arcade.key.ENTER and self.turn_handler.current_handler == self.player.action_handler:
+            self.push_action()
 
     def on_key_release(self, _symbol: int, _modifiers: int):
         if _symbol == arcade.key.LSHIFT:
@@ -178,14 +187,18 @@ class GameView(arcade.View):
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         map_size = self.map_handler.map_size
         y_mod = ((160-c.FLOOR_TILE_THICKNESS)*c.SPRITE_SCALE)
-        e_x, e_y = isometric.cast_from_iso(self.window.view_x + x, self.window.view_y + y + y_mod, map_size)
+        e_x, e_y = isometric.cast_from_iso(self.window.view_x + x, self.window.view_y + y + y_mod)
         if 0 <= e_x < self.map_handler.map_width and 0 <= e_y < self.map_handler.map_height:
             if e_x != self.select_tile.e_x or e_y != self.select_tile.e_y:
-                self.select_tile.new_pos(e_x, e_y, map_size)
+                self.select_tile.new_pos(e_x, e_y)
+                c.iso_changed()
                 self.map_handler.run_display('mouse', e_x, e_y)
-                c.ISO_LIST.reorder_isometric()
-            if self.turn_handler.current_actor is not None and self.turn_handler.current_actor.actor == self.player:
-                self.player.find_move(self.select_tile, self.shift)
+                self.set_pending_action()
+        elif self.player.e_x != self.select_tile.e_x or self.player.e_y != self.select_tile.e_y:
+            self.select_tile.new_pos(self.player.e_x, self.player.e_y)
+            c.iso_changed()
+            self.map_handler.run_display('mouse', self.player.e_x, self.player.e_y)
+            self.set_pending_action()
 
     def on_mouse_drag(self, x: float, y: float, dx: float, dy: float, _buttons: int, _modifiers: int):
         if _buttons == 2:
@@ -218,21 +231,41 @@ class GameView(arcade.View):
                 self.pressed.on_press((self.window.view_x + x, self.window.view_y + y))
             else:
                 if self.selected_tile is None:
-                    self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y, 0.1,
-                                                         self.map_handler.map_size)
+                    self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y, 0.1)
                     c.ISO_LIST.append(self.selected_tile)
-                    c.ISO_LIST.reorder_isometric()
                 else:
-                    self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y,
-                                               self.map_handler.map_size)
-                if self.player.check_path is not None:
-                    self.player.set_move(self.shift)
+                    self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y)
+
+                self.process_action()
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
         pressed = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
         if len(pressed):
             self.pressed: ui.Tab = pressed[-1]
             self.pressed.on_scroll(scroll_y)
+
+    def select_action(self, base_input, action: str):
+        if action != self.selected_action:
+            self.selected_action = action
+            self.set_pending_action()
+            self.process_action()
+
+    def set_pending_action(self):
+        if self.turn_handler.current_handler == self.player.action_handler \
+           and self.selected_action is not None and self.player.action_handler.current_action is None:
+            action_data = turn.ACTIONS[self.selected_action]
+            self.pending_action = action_data([self.select_tile.e_x, self.select_tile.e_y],
+                                              self.player.action_handler)
+
+    def process_action(self):
+        if self.turn_handler.current_handler == self.player.action_handler \
+           and self.player.action_handler.current_action is None:
+            self.player.action_handler.pending_action = self.pending_action
+
+    def push_action(self):
+        if self.player.action_handler.pending_action is not None:
+            self.player.action_handler.current_action = self.player.action_handler.pending_action
+            self.pending_action = None
 
 
 class TitleView(arcade.View):

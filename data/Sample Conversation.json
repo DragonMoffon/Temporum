@@ -3,7 +3,7 @@
     "response": "Hello to you too! I am info bot! i'd be happy \nto explain this conversation system, or have\njust a nice conversation.",
     "inputs": {
         "How does the conversation system work?": {
-            "initiate": "Hello! I am wondering how the conversation\nsystem works, could you explain it to me?",
+            "initiate": "I am wondering how the conversation\nsystem works, could you explain it to me?",
             "response": "Sure thing! It works through a conversation\ntree. These trees are made of nodes and \njoints. Then the tree is stored in a json file.",
             "inputs": {
                 "How do nodes work?": {

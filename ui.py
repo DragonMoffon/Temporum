@@ -1,8 +1,11 @@
+import math
+
 import arcade
 from arcade import *
 
-import interaction
 
+import interaction
+import turn
 import constants as c
 
 
@@ -57,7 +60,7 @@ class TriggerEventAction(Action):
     def act(self):
         self.data[0](1, *self.data[1:])
 
-    def input_act(self, inputs: tuple = (1, None)):
+    def input_act(self, inputs: tuple = (1,)):
         direction = -int(inputs[0] / abs(inputs[0]))
         self.data[0](direction, *self.data[1:])
 
@@ -94,6 +97,9 @@ class Button(Sprite):
         self.action.input_act([value])
         if self.secondary_action is not None:
             self.secondary_action.input_act([value])
+
+    def draw_hit_box(self, color: Color = arcade.color.WHITE, line_thickness: float = 1):
+        arcade.draw_text(self.text, self.center_x, self.center_y, color, anchor_x='center', anchor_y='center')
 
 
 class Tab(Sprite):
@@ -134,12 +140,13 @@ class Tab(Sprite):
     def process_buttons(self):
         buttons = arcade.SpriteList()
         if self.button_data is not None:
-            texture = arcade.load_texture("assets/ui/ui_pieces.png", x=525, width=180, height=90)
+            texture = arcade.load_texture("assets/ui/ui_pieces.png", x=230, width=230, height=90)
             for data in self.button_data:
-                texture = data.get('text', texture)
+                text = data.get('text', '')
+                texture = data.get('texture', texture)
                 second = data.get('secondary', None)
                 pos = (self.center_x + data['x'] * c.SPRITE_SCALE, self.center_y + data['y'] * c.SPRITE_SCALE)
-                buttons.append(Button(texture, pos=pos, action=data['action'], secondary_action=second))
+                buttons.append(Button(texture, pos=pos, action=data['action'], secondary_action=second, text=text))
         return buttons
 
     def process_displays(self):
@@ -147,7 +154,7 @@ class Tab(Sprite):
         for data in self.display_data:
             textures = []
             for text_data in data['textures']:
-                texture = arcade.load_texture(data['text_location'], x=text_data['x'],
+                texture = arcade.load_texture(data['text_location'], x=text_data['x'], y=text_data.get('y', 0),
                                               width=text_data['width'], height=text_data['height'])
                 textures.append(texture)
             pos = self.center_x + data['x'] * c.SPRITE_SCALE, self.center_y + data['y'] * c.SPRITE_SCALE
@@ -198,6 +205,7 @@ class Tab(Sprite):
     def draw(self):
         super().draw()
         self.buttons.draw()
+        self.buttons.draw_hit_boxes()
         self.displays.draw()
 
     def _get_center_x(self) -> float:
@@ -266,52 +274,52 @@ class Display(arcade.Sprite):
 class DisplayTab(Tab):
 
     def __init__(self, game_view):
+        text_data = [{'x': 230, 'y': 180, 'width': 230, 'height': 90},
+                     {'x': 460, 'y': 180, 'width': 230, 'height': 90},
+                     {'x': 690, 'y': 180, 'width': 230, 'height': 90}]
         display_data = [{'x': -95, 'y': 70, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': [{'x': 1080, 'width': 180, 'height': 90},
-                                      {'x': 1260, 'width': 180, 'height': 90},
-                                      {'x': 1440, 'width': 180, 'height': 90}]},
+                         'textures': text_data},
                         {'x': -95, 'y': -5, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': [{'x': 1080, 'width': 180, 'height': 90},
-                                      {'x': 1260, 'width': 180, 'height': 90},
-                                      {'x': 1440, 'width': 180, 'height': 90}]},
+                         'textures': text_data},
                         {'x': -95, 'y': -80, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': [{'x': 1080, 'width': 180, 'height': 90},
-                                      {'x': 1260, 'width': 180, 'height': 90},
-                                      {'x': 1440, 'width': 180, 'height': 90}]}]
+                         'textures': text_data}]
 
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=4120, width=1030, height=650),
                          c.SCREEN_WIDTH - 126, 105, game_view, False, display_data=display_data)
-        self.button_data = [{"x": 65, "y": 75,
+        self.button_data = [{"x": 65, "y": 70,
                              "action": ToggleTextureAction((self.displays[0], self.displays[0].textures)),
                              'secondary': TriggerEventAction((game_view.map_handler.display_handler.mod_state, 'wall')),
-                             'text': arcade.load_texture("assets/ui/ui_pieces.png", x=900, width=180, height=90)},
-                            {"x": 65, "y": 0,
+                             'texture': arcade.load_texture("assets/ui/ui_pieces.png",
+                                                            x=0, y=180, width=230, height=90)},
+                            {"x": 65, "y": -5,
                              "action": ToggleTextureAction((self.displays[1], self.displays[1].textures)),
                              'secondary': TriggerEventAction((game_view.map_handler.display_handler.mod_state, 'cover'))
-                             , 'text': arcade.load_texture("assets/ui/ui_pieces.png", x=900, width=180, height=90)},
-                            {"x": 65, "y": -75,
+                             , 'texture': arcade.load_texture("assets/ui/ui_pieces.png",
+                                                              x=0, y=180, width=230, height=90)},
+                            {"x": 65, "y": -80,
                              "action": ToggleTextureAction((self.displays[2], self.displays[2].textures)),
                              'secondary': TriggerEventAction((game_view.map_handler.display_handler.mod_state, 'poi')),
-                             'text': arcade.load_texture("assets/ui/ui_pieces.png", x=900, width=180, height=90)}]
+                             'texture': arcade.load_texture("assets/ui/ui_pieces.png",
+                                                            x=0, y=180, width=230, height=90)}]
         self.buttons = self.process_buttons()
 
 
 class InvTab(Tab):
 
     def __init__(self, game_view):
-        button_data = [{"x": 275, "y": 165,
+        button_data = [{"x": 280, "y": 165,
                         "action": ToggleTabAction((self, game_view.ui_elements)),
-                        'text': arcade.load_texture("assets/ui/ui_pieces.png", x=350, width=180, height=90)}]
+                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)}]
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=1030, width=1030, height=650),
-                         219, 945, game_view, button_data=button_data)
+                         216, 948, game_view, button_data=button_data)
 
 
 class TalkTab(Tab):
 
     def __init__(self, game_view):
-        button_data = [{"x": 435, "y": 140,
+        button_data = [{"x": 440, "y": 140,
                         "action": ToggleTabAction((self, game_view.ui_elements)),
-                        'text': arcade.load_texture("assets/ui/ui_pieces.png", x=350, width=180, height=90)}]
+                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)}]
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=2060, width=1030, height=650),
                          c.SCREEN_WIDTH - 567, 123, game_view, button_data=button_data)
 
@@ -332,9 +340,9 @@ class TalkTab(Tab):
         node_buttons = []
         button_text = []
         for index, key_node in enumerate(self.current_node.inputs.items()):
-            button = {"x": -390, "y": 50 - 75*index,
-                        "action": TriggerEventAction((self.next_node, key_node[1])),
-                        'text': arcade.load_texture("assets/ui/ui_pieces.png", x=900, width=180, height=90)}
+            button = {"x": -390, "y": 50 - 75 * index,
+                      "action": TriggerEventAction((self.next_node, key_node[1])),
+                      'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=230, y=90, width=230, height=90)}
             button_text.append([key_node[0], button['x'], button['y']])
             node_buttons.append(button)
         self.node_button_text = button_text
@@ -346,7 +354,7 @@ class TalkTab(Tab):
         # TODO: Create a proper text system and intergrate into displays. Then remove this placeholder system.
         if len(self.node_buttons) and self.node_buttons[0] in self.button_data:
             for text in self.node_button_text:
-                draw_text(text[0], self.center_x + text[1]*c.SPRITE_SCALE, self.center_y + text[2]*c.SPRITE_SCALE,
+                draw_text(text[0], self.center_x + text[1] * c.SPRITE_SCALE, self.center_y + text[2] * c.SPRITE_SCALE,
                           arcade.color.WHITE, anchor_y='top')
 
     def on_press(self, point):
@@ -358,11 +366,31 @@ class TalkTab(Tab):
 class ActionTab(Tab):
 
     def __init__(self, game_view):
-        button_data = [{"x": 365, "y": 105,
-                        "action": ToggleTabAction((self, game_view.ui_elements)),
-                        'text': arcade.load_texture("assets/ui/ui_pieces.png", x=350, width=180, height=90)}]
+        text_data = [{'x': 460, 'y': 90, 'width': 230, 'height': 90},
+                     {'x': 690, 'y': 0, 'width': 230, 'height': 90}]
+        display_data = [
+            {'x': -330, 'y': 70, 'text_location': 'assets/ui/ui_pieces.png',
+                         'textures': text_data},
+            {'x': -330, 'y': -5, 'text_location': 'assets/ui/ui_pieces.png',
+                         'textures': text_data},
+            {'x': -330, 'y': -80, 'text_location': 'assets/ui/ui_pieces.png',
+                         'textures': text_data},
+            {'x': 10, 'y': 70, 'text_location': 'assets/ui/ui_pieces.png',
+                         'textures': text_data},
+            {'x': 10, 'y': -5, 'text_location': 'assets/ui/ui_pieces.png',
+                         'textures': text_data},
+            {'x': 10, 'y': -80, 'text_location': 'assets/ui/ui_pieces.png',
+                         'textures': text_data}]
+        button_data = [{'x': -175 + ((math.floor(index/3))*340), 'y': 75-((index % 3)*75),
+                        "action": TriggerEventAction((game_view.select_action, action)),
+                        "texture": arcade.load_texture("assets/ui/ui_pieces.png", x=230, y=90, width=230, height=90),
+                        'text': f"{action[:1].upper()}{action[1:]}"} for index, action in enumerate(turn.ACTIONS)]
+        button_data.append({"x": 370, "y": 105,
+                            "action": ToggleTabAction((self, game_view.ui_elements)),
+                            'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)})
+
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=3090, width=1030, height=650),
-                         669, 99, game_view, button_data=button_data)
+                         669, 99, game_view, button_data=button_data, display_data=display_data)
 
 
 class MasterTab(Tab):
@@ -372,11 +400,11 @@ class MasterTab(Tab):
                     TalkTab(game_view),
                     ActionTab(game_view),
                     DisplayTab(game_view))
-        button_data = ({"x": -235, "y": 120,
+        button_data = ({"x": -220, "y": 120, "text": "INV",
                         "action": ToggleTabAction((tab_data[0], game_view.ui_elements))},
-                       {"x": -235, "y": -15,
+                       {"x": -220, "y": -15, "text": "TALK",
                         "action": ToggleTabAction((tab_data[1], game_view.ui_elements))},
-                       {"x": -235, "y": -150,
+                       {"x": -220, "y": -150, "text": "ACT",
                         "action": ToggleTabAction((tab_data[2], game_view.ui_elements))})
 
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", width=1030, height=650),

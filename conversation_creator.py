@@ -165,8 +165,8 @@ class InitiateJoint(arcade.SpriteSolidColor):
         arcade.draw_text(self.text['expressed'], tab.center_x+15, tab.center_y+75, arcade.color.BLACK, 15)
 
 
-TEXTURES = {Event: arcade.load_texture("assets/Tools/convocreatortab.png", width=480, height=567),
-            InitiateJoint: arcade.load_texture("assets/Tools/convocreatortab.png", x=480, width=480, height=567)}
+TEXTURES = {Event: arcade.load_texture("assets/tools/convocreatortab.png", width=480, height=567),
+            InitiateJoint: arcade.load_texture("assets/tools/convocreatortab.png", x=480, width=480, height=567)}
 
 
 class ConvoWindow(arcade.Window):
@@ -184,7 +184,7 @@ class ConvoWindow(arcade.Window):
                                             image_width=480, image_height=567, image_x=960)
         self.tab = arcade.Sprite("assets/tools/convocreatortab.png", image_width=480, image_height=567,
                                  center_x=self.width - 120, center_y=self.height / 2)
-        self.text_tab = arcade.Sprite("assets/Tools/convocreatortext.png", center_x=320, center_y=self.height / 2)
+        self.text_tab = arcade.Sprite("assets/tools/convocreatortext.png", center_x=320, center_y=self.height / 2)
 
         self.segment_list = arcade.SpriteList()
         self.start = Event(self.width/2, self.height-200, "Start", [])
@@ -366,6 +366,9 @@ class ConvoWindow(arcade.Window):
         self.data = self.delve_node(self.start)
         with open(f"data/{self.convo_name}.json", "w") as save_file:
             json.dump(self.data, save_file, indent=4)
+
+    def load_from_json(self):
+        pass
 
 
 def main():

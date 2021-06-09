@@ -1,4 +1,5 @@
 import numpy as np
+import json
 
 import arcade
 
@@ -9,7 +10,7 @@ import constants as c
 
 CHECK_DIR = (1, 0), (0, 1), (1, 1)
 INV = {'mouse': 'player', 'player': 'mouse'}
-
+test = 0
 
 class DisplayHandler:
 
@@ -51,22 +52,22 @@ class MapHandler:
 
     def __init__(self):
         # Read the map. This will later be a list of maps depending on the area.
-        self.map = arcade.read_tmx("tiled/tilemaps/mvp.tmx")
+        self.current_location = "WorkroomEntrance"
+        self.map = arcade.read_tmx(f"tiled/tilemaps/{self.current_location}.tmx")
         self.display_handler = DisplayHandler(self)
 
         # Save the layers for the map in a dictionary
-        self.layers: dict[str, (dict, isometric.IsoLayer)] = {"map": {'1': {'floor': None, 'wall': None, 'poi': None},
-                                                                      '2': {}},
-                                                              "data": {'1': {'room': None}, '2': {}}}
+        self.layers: dict[str, (dict, isometric.IsoLayer)] = {'1': {'floor': None, 'wall': None,
+                                                                    'poi': None, 'room': None},
+                                                              '2': {'floor': None, 'wall': None,
+                                                                    'poi': None, 'room': None}}
         self.ground_layer = None
         self.map_width, self.map_height = self.map.map_size
         self.map_size = [self.map_width, self.map_height]
+        c.set_map_size(self.map_size)
         self.rooms = {'1': {}}
         self.current_rooms: dict[str, isometric.IsoRoom] = {'player': None, 'mouse': None}
         self.load_map(self.map)
-
-        # The path finding data
-        self.path_finding_map = algorithms.PathFindingGrid(self)
 
     def load_map(self, map_data):
         """
@@ -77,6 +78,8 @@ class MapHandler:
         :param map_data: The tmx map the layers are loaded from
         """
 
+        with open(f"data/{self.current_location}.json") as json_file:
+            json_data = json.load(json_file)
         for layer_num, layer_data in enumerate(map_data.layers):
             # Find the center Z modifier of the layer any tile ordering can be done properly.
             z_mod = 0
@@ -97,10 +100,7 @@ class MapHandler:
             # and create the 2D numpy array
             tile_list = []
             map_data = layer_data.layer_data
-            if location[0] == 'map':
-                tile_map = np.empty(self.map_size, list)
-            else:
-                tile_map = None
+            tile_map = np.empty(self.map_size, list)
 
             def find_tile_walls(current_room, data_layer):
                 walls = []
@@ -110,7 +110,7 @@ class MapHandler:
                     d_y = e_y + direction[1]
                     if 0 <= d_x < self.map_width and 0 <= d_y < self.map_height:
                         if data_layer[d_y][d_x] != current_room:
-                            wall_tile = self.layers['map']['1']['wall'].tile_map[d_x][d_y]
+                            wall_tile = self.layers['1']['wall'].tile_map[d_x][d_y]
                             if wall_tile is not None:
                                 walls.extend(wall_tile)
                             else:
@@ -119,48 +119,58 @@ class MapHandler:
                         check_self = True
 
                 if check_self:
-                    wall_tile = self.layers['map']['1']['wall'].tile_map[e_x][e_y]
+                    wall_tile = self.layers['1']['wall'].tile_map[e_x][e_y]
                     if wall_tile is not None:
                         walls.extend(wall_tile)
 
                 return walls
 
+            def generate_room(data):
+                if data not in self.rooms[location[0]]:
+                    room = isometric.IsoRoom(arcade.SpriteList())
+
+                    room.room_walls.extend(find_tile_walls(data, map_data))
+
+                    self.rooms[location[0]][data] = room
+
+                else:
+                    wall_tiles = find_tile_walls(data, map_data)
+                    for tile in wall_tiles:
+                        if tile not in self.rooms[location[0]][data].room_walls:
+                            self.rooms[location[0]][data].room_walls.append(tile)
+
+            def generate_poi(data):
+                poi_data = json_data[str(data)]
+                data = poi_data['tile']
+                print("poi layer:", end=" ")
+                generate_layer(data)
+
+            def generate_layer(data):
+                print(data)
+                # take the x and y coord of the tile in the map data to create the isometric position
+                current_tiles = tiles.find_iso_sprites(data, (e_x, e_y, z_mod))
+                tile_list.extend(current_tiles)
+                tile_map[e_x, e_y] = current_tiles
+
+            generation_functions = {'floor': generate_layer, 'wall': generate_layer,
+                                    'poi': generate_poi, 'room': generate_room}
+
             # Loop through the tile data.
-            for e_y, y in enumerate(map_data):
-                for e_x, x in enumerate(y):
+            for e_y, row in enumerate(map_data):
+                for e_x, tile_value in enumerate(row):
                     # If there is a tile in found in the data create the appropriate tile.
-                    if x:
-                        if location[0] == 'data':
-                            if location[2] == 'room':
-                                if x not in self.rooms[location[1]]:
-                                    room = isometric.IsoRoom(arcade.SpriteList())
+                    if tile_value:
+                        generation_functions[location[-1]](tile_value)
 
-                                    room.room_walls.extend(find_tile_walls(x, map_data))
-
-                                    self.rooms[location[1]][x] = room
-
-                                else:
-                                    wall_tiles = find_tile_walls(x, map_data)
-                                    for tile in wall_tiles:
-                                        if tile not in self.rooms[location[1]][x].room_walls:
-                                            self.rooms[location[1]][x].room_walls.append(tile)
-
-                        else:
-                            # take the x and y coord of the tile in the map data to create the isometric position
-                            current_tiles = tiles.find_iso_sprites(x, (e_x, e_y, self.map_size, z_mod))
-                            tile_list.extend(current_tiles)
-                            tile_map[e_x, e_y] = current_tiles
-
-            self.layers[location[0]][location[1]][location[2]] = isometric.IsoLayer(layer_data, map_data,
-                                                                                    tile_list, tile_map, shown)
-        self.ground_layer = self.layers['map']['1']['floor'].map_data
+            self.layers[location[0]][location[1]] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map, shown)
+        self.ground_layer = self.layers['1']['floor'].map_data
         self.initial_show()
 
     def input_show(self, first_args='1', second_args=('floor', 'wall', 'poi')):
         shown_tiles = []
         for args in first_args:
             for locator_args in second_args:
-                layer = self.layers['map'][args][locator_args]
+                layer = self.layers[args][locator_args]
                 shown_tiles.extend(layer.tiles)
         c.iso_show(shown_tiles)
 
@@ -168,20 +178,20 @@ class MapHandler:
         hidden_tiles = []
         for args in first_args:
             for locator_args in second_args:
-                layer = self.layers['map'][args][locator_args]
+                layer = self.layers[args][locator_args]
                 hidden_tiles.extend(layer.tiles)
 
         c.iso_hide(hidden_tiles)
 
     def initial_show(self):
         shown_layers = []
-        for key, layer in self.layers['map']['1'].items():
+        for key, layer in self.layers['1'].items():
             if layer.shown:
                 shown_layers.append(key)
         self.input_show(second_args=shown_layers)
 
     def run_display(self, setter, e_x, e_y):
-        room = self.layers['data']['1']['room'].map_data[e_y][e_x]
+        room = self.layers['1']['room'].map_data[e_y][e_x]
         if room:
             room = self.rooms['1'][room]
             if self.current_rooms[setter] != room:
@@ -193,8 +203,5 @@ class MapHandler:
                 self.display_handler.update_states()
 
     def debug_draw(self, a_star=False, display_draw=False):
-        if a_star:
-            self.path_finding_map.draw()
-
         if display_draw:
             arcade.draw_text(str(self.display_handler.states), 0, 0, arcade.color.WHITE)
