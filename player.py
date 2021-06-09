@@ -6,16 +6,11 @@ import isometric
 import algorithms
 import constants as c
 
-PLAYER_ISO_DATA = isometric.IsoTexture("assets/characters/player.png", None, .0, 45.0, .25, 0, 0, 160, 320)
-SELECTED_ISO_DATA = isometric.IsoTexture("assets/tiles/select_tiles.png", None, .0, 0, .15, 160, 0, 160, 320)
-SELECTED_ISO_CAP = isometric.IsoTexture("assets/tiles/select_tiles.png", None, .0, 0, .25, 160, 320, 160, 320)
-HOVER_ISO_DATA = isometric.IsoTexture("assets/tiles/select_tiles.png", None, .0, 0, .16, 0, 0, 160, 320)
-HOVER_ISO_CAP = isometric.IsoTexture("assets/tiles/select_tiles.png", None, .0, 0, .26, 0, 320, 160, 320)
+PLAYER_ISO_DATA = isometric.generate_iso_data_other('player')[0]
+SELECTED_ISO_DATA, SELECTED_ISO_CAP = isometric.generate_iso_data_other('selected')
+HOVER_ISO_DATA, HOVER_ISO_CAP = isometric.generate_iso_data_other('select')
 
-EDGES = {0: isometric.IsoTexture("assets/tiles/player_movement_edge.png", None, .0, .0, .0, .0, .0, 160, 320),
-         1: isometric.IsoTexture("assets/tiles/player_movement_edge.png", None, .0, .0, .27, 160, .0, 160, 320),
-         2: isometric.IsoTexture("assets/tiles/player_movement_edge.png", None, .0, .0, .27, 320, .0, 160, 320),
-         3: isometric.IsoTexture("assets/tiles/player_movement_edge.png", None, .0, .0, .0, 480, .0, 160, 320)}
+EDGES = {key: data for key, data in enumerate(isometric.generate_iso_data_other('caps'))}
 
 
 class Player(isometric.IsoActor):
@@ -28,8 +23,8 @@ class Player(isometric.IsoActor):
         self.path_finding_last = {'init': 0, 'pos': (0, 0)}
         self.set_grid(algorithms.PathFindingGrid(self.game_view.map_handler))
 
-    def new_pos(self, e_x, e_y, debug=False):
-        super().new_pos(e_x, e_y, debug)
+    def new_pos(self, e_x, e_y):
+        super().new_pos(e_x, e_y)
         self.game_view.map_handler.run_display('player', self.e_x, self.e_y)
 
     def load_paths(self):
@@ -56,22 +51,22 @@ class Player(isometric.IsoActor):
 
 class Select(isometric.IsoSprite):
 
-    def __init__(self, e_x, e_y, z_mod):
+    def __init__(self, e_x, e_y):
         super().__init__(e_x, e_y, HOVER_ISO_DATA)
         self.cap = isometric.IsoSprite(e_x, e_y, HOVER_ISO_CAP)
         c.iso_extend([self, self.cap])
 
-    def new_pos(self, e_x, e_y, debug=False):
+    def new_pos(self, e_x, e_y):
         super().new_pos(e_x, e_y)
         self.cap.new_pos(e_x, e_y)
 
 
 class Selected(isometric.IsoSprite):
-    def __init__(self, e_x, e_y, z_mod):
+    def __init__(self, e_x, e_y):
         super().__init__(e_x, e_y, SELECTED_ISO_DATA)
         self.cap = isometric.IsoSprite(e_x, e_y, SELECTED_ISO_CAP)
         c.iso_extend([self, self.cap])
 
-    def new_pos(self, e_x, e_y, debug=False):
+    def new_pos(self, e_x, e_y):
         super().new_pos(e_x, e_y)
         self.cap.new_pos(e_x, e_y)

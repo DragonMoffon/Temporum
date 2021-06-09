@@ -1,0 +1,111 @@
+{
+    "files": [
+        {"file": "assets/characters/player.png", "width": 160, "height": 320},
+        {"file": "assets/characters/robot.png", "width": 160, "height": 320},
+        {"file": "assets/tiles/select_tiles.png", "width": 160, "height": 320},
+        {"file": "assets/tiles/player_movement_edge.png", "width": 160, "height": 320}],
+    "tiles": [
+        {
+            "id": "player",
+            "texture": 0,
+            "hidden": 0,
+            "mods": [0, 0, 0.25],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "id": "bot",
+            "texture": 1,
+            "hidden": 1,
+            "mods": [0, 0, 0.245],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "id": "select",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 0,
+                    "mod_w": 0.17
+                },
+                {
+                    "start_x": 0,
+                    "start_y": 320,
+                    "mod_w": 0.27
+                }
+            ]
+        },
+        {
+            "id": "selected",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 160,
+                    "start_y": 0,
+                    "mod_w": 0.16
+                },
+                {
+                    "start_x": 160,
+                    "start_y": 320,
+                    "mod_w": 0.26
+                }
+            ]
+        },
+        {
+            "id": "caps",
+            "texture": 3,
+            "hidden": 3,
+            "mods": [0, 0, 0],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 0,
+                    "mod_w": 0
+                },
+                {
+                    "start_x": 160,
+                    "start_y": 0,
+                    "mod_w": 0.27
+                },
+                {
+                    "start_x": 320,
+                    "start_y": 0,
+                    "mod_w": 0.27
+                },
+                {
+                    "start_x": 480,
+                    "start_y": 0,
+                    "mod_w": 0
+                }
+            ]
+        },
+        {
+            "texture": 0,
+            "hidden": 0,
+            "mods": [0, 0, 0],
+            "direction": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
+        }
+    ]
+}

@@ -1,10 +1,8 @@
-from math import *
 import heapq
-
 import numpy as np
-import arcade
 
 import constants as c
+
 
 
 class GridNode:
@@ -176,7 +174,7 @@ def reconstruct_path(grid_2d: PathFindingGrid, came_from: dict, start_yx: tuple,
 def create_bot(e_x, e_y, grid_2d):
     import isometric
 
-    bot_text = isometric.IsoTexture("assets/iso_player_character.png", None, .0, 45.0, .25, 0, 0, 160, 320)
+    bot_text = isometric.generate_iso_data_other('bot')[0]
 
     class SimpleMoveBot(isometric.IsoActor):
 

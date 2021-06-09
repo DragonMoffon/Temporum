@@ -5,17 +5,17 @@ import arcade
 
 import constants as c
 import turn
+import tiles
 
 
-def cast_to_iso(e_x: float, e_y: float, z_mod=0, debug=False):
+def cast_to_iso(e_x: float, e_y: float, mods: tuple = (0, 0, 0)):
     """
     Casts the imputed Euclidean x and y co-ordinates to the equivalent isometric x, y, z co-ordinates
 
     :param e_x: The Euclidean X that is to be cast to Isometric.
     :param e_y: The Euclidean Y that is to be cast to Isometric.
-    :param z_mod: A z_mod which is added to put the object above or below anything with the same e_x and e_y.
-    :param debug: The test simply outputs the final outputs for debugging.
-    :return: the isometric x, y, z found.
+    :param mods: A tuple of 3 floats that are the x, y, and w mods.
+    :return: the isometric x, y, w found.
     """
 
     e_x -= c.CURRENT_MAP_SIZE[0]/2
@@ -24,14 +24,12 @@ def cast_to_iso(e_x: float, e_y: float, z_mod=0, debug=False):
     # because the sprites are already cast to the ~30 degrees for the isometric the only needed rotations is the
     # 45 degrees. However since cos and sin 45 are both 0.707 they are removed from the system as it simply makes
     # the cast smaller
-    iso_x = (e_x - e_y) * ((c.TILE_WIDTH*c.SPRITE_SCALE)/2)
-    iso_y = -(e_x + e_y) * ((c.TILE_HEIGHT*c.SPRITE_SCALE)/2)
-    iso_z = e_x + e_y + z_mod
+    iso_x = (e_x - e_y) * ((c.TILE_WIDTH*c.SPRITE_SCALE)/2) + mods[0]*c.SPRITE_SCALE
+    iso_y = -(e_x + e_y) * ((c.TILE_HEIGHT*c.SPRITE_SCALE)/2) + mods[1]*c.SPRITE_SCALE
+    iso_w = e_x + e_y + mods[2]
 
     # reorder the IsoList then return the calculated values.
-    if debug:
-        print(iso_x, iso_y, iso_z)
-    return iso_x, iso_y, iso_z
+    return iso_x, iso_y, iso_w
 
 
 def cast_from_iso(x, y):
@@ -47,74 +45,52 @@ def cast_from_iso(x, y):
 
 
 @dataclass()
-class IsoTexture:
-    location: str = ""
-    hidden: str = None
-    mod_x: float = .0
-    mod_y: float = .0
-    mod_z: float = .0
-
-    s_x: int = 0
-    s_y: int = 0
-
-    width: int = 0
-    height: int = 0
+class IsoData:
+    texture: arcade.Texture
+    hidden: arcade.Texture
+    relative_pos: tuple
+    position_mods: tuple
+    directions: tuple
 
 
 class IsoSprite(arcade.Sprite):
     """
     The base isometric tile class, basically just the arcade.Sprite with methods and variables for isometric casting.
     """
-    def __init__(self, e_x, e_y, iso_data: dict):
-        x, y, z = cast_to_iso(e_x, e_y)
-        if isinstance(iso_data, dict):
-            iso_texture: IsoTexture = iso_data['texture']
-            directions = iso_data['directions']
-        else:
-            iso_texture: IsoTexture = iso_data
-            directions = None
-        super().__init__(iso_texture.location, c.SPRITE_SCALE,
-                         iso_texture.s_x, iso_texture.s_y,
-                         iso_texture.width, iso_texture.height)
+    def __init__(self, e_x, e_y, tile_data: IsoData):
+        self.relative_pos = tile_data.relative_pos
+        self.position_mods = tile_data.position_mods
+        x, y, w = cast_to_iso(e_x + self.relative_pos[0], e_y + self.relative_pos[1])
+        super().__init__(scale=c.SPRITE_SCALE)
         # The center positions of the tile.
-        self.center_x = x + iso_texture.mod_x*c.SPRITE_SCALE
-        self.center_y = y + iso_texture.mod_y*c.SPRITE_SCALE
-        self.center_z = z + iso_texture.mod_z
-
-        # the mod_x, and mod_y
-        self.mod_x = iso_texture.mod_x
-        self.mod_y = iso_texture.mod_y
-        self.mod_z = iso_texture.mod_z
+        self.center_x = x + self.position_mods[0]*c.SPRITE_SCALE
+        self.center_y = y + self.position_mods[1]*c.SPRITE_SCALE
+        self.center_w = w + self.position_mods[2]
 
         # The isometric data
-        self.iso_texture = iso_texture
-        self.direction = directions
+        self.tile_data = tile_data
+        self.direction = tile_data.directions
 
         # The euclidean position of the sprite.
         self.e_x = e_x
         self.e_y = e_y
 
         # textures for functions
+        self.texture = tile_data.texture
+        self.hidden = tile_data.hidden
         self.base = self.texture
-        if iso_texture.hidden is not None:
-            self.hidden = arcade.load_texture(iso_texture.hidden, iso_texture.s_x, iso_texture.s_y,
-                                              iso_texture.width, iso_texture.height)
-        else:
-            self.hidden = None
 
-    def new_pos(self, e_x, e_y, debug=False):
-        self.center_x, self.center_y, self.center_z = cast_to_iso(e_x, e_y, self.mod_z, debug)
-        self.center_x += self.mod_x*c.SPRITE_SCALE
-        self.center_y += self.mod_y*c.SPRITE_SCALE
-        self.e_x = e_x
-        self.e_y = e_y
+    def new_pos(self, e_x, e_y):
+        self.center_x, self.center_y, self.center_w = cast_to_iso(e_x, e_y, self.position_mods)
+        self.e_x = e_x + self.relative_pos[0]
+        self.e_y = e_y + self.relative_pos[1]
         c.iso_changed()
 
 
 class IsoActor(IsoSprite):
 
-    def __init__(self, e_x, e_y, iso_data: dict):
-        super().__init__(e_x, e_y, iso_data)
+    def __init__(self, e_x, e_y, tile_data: IsoData):
+        super().__init__(e_x, e_y, tile_data)
         self.action_handler = turn.ActionHandler(self)
         self.path_finding_grid = None
         self.path_finding_data = None
@@ -160,7 +136,7 @@ class IsoList(arcade.SpriteList):
 
         This does slow down the one draw frame it happens however, This is hopefully unnoticeable.
         """
-        self.sprite_list = sorted(self.sprite_list, key=lambda tile: tile.center_z)
+        self.sprite_list = sorted(self.sprite_list, key=lambda tile: tile.center_w)
 
         for idx, sprite in enumerate(self.sprite_list):
             self.sprite_idx[sprite] = idx
@@ -184,4 +160,25 @@ class IsoRoom:
     shown: bool = True
 
 
+def find_iso_sprites(tile_id, pos_data):
+    tile_data = tiles.find_iso_data(tile_id)
+    pieces = []
+    for piece in tile_data.pieces:
+        data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
+                       (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
+                       tile_data.directions)
+        pieces.append(IsoSprite(*pos_data, data))
 
+    return pieces
+
+
+def generate_iso_data_other(key):
+    tile_data = tiles.OTHER_TEXTURES[key]
+    pieces = []
+    for piece in tile_data.pieces:
+        data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
+                       (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
+                       tile_data.directions)
+        pieces.append(data)
+
+    return pieces

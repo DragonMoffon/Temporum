@@ -10,7 +10,7 @@ import constants as c
 
 CHECK_DIR = (1, 0), (0, 1), (1, 1)
 INV = {'mouse': 'player', 'player': 'mouse'}
-test = 0
+
 
 class DisplayHandler:
 
@@ -83,14 +83,10 @@ class MapHandler:
         for layer_num, layer_data in enumerate(map_data.layers):
             # Find the center Z modifier of the layer any tile ordering can be done properly.
             z_mod = 0
-            shown = True
             location = layer_data.name.split(" ")
 
             if layer_data.properties is not None:
-                if "z_mod" in layer_data.properties:
-                    z_mod = layer_data.properties["z_mod"]
-                if "shown" in layer_data.properties:
-                    shown = layer_data.properties['shown']
+                shown = layer_data.properties.get('shown', True)
             else:
                 print(f"Layer: {layer_data.name} does not have required properties."
                       f" It will not be loaded, please check through your Tiled Map for errors")
@@ -148,7 +144,7 @@ class MapHandler:
             def generate_layer(data):
                 print(data)
                 # take the x and y coord of the tile in the map data to create the isometric position
-                current_tiles = tiles.find_iso_sprites(data, (e_x, e_y, z_mod))
+                current_tiles = isometric.find_iso_sprites(data, (e_x, e_y))
                 tile_list.extend(current_tiles)
                 tile_map[e_x, e_y] = current_tiles
 

@@ -3,30 +3,29 @@ from dataclasses import dataclass
 
 import arcade
 
-import isometric
-
 
 @dataclass()
 class PieceData:
     texture: arcade.Texture
     hidden: arcade.Texture
-    relative_pos: tuple[int, int]
+    relative_pos: tuple
     mod_w: float
 
 
 @dataclass()
 class TileData:
-    pos_mods: tuple[float, float, float]
-    directions: tuple[bool, bool, bool, bool]
-    pieces: list[PieceData]
+    pos_mods: tuple
+    directions: tuple
+    pieces: list
 
 
-def load_textures():
+def load_textures(location: str = 'tiles.json'):
     """
-    Loads all the tiles from the tile data json file.
+    Loads all the tiles from the provided json file. This is generally tiles.json. But it also can load other tiles
+    if provided.
     :return: It returns a dictionary with the tile data for every tile in game.
     """
-    with open("data/tiles.json") as file:
+    with open(f"data/{location}") as file:
         # Firstly it open the json file and splits it into the files for the texture, with the width and height of
         # each tile that is gotten from this texture, and the tile data for each tile.
         files, tiles = json.load(file).values()
@@ -42,6 +41,11 @@ def load_textures():
 
             # The secondary texture data, this is for if the item should be hidden.
             hidden_data = files[tile['hidden']]
+
+            # The key for the dict.
+            # only really needed in special edge cases so that is why the key defaults to the index
+            key = tile.get('id', index+1)
+            print(key)
 
             # This is the modifiers to the x, y, and w of the sprite. This is used to position the tile properly
             pos_mods = tile['mods']
@@ -63,39 +67,31 @@ def load_textures():
                 relative_pos = tuple(piece.get('relative_pos', [0, 0]))
 
                 # a possible unique w mod in case the pieces need to be rendered in a specific order.
+                # If it is not found in the dict it is assumed to be 0
                 mod_w = piece.get('mod_w', 0)
+
+                # Create the two textures and create the piece data.
                 texture = arcade.load_texture(texture_data['file'], piece['start_x'], piece['start_y'],
                                               texture_data['width'], texture_data['height'])
-                hidden = arcade.load_texture(hidden_data['file'], piece['start_x'], piece['start_y'],
-                                              hidden_data['width'], hidden_data['height'])
+
+                if hidden_data == texture_data:
+                    hidden = None
+                else:
+                    hidden = arcade.load_texture(hidden_data['file'], piece['start_x'], piece['start_y'],
+                                                 hidden_data['width'], hidden_data['height'])
                 pieces.append(PieceData(texture, hidden, relative_pos, mod_w))
 
-            textures[index+1] = TileData(pos_mods, directions, pieces)
+            # Create the TileData and add to the dict.
+            textures[key] = TileData(pos_mods, directions, pieces)
     return textures
 
 
 TEXTURES = load_textures()
+OTHER_TEXTURES = load_textures('special_tiles.json')
 
 
 def find_iso_data(tile_id):
 
     return TEXTURES[tile_id]
-
-
-def find_iso_sprites(tile_id, pos_data):
-    iso_textures = find_iso_data(tile_id)
-    tiles = []
-    if isinstance(iso_textures['texture'], tuple):
-        for texture in iso_textures['texture']:
-            iso_texture = {'texture': texture, 'directions': iso_textures['directions']}
-            iso_x, iso_y, iso_z = isometric.cast_to_iso(*pos_data)
-            tile = isometric.IsoSprite(pos_data[0], pos_data[1], iso_texture)
-            tiles.append(tile)
-    else:
-        iso_x, iso_y, iso_z = isometric.cast_to_iso(*pos_data)
-        tile = isometric.IsoSprite(pos_data[0], pos_data[1], iso_textures)
-        tiles.append(tile)
-
-    return tiles
 
 

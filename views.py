@@ -75,7 +75,7 @@ class GameView(arcade.View):
         c.iso_append(self.test_bot)
 
         # Mouse Select
-        self.select_tile = player.Select(0, 0, 0.1)
+        self.select_tile = player.Select(0, 0)
         c.iso_append(self.select_tile)
 
         self.selected_tile: player.Selected = None
@@ -119,8 +119,7 @@ class GameView(arcade.View):
         for element in self.ui_elements:
             element.draw()
 
-        """
-        if self.player.path_finding_grid is not None:
+        """if self.player.path_finding_grid is not None:
             dirs = ((0, -0.25), (0.25, 0), (0, 0.25), (-0.25, 0))
             for y_dex, point_row in enumerate(self.player.path_finding_grid.points):
                 for x_dex, value in enumerate(point_row):
@@ -134,7 +133,6 @@ class GameView(arcade.View):
                             else:
                                 arcade.draw_point(iso_x, iso_y - 60, arcade.color.WHITE, 5)
         """
-
         # Debugging of the map_handler
         # self.map_handler.debug_draw(True)
 
@@ -148,7 +146,7 @@ class GameView(arcade.View):
             for x_dex, x in enumerate(y):
                 x_pos, y_pos, z_pos = isometric.cast_to_iso(x_dex, y_dex, self.map_handler.ground_layer)
                 arcade.draw_text(f"{x_dex}, {y_dex}", x_pos, y_pos, arcade.color.WHITE)
-                """
+        """
 
         self.window.mouse.draw()
         self.map_handler.debug_draw()
@@ -231,7 +229,7 @@ class GameView(arcade.View):
                 self.pressed.on_press((self.window.view_x + x, self.window.view_y + y))
             else:
                 if self.selected_tile is None:
-                    self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y, 0.1)
+                    self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y)
                     c.ISO_LIST.append(self.selected_tile)
                 else:
                     self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y)
