@@ -3,9 +3,7 @@ import json
 
 import arcade
 
-import tiles
 import isometric
-import algorithms
 import constants as c
 
 CHECK_DIR = (1, 0), (0, 1), (1, 1)

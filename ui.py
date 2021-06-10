@@ -351,7 +351,7 @@ class TalkTab(Tab):
     def draw(self):
         super().draw()
         self.current_node.draw(self.center_x, self.center_y)
-        # TODO: Create a proper text system and intergrate into displays. Then remove this placeholder system.
+        # TODO: Create a proper text system and integrate into displays. Then remove this placeholder system.
         if len(self.node_buttons) and self.node_buttons[0] in self.button_data:
             for text in self.node_button_text:
                 draw_text(text[0], self.center_x + text[1] * c.SPRITE_SCALE, self.center_y + text[2] * c.SPRITE_SCALE,

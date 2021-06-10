@@ -9,7 +9,7 @@
             "id": "player",
             "texture": 0,
             "hidden": 0,
-            "mods": [0, 0, 0.25],
+            "mods": [0, 50, 0.25],
             "pieces" : [
                 {
                     "start_x": 0,
@@ -21,7 +21,7 @@
             "id": "bot",
             "texture": 1,
             "hidden": 1,
-            "mods": [0, 0, 0.245],
+            "mods": [0, 50, 0.245],
             "pieces" : [
                 {
                     "start_x": 0,

@@ -4,7 +4,6 @@ import numpy as np
 import constants as c
 
 
-
 class GridNode:
 
     def __init__(self, location: tuple, cost=1):

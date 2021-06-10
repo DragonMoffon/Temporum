@@ -105,6 +105,18 @@ class IsoActor(IsoSprite):
             self.path_finding_data = algorithms.path_2d(self.path_finding_grid, (self.e_y, self.e_x))
 
 
+class IsoInteractor(IsoSprite):
+
+    def __init__(self, e_x, e_y, tile_data, interaction_data, children):
+        super().__init__(e_x, e_y, tile_data)
+        # The Node based conversation tree the IsoSprite needs
+        self.interaction_data = interaction_data
+        # The current Node of the conversation
+        self.current_node = None
+        # The other tiles that are all part of the IsoInteractor.
+        self.children = children
+
+
 class IsoList(arcade.SpriteList):
     """
     The IsoList is basically identical to a normal arcade.SpriteList however it has a simple function which is called

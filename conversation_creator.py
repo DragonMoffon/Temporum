@@ -38,6 +38,8 @@ keys = {arcade.key.A: "a",
         arcade.key.X: "x",
         arcade.key.Y: "y",
         arcade.key.Z: "z",
+        arcade.key.MINUS: "-",
+        arcade.key.PLUS: "+",
         arcade.key.COMMA: ",",
         arcade.key.PERIOD: ".",
         arcade.key.APOSTROPHE: '\''}
@@ -70,6 +72,8 @@ shift_keys = {arcade.key.A: "A",
               arcade.key.Z: "Z",
               arcade.key.SLASH: "?",
               arcade.key.KEY_1: "!",
+              arcade.key.MINUS: "_",
+              arcade.key.PLUS: "+",
               arcade.key.APOSTROPHE: '\"',
               arcade.key.ENTER: "\n"}
 
@@ -169,6 +173,10 @@ TEXTURES = {Event: arcade.load_texture("assets/tools/convocreatortab.png", width
             InitiateJoint: arcade.load_texture("assets/tools/convocreatortab.png", x=480, width=480, height=567)}
 
 
+def load_conversation(file):
+    pass
+
+
 class ConvoWindow(arcade.Window):
 
     def __init__(self):
@@ -178,6 +186,9 @@ class ConvoWindow(arcade.Window):
         self.view_y = 0
 
         self.data = {}
+
+        with open("data/conversations.json") as json_data:
+            self.conversations = json.load(json_data)
 
         self.convo_name_tab = arcade.Sprite("assets/tools/convocreatortab.png",
                                             center_x=self.width / 2, center_y=self.height / 2,
@@ -251,6 +262,9 @@ class ConvoWindow(arcade.Window):
             if self.convo_name is None:
                 self.convo_name = self.current_text
                 self.current_text = None
+                if self.convo_name in self.conversations:
+                    pass
+
             else:
                 self.current_segment.text[self.current_text_location] = self.current_text
                 self.current_text = None
