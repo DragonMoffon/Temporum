@@ -41,7 +41,7 @@ class DisplayText:
         self.events[self.current_event](x, y)
 
     def display(self, x, y):
-        arcade.draw_text(self.pages[self.current_page], x-390*c.SPRITE_SCALE, y+50*c.SPRITE_SCALE,
+        arcade.draw_text(self.pages[self.current_page], x-465*c.SPRITE_SCALE, y+155*c.SPRITE_SCALE,
                          arcade.color.WHITE, anchor_y='top')
 
 
@@ -75,7 +75,7 @@ class Node:
         return False
 
 
-def load_conversation(conversation="data/Sample Conversation.json"):
+def load_conversation(conversation="sample"):
     loop_data: list[tuple[(str, str)]] = []
 
     def load_loop(convo):
@@ -110,9 +110,9 @@ def load_conversation(conversation="data/Sample Conversation.json"):
 
         return Node(initiate, response, inputs)
 
-    with open(conversation) as convo_file:
-        data = json.load(convo_file)
+    with open("data/conversations.json") as convo_file:
+        data = json.load(convo_file)[conversation]
 
-    conversation = load_node(data)
-    return load_loop(conversation)
+    conversation_node = load_node(data)
+    return load_loop(conversation_node)
 

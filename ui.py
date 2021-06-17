@@ -340,10 +340,10 @@ class TalkTab(Tab):
         node_buttons = []
         button_text = []
         for index, key_node in enumerate(self.current_node.inputs.items()):
-            button = {"x": -390, "y": 50 - 75 * index,
+            button = {"x": -360, "y": 120 - 80 * index,
                       "action": TriggerEventAction((self.next_node, key_node[1])),
-                      'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=230, y=90, width=230, height=90)}
-            button_text.append([key_node[0], button['x'], button['y']])
+                      'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=460, y=270, width=230, height=90)}
+            button_text.append([key_node[0], button['x']-102, button['y']+39])
             node_buttons.append(button)
         self.node_button_text = button_text
         self.node_buttons = node_buttons

@@ -79,6 +79,9 @@ shift_keys = {arcade.key.A: "A",
 
 function_keys = {arcade.key.BACKSPACE: backspace, arcade.key.SPACE: space}
 
+MOVEMENT = {arcade.key.UP: (0, 150), arcade.key.DOWN: (0, -150),
+            arcade.key.LEFT: (-150, 0), arcade.key.RIGHT: (150, 0)}
+
 
 class Event(arcade.SpriteSolidColor):
 
@@ -86,13 +89,12 @@ class Event(arcade.SpriteSolidColor):
         super().__init__(150, 50, arcade.color.WHITE)
         self.center_x = x
         self.center_y = y
-        self.text = text
-        self.text = {"expressed": text, "initiate": "", "response": ""}
+        self.text = {"initiate": text, "response": ""}
         self.next_inputs = []
         self.inputs = inputs
 
     def draw_hit_box(self, color: arcade.Color = arcade.color.BLACK, line_thickness: float = 1):
-        arcade.draw_text(self.text['expressed'], self.center_x, self.center_y + 25,
+        arcade.draw_text(self.text['initiate'], self.center_x, self.center_y + 25,
                          color, anchor_x='center', anchor_y="top")
 
     def move(self, new_pos):
@@ -173,10 +175,6 @@ TEXTURES = {Event: arcade.load_texture("assets/tools/convocreatortab.png", width
             InitiateJoint: arcade.load_texture("assets/tools/convocreatortab.png", x=480, width=480, height=567)}
 
 
-def load_conversation(file):
-    pass
-
-
 class ConvoWindow(arcade.Window):
 
     def __init__(self):
@@ -187,26 +185,37 @@ class ConvoWindow(arcade.Window):
 
         self.data = {}
 
-        with open("data/conversations.json") as json_data:
-            self.conversations = json.load(json_data)
+        # All of the conversations
+        self.conversation = None
 
+        # The different tabs.
         self.convo_name_tab = arcade.Sprite("assets/tools/convocreatortab.png",
                                             center_x=self.width / 2, center_y=self.height / 2,
                                             image_width=480, image_height=567, image_x=960)
         self.tab = arcade.Sprite("assets/tools/convocreatortab.png", image_width=480, image_height=567,
                                  center_x=self.width - 120, center_y=self.height / 2)
         self.text_tab = arcade.Sprite("assets/tools/convocreatortext.png", center_x=320, center_y=self.height / 2)
+        self.check = False
+        self.check_tab = arcade.Sprite("assets/tools/convocreatortab.png",
+                                       center_x=self.width/2, center_y=self.height/2,
+                                       image_width=480, image_height=567, image_x=1440)
 
+        # all of the segments.
         self.segment_list = arcade.SpriteList()
-        self.start = Event(self.width/2, self.height-200, "Start", [])
-        self.segment_list.append(self.start)
+
+        # The first node
+        self.start = None
         self.selected_segment = None
         self.current_text = ""
-        self.convo_name = None
+        self.last_word_index = -1
+        self.last_line_index = -1
+        self.line_length = 0
+
         self.current_text_location = ""
         self.segment_texts = {}
         self.new_joint = None
         self.dragging = False
+        self.convo_name = None
 
     def place_tab(self):
         self.tab.texture = TEXTURES[type(self.current_segment)]
@@ -215,64 +224,119 @@ class ConvoWindow(arcade.Window):
 
     def on_draw(self):
         arcade.start_render()
-        self.segment_list.draw()
-        self.segment_list.draw_hit_boxes()
-        if self.current_segment is not None:
-            self.tab.draw()
-            self.current_segment.tab_draw(self.tab)
+        if self.check:
+            self.check_tab.draw()
+        else:
+            self.segment_list.draw()
+            self.segment_list.draw_hit_boxes()
+            if self.current_segment is not None:
+                self.tab.draw()
+                self.current_segment.tab_draw(self.tab)
 
-        if self.current_text is not None:
-            if self.convo_name is None:
-                self.convo_name_tab.draw()
-                arcade.draw_text(self.current_text, self.convo_name_tab.center_x, self.text_tab.center_y+175,
-                                 arcade.color.BLACK, anchor_y='top', anchor_x='center', font_size=35)
-            else:
-                self.text_tab.draw()
-                arcade.draw_text(self.current_text, self.text_tab.center_x-60, self.text_tab.center_y+75,
-                                 arcade.color.BLACK, anchor_y='top')
-                segment_texts = ""
-                for key, value in self.segment_texts.items():
-                    segment_texts += f"{key+1}: {value}\n"
+            if self.current_text is not None:
+                if self.convo_name is None:
+                    self.convo_name_tab.draw()
+                    arcade.draw_text(self.current_text, self.convo_name_tab.center_x, self.text_tab.center_y+175,
+                                     arcade.color.BLACK, anchor_y='top', anchor_x='center', font_size=35)
+                else:
+                    self.text_tab.draw()
+                    arcade.draw_text(self.current_text, self.text_tab.center_x-60, self.text_tab.center_y+75,
+                                     arcade.color.BLACK, anchor_y='top')
+                    segment_texts = ""
+                    for key, value in self.segment_texts.items():
+                        segment_texts += f"{key+1}: {value}\n"
 
-                arcade.draw_text(segment_texts, self.text_tab.center_x-200, self.text_tab.center_y+45,
-                                 arcade.color.BLACK, anchor_y='top')
+                    arcade.draw_text(segment_texts, self.text_tab.center_x-200, self.text_tab.center_y+45,
+                                     arcade.color.BLACK, anchor_y='top')
 
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.ESCAPE:
             self.close()
-        elif symbol == arcade.key.S and modifiers & arcade.key.MOD_CTRL:
-            if isinstance(self.current_text, str):
-                self.apply_text()
-            self.save_to_json()
-        elif isinstance(self.current_text, str):
-            if modifiers & arcade.key.MOD_CTRL and arcade.key.KEY_1 <= symbol <= arcade.key.KEY_9:
-                self.switch_text(symbol - arcade.key.KEY_1)
-            elif symbol in function_keys:
-                self.current_text = function_keys[symbol](self.current_text)
-            elif modifiers & arcade.key.MOD_SHIFT or modifiers & arcade.key.MOD_CAPSLOCK:
-                if symbol in shift_keys:
-                    self.current_text += shift_keys[symbol]
-            elif symbol in keys:
-                self.current_text += keys[symbol]
-            elif symbol == arcade.key.ENTER:
-                self.apply_text()
+        elif self.check:
+            if symbol == arcade.key.Y:
+                self.load_conversation()
+                self.check = False
+            elif symbol == arcade.key.N:
+                self.start = Event(self.width / 2, self.height - 200, "Start", [])
+                self.segment_list.append(self.start)
+                self.check = False
+        elif symbol in MOVEMENT:
+            dx, dy = MOVEMENT[symbol]
+            self.view_x += dx
+            self.view_y += dy
+            self.tab.center_x += dx
+            self.tab.center_y += dy
+            self.text_tab.center_x += dx
+            self.text_tab.center_y += dy
+            self.set_viewport(self.view_x, self.view_x + self.width, self.view_y, self.view_y + self.height)
+        else:
+            if symbol == arcade.key.S and modifiers & arcade.key.MOD_CTRL:
+                if isinstance(self.current_text, str):
+                    self.apply_text()
+                self.save_to_json()
+            elif isinstance(self.current_text, str):
+                if modifiers & arcade.key.MOD_CTRL and arcade.key.KEY_1 <= symbol <= arcade.key.KEY_9:
+                    self.switch_text(symbol - arcade.key.KEY_1)
+                elif symbol in function_keys:
+                    self.current_text = function_keys[symbol](self.current_text)
+                elif modifiers & arcade.key.MOD_SHIFT or modifiers & arcade.key.MOD_CAPSLOCK:
+                    if symbol in shift_keys:
+                        self.current_text += shift_keys[symbol]
+                elif symbol in keys:
+                    self.current_text += keys[symbol]
+                elif symbol == arcade.key.ENTER:
+                    self.apply_text()
+
+                if self.current_text is not None and len(self.current_text):
+                    self.line_length = len(self.current_text) - self.last_line_index
+                    if self.current_text[-1] == " ":
+                        self.last_word_index = len(self.current_text)-1
+                    elif self.current_text[-1] == "\n":
+                        self.line_length = 0
+                        self.last_line_index = self.last_word_index
+                    if self.line_length > 28:
+                        if self.last_line_index == self.last_word_index:
+                            self.last_word_index = len(self.current_text)-1
+                            self.current_text = f"{self.current_text[:self.last_word_index]}" \
+                                                f"\n" \
+                                                f"{self.current_text[self.last_word_index:]}"
+                        else:
+                            self.current_text = f"{self.current_text[:self.last_word_index]}" \
+                                                f"\n" \
+                                                f"{self.current_text[self.last_word_index + 1:]}"
+
+                        self.line_length = 0
+                        self.last_line_index = self.last_word_index
 
     def apply_text(self):
         if isinstance(self.current_text, str):
             if self.convo_name is None:
                 self.convo_name = self.current_text
                 self.current_text = None
-                if self.convo_name in self.conversations:
-                    pass
+                with open("data/conversations.json") as json_data:
+                    self.conversation = json.load(json_data).get(self.convo_name, {})
+
+                if len(self.conversation):
+                    self.check = True
+                else:
+                    self.start = Event(self.width / 2, self.height - 200, "Start", [])
+                    self.segment_list.append(self.start)
 
             else:
+                """last_word = ''
+                for index, char in enumerate(self.current_text):
+                    if char == " ":
+                        pass
+                    else:
+                        last_word += char"""
+
                 self.current_segment.text[self.current_text_location] = self.current_text
                 self.current_text = None
                 self.current_text_location = ''
 
     def get_text(self):
         self.segment_texts = {x: k for x, k in enumerate(self.current_segment.text)}
-        self.current_text_location = 'expressed'
+        self.current_text_location = self.segment_texts[0]
         self.current_text = self.current_segment.text[self.current_text_location]
 
     def switch_text(self, number):
@@ -378,11 +442,50 @@ class ConvoWindow(arcade.Window):
 
     def save_to_json(self):
         self.data = self.delve_node(self.start)
-        with open(f"data/{self.convo_name}.json", "w") as save_file:
-            json.dump(self.data, save_file, indent=4)
+        with open(f"data/conversations.json", "r+w") as save_file:
+            save_data = json.load(save_file)
+            save_data[self.convo_name] = self.data
+            json.dump(save_data, save_file, indent=4)
 
-    def load_from_json(self):
-        pass
+    def load_conversation(self):
+        loop_data = []
+        dict_data = {}
+
+        def delve_node(node_data, prev_node, inputs, pos, path):
+            nonlocal loop_data, dict_data
+            event = Event(*pos, node_data['initiate'], inputs)
+            event.text['initiate'] = node_data['initiate']
+            event.text['response'] = node_data['response']
+            dict_data[path] = event
+            self.segment_list.append(event)
+            for index, output in enumerate(node_data['inputs'].keys()):
+                data = node_data['inputs'][output]
+                s_x = pos[0]
+                s_y = pos[1] - 25
+                rad_angle = -(math.pi / 4 + index * math.pi / 4)
+                e_x = s_x + math.cos(rad_angle) * 300
+                e_y = s_y + math.sin(rad_angle) * 300
+                joint = InitiateJoint(s_x, s_y, e_x, e_y, output, event)
+                event.next_inputs.append(joint)
+                if isinstance(data, dict):
+                    if len(path):
+                        next_path = f"{path}_{output}"
+                    else:
+                        next_path = output
+                    joint.next = delve_node(data, event, [joint], (e_x, e_y-25), next_path)
+                else:
+                    joint.loop = True
+                    loop_data.append((joint, data))
+
+                self.segment_list.append(joint)
+
+            return event
+
+        self.start = delve_node(self.conversation, None, [], (self.width/2, self.height-200), "")
+        for joint, location in loop_data:
+            joint.next = dict_data[location]
+            dict_data[location].inputs.append(joint)
+            joint.place_end((joint.next.center_x, joint.next.center_y+25))
 
 
 def main():

@@ -45,7 +45,6 @@ def load_textures(location: str = 'tiles.json'):
             # The key for the dict.
             # only really needed in special edge cases so that is why the key defaults to the index
             key = tile.get('id', index+1)
-            print(key)
 
             # This is the modifiers to the x, y, and w of the sprite. This is used to position the tile properly
             pos_mods = tile['mods']

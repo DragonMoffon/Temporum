@@ -136,11 +136,9 @@ class MapHandler:
             def generate_poi(data):
                 poi_data = json_data[str(data)]
                 data = poi_data['tile']
-                print("poi layer:", end=" ")
                 generate_layer(data)
 
             def generate_layer(data):
-                print(data)
                 # take the x and y coord of the tile in the map data to create the isometric position
                 current_tiles = isometric.find_iso_sprites(data, (e_x, e_y))
                 tile_list.extend(current_tiles)

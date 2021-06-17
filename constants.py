@@ -87,5 +87,3 @@ def iso_show(iterable: iter):
 
 def iso_changed():
     ISO_LIST.changed = True
-
-
