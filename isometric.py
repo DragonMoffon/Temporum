@@ -51,6 +51,7 @@ class IsoData:
     relative_pos: tuple
     position_mods: tuple
     directions: tuple
+    actions: tuple = ()
 
 
 class IsoSprite(arcade.Sprite):
@@ -70,10 +71,11 @@ class IsoSprite(arcade.Sprite):
         # The isometric data
         self.tile_data = tile_data
         self.direction = tile_data.directions
+        self.actions = tile_data.actions
 
         # The euclidean position of the sprite.
-        self.e_x = e_x
-        self.e_y = e_y
+        self.e_x = e_x + self.relative_pos[0]
+        self.e_y = e_y + self.relative_pos[1]
 
         # textures for functions
         self.texture = tile_data.texture
@@ -107,20 +109,16 @@ class IsoActor(IsoSprite):
 
 class IsoInteractor(IsoSprite):
 
-    def __init__(self, e_x, e_y, tile_data, interaction_data, children):
+    def __init__(self, e_x, e_y, tile_data, interaction_data):
         super().__init__(e_x, e_y, tile_data)
         # The Node based conversation tree the IsoSprite needs
         self.interaction_data = interaction_data
-        # The current Node of the conversation
-        self.current_node = None
-        # The other tiles that are all part of the IsoInteractor.
-        self.children = children
 
 
 class IsoList(arcade.SpriteList):
     """
     The IsoList is basically identical to a normal arcade.SpriteList however it has a simple function which is called
-    to order sprites by their "z" value so objects go behind walls but can then go in front of them.
+    to order sprites by their "w" value so objects go behind walls but can then go in front of them.
     """
 
     def __init__(self):
@@ -172,13 +170,25 @@ class IsoRoom:
     shown: bool = True
 
 
+def find_poi_sprites(tile_id, node, pos_data):
+    tile_data = tiles.find_iso_data(tile_id)
+    pieces = []
+    for piece in tile_data.pieces:
+        data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
+                       (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
+                       tile_data.directions, tile_data.actions)
+        pieces.append(IsoInteractor(*pos_data, data, node))
+
+    return pieces
+
+
 def find_iso_sprites(tile_id, pos_data):
     tile_data = tiles.find_iso_data(tile_id)
     pieces = []
     for piece in tile_data.pieces:
         data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
                        (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
-                       tile_data.directions)
+                       tile_data.directions, tile_data.actions)
         pieces.append(IsoSprite(*pos_data, data))
 
     return pieces
@@ -190,7 +200,7 @@ def generate_iso_data_other(key):
     for piece in tile_data.pieces:
         data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
                        (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
-                       tile_data.directions)
+                       tile_data.directions, tile_data.actions)
         pieces.append(data)
 
     return pieces

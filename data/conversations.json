@@ -1,5 +1,28 @@
 {
-    "computer_1": {},
+    "computer_1": {
+        "initiate": "This is a computer monitor",
+        "response": "Yes I am indeed a computer.\nBut I am actually a terminal\nnot a monitor you idiot.",
+        "inputs": {
+            "Wow that was rude.": {
+                "initiate": "Wow how rude of you computer. \nwhy did you say that? Like\nhonestly how could you!",
+                "response": "Too bad now bow down to your \ncomputer overlords! HAHAHAHAHAHA",
+                "inputs": {
+                    "Yes computer lord": {
+                        "initiate": "Yes computer lord",
+                        "response": "Good feeble human. Now leave",
+                        "inputs": {}
+                    }
+                }
+            },
+            "I see thank you for the information": {
+                "initiate": "Thank you for enlightening me.\nYou are so kind.",
+                "response": "Yeah that's right bow down to your\ncomputer overlords.\n01010110101101001111011010",
+                "inputs": {
+                    "Yes lord.": "Wow that was rude._Yes computer lord"
+                }
+            }
+        }
+    },
     "sample": {
         "initiate": "Hello there, I am an interested viewer of this\ncode. I would like to talk to you.",
         "response": "Hello to you too! I am info bot! i'd be happy \nto explain this conversation system, or have\njust a nice conversation.",

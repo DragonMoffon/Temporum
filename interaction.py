@@ -4,6 +4,8 @@ import arcade
 
 import constants as c
 
+CONVERSATIONS = json.load(open("data/conversations.json"))
+
 
 class DisplayText:
 
@@ -110,9 +112,7 @@ def load_conversation(conversation="sample"):
 
         return Node(initiate, response, inputs)
 
-    with open("data/conversations.json") as convo_file:
-        data = json.load(convo_file)[conversation]
+    data = CONVERSATIONS[conversation]
 
     conversation_node = load_node(data)
     return load_loop(conversation_node)
-

@@ -46,12 +46,12 @@ class PathFindingGrid:
                 if self.map_data.ground_layer[y_dex][x_dex]:
                     cur_node = GridNode((x_dex, y_dex))
                     self.points[y_dex, x_dex] = cur_node
-                    current_tile = self.map_data.layers['1']['wall'].tile_map[x_dex, y_dex]
+                    current_tile = self.map_data.full_map[x_dex, y_dex]
                     for direction in dirs:
                         n_x = x_dex+direction[0]
                         n_y = y_dex+direction[1]
                         if n_x < len(row) and n_y < len(self.points):
-                            neighbor_tile = self.map_data.layers['1']['wall'].tile_map[n_x, n_y]
+                            neighbor_tile = self.map_data.full_map[n_x, n_y]
                             neighbor = self.points[n_y, n_x]
                             cur_neigh_dir = c.DIRECTIONS[direction]
                             neigh_cur_dir = (cur_neigh_dir+2) % 4
@@ -59,11 +59,11 @@ class PathFindingGrid:
                             cur_check = False
 
                             if current_tile is None\
-                                    or current_tile[0] is not None and current_tile[0].direction[neigh_cur_dir]:
+                                    or current_tile is not None and current_tile.directions[neigh_cur_dir]:
                                 cur_check = True
 
                             if neighbor_tile is None or\
-                                    neighbor_tile[0] is not None and neighbor_tile[0].direction[cur_neigh_dir]:
+                                    neighbor_tile is not None and neighbor_tile.directions[cur_neigh_dir]:
                                 neigh_check = True
 
                             if neigh_check and cur_check:

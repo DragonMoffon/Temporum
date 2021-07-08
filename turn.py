@@ -4,6 +4,7 @@ import arcade
 
 import algorithms
 import isometric
+import constants as c
 
 
 class Action:
@@ -14,16 +15,19 @@ class Action:
         self.actor = handler.actor
         self.data = []
         self.cost = 0
-        self.begin()
+        self.setup()
+
+    def setup(self):
+        self.find_cost()
 
     def begin(self):
-        self.find_cost()
+        pass
 
     def find_cost(self):
         pass
 
     def update(self):
-        pass
+        return True
 
     def final(self):
         pass
@@ -34,14 +38,29 @@ class Action:
 
 class MoveAction(Action):
 
-    def begin(self):
+    def setup(self):
         self.handler.actor.load_paths()
         path = algorithms.reconstruct_path(self.actor.path_finding_grid,
-                                                     self.actor.path_finding_data[0],
-                                                     (self.actor.e_y, self.actor.e_x),
-                                                     (self.inputs[1], self.inputs[0]))[:self.handler.initiative]
+                                           self.actor.path_finding_data[0],
+                                           (self.actor.e_y, self.actor.e_x),
+                                           (self.inputs[0].e_y, self.inputs[0].e_x))[:self.handler.initiative]
+
+        if len(path):
+            avg_x, avg_y = 0, 0
+            for node in path:
+                e_x, e_y = node.location
+                x, y, z = isometric.cast_to_iso(e_x, e_y)
+                avg_x += x
+                avg_y += y
+            self.handler.turn_handler.game_view.target_view_x = c.round_to_x(avg_x / len(path) - c.SCREEN_WIDTH / 2,
+                                                                             5 * c.SPRITE_SCALE)
+            self.handler.turn_handler.game_view.target_view_y = c.round_to_x(avg_y / len(path) - c.SCREEN_HEIGHT / 2,
+                                                                             5 * c.SPRITE_SCALE)
         self.data.append(path)
         self.find_cost()
+
+    def begin(self):
+        pass
 
     def find_cost(self):
         if len(self.data[0]):
@@ -74,11 +93,13 @@ class HoldAction(Action):
     def find_cost(self):
         self.cost = self.handler.initiative
 
-    def update(self):
+    def begin(self):
         if self.cost > self.handler.base_initiative:
             self.handler.next_initiative += self.handler.base_initiative//2
         else:
             self.handler.next_initiative += self.cost//2
+
+    def update(self):
         return True
 
 
@@ -86,15 +107,31 @@ class DashAction(Action):
     def find_cost(self):
         self.cost = self.handler.initiative
 
-    def update(self):
+    def begin(self):
         if self.cost > self.handler.base_initiative:
             self.handler.next_initiative -= self.handler.base_initiative//2
         else:
             self.handler.next_initiative -= self.cost//2
+
+    def update(self):
         return True
 
 
-ACTIONS = {"move": MoveAction, "hold": HoldAction, "dash": DashAction}
+class InteractAction(Action):
+    def begin(self):
+        self.data.append(self.handler.turn_handler.game_view.tabs[1])
+        self.data[0].load_convo(self.inputs[0].interaction_data)
+
+    def update(self):
+        return self.data[0].convo_done
+
+
+class ShootAction(Action):
+    def update(self):
+        return True
+
+
+ACTIONS = {"move": MoveAction, "hold": HoldAction, "dash": DashAction, 'interact': InteractAction, 'shoot': ShootAction}
 
 
 class ActionHandler:
@@ -106,6 +143,7 @@ class ActionHandler:
         self.initiative = base
         self.pending_initiative = base
         self.next_initiative = base
+        self.turn_handler = None
 
     def complete(self):
         self.current_action = None
@@ -157,13 +195,16 @@ class ActionHandler:
             self.initiative -= value.cost
         self._current_action = value
         self.pending_action = None
+        if self.current_action is not None:
+            self.current_action.begin()
 
 
 class TurnHandler:
-    def __init__(self, action_handlers: list):
+    def __init__(self, action_handlers: list, game_view):
         self.action_handlers: list[ActionHandler] = sorted(action_handlers, key=lambda handlers: handlers.initiative)
         self.complete: list[ActionHandler] = []
         self.current_handler: ActionHandler = None
+        self.game_view = game_view
         self.update_timer = 0
 
     def new_action_handlers(self, new_handlers):
@@ -176,10 +217,14 @@ class TurnHandler:
             self.current_handler.complete()
         if len(self.action_handlers):
             self.current_handler = self.action_handlers.pop(0)
+            if self.current_handler.turn_handler is None:
+                self.current_handler.turn_handler = self
         else:
             self.action_handlers = sorted(self.complete, key=lambda handlers: handlers.initiative)
             self.complete = []
             self.current_handler = self.action_handlers.pop(0)
+            if self.current_handler.turn_handler is None:
+                self.current_handler.turn_handler = self
 
     def on_update(self, delta_time: float = 1/60):
         if self.current_handler is None:

@@ -271,17 +271,106 @@ class Display(arcade.Sprite):
         self.center_x, self.center_y = pos
 
 
+ACTION_WORDS = {'move': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
+                                      image_width=320, image_height=60, image_x=0),
+                'dash': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
+                                      image_width=320, image_height=60, image_x=640),
+                'hold': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
+                                      image_width=320, image_height=60, image_x=320),
+                'interact': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
+                                          image_width=320, image_height=60, image_x=1280),
+                None: arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
+                                      image_width=320, image_height=60, image_x=960)}
+ACTION_PRIORITY = {'move': 0, 'interact': 1, 'shoot': 2, 'hold': 5, 'dash': 6}
+
+
+class ActionTab(arcade.Sprite):
+
+    def __init__(self, game_view):
+        super().__init__("assets/ui/ui_split.png", c.SPRITE_SCALE, image_height=650, image_width=1030,
+                         image_x=3090)
+        self.game_view = game_view
+        self.handle = False
+        self.actions = {}
+        self.defaults = {'dash': None, 'hold': None}
+        self.actions_ordered = []
+        self.current_set = 0
+        self.first_action: arcade.Sprite = None
+        self.first_pending: turn.Action = None
+        self.second_action: arcade.Sprite = None
+        self.second_pending: turn.Action = None
+
+    def draw(self):
+        if self.game_view.select_tile.e_x != self.game_view.player.e_x\
+                or self.game_view.select_tile.e_y != self.game_view.player.e_y:
+            if self.game_view.player.action_handler == self.game_view.turn_handler.current_handler:
+                self.handle = True
+                self.center_x = self.game_view.window.mouse.center_x + 120
+                self.center_y = self.game_view.window.mouse.center_y - 90
+                super().draw()
+                if self.first_action is not None:
+                    self.first_action.center_x = self.center_x + 33
+                    self.first_action.center_y = self.center_y + 39
+                    self.first_action.draw()
+                if self.second_action is not None:
+                    self.second_action.center_x = self.center_x + 33
+                    self.second_action.center_y = self.center_y - 36
+                    self.second_action.draw()
+                if self.first_pending is not None:
+                    self.first_pending.draw()
+                if self.second_pending is not None:
+                    self.second_pending.draw()
+                return
+        self.handle = False
+
+    def on_mouse_motion(self, e_x, e_y):
+        if self.handle and self.game_view.player.action_handler.current_action is None:
+            self.actions = {**dict(self.game_view.map_handler.full_map[e_x, e_y].available_actions), **self.defaults}
+            if len(self.actions) % 2:
+                self.actions[None] = None
+            self.actions_ordered = sorted(self.actions.keys(), key=lambda action: ACTION_PRIORITY.get(action, 10))
+            if self.current_set >= len(self.actions):
+                self.current_set = 0
+            self.set_actions()
+
+    def on_mouse_press(self, button):
+        if self.handle and self.game_view.player.action_handler.current_action is None:
+            if button == 1:
+                self.game_view.turn_handler.current_handler.current_action = self.first_pending
+            elif button == 4:
+                self.game_view.turn_handler.current_handler.current_action = self.second_pending
+
+    def on_scroll(self, direction):
+        if self.handle and self.game_view.player.action_handler.current_action is None:
+            self.current_set = int(self.current_set + 2*direction)
+            if self.current_set < 0:
+                self.current_set = len(self.actions)-2
+            else:
+                self.current_set %= len(self.actions)
+            self.set_actions()
+
+    def set_actions(self):
+        self.first_action = ACTION_WORDS.get(self.actions_ordered[self.current_set], None)
+        action = self.actions_ordered[self.current_set]
+        self.first_pending = turn.ACTIONS.get(action, turn.Action)(self.actions[action],
+                                                                   self.game_view.turn_handler.current_handler)
+        self.second_action = ACTION_WORDS.get(self.actions_ordered[self.current_set+1], None)
+        action = self.actions_ordered[self.current_set + 1]
+        self.second_pending = turn.ACTIONS.get(action, turn.Action)(self.actions[action],
+                                                                    self.game_view.turn_handler.current_handler)
+
+
 class DisplayTab(Tab):
 
     def __init__(self, game_view):
         text_data = [{'x': 230, 'y': 180, 'width': 230, 'height': 90},
                      {'x': 460, 'y': 180, 'width': 230, 'height': 90},
                      {'x': 690, 'y': 180, 'width': 230, 'height': 90}]
-        display_data = [{'x': -95, 'y': 70, 'text_location': 'assets/ui/ui_pieces.png',
+        display_data = [{'x': -95, 'y': 75, 'text_location': 'assets/ui/ui_pieces.png',
                          'textures': text_data},
-                        {'x': -95, 'y': -5, 'text_location': 'assets/ui/ui_pieces.png',
+                        {'x': -95, 'y': 0, 'text_location': 'assets/ui/ui_pieces.png',
                          'textures': text_data},
-                        {'x': -95, 'y': -80, 'text_location': 'assets/ui/ui_pieces.png',
+                        {'x': -95, 'y': -75, 'text_location': 'assets/ui/ui_pieces.png',
                          'textures': text_data}]
 
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=4120, width=1030, height=650),
@@ -327,10 +416,19 @@ class TalkTab(Tab):
         self.current_node: interaction.Node = self.convo
         self.node_buttons = []
         self.node_button_text = []
+        self.convo_done = False
         self.find_node_buttons()
 
-    def next_node(self, direction,
-                  node):
+    def load_convo(self, convo):
+        self.convo = convo
+        self.current_node = convo
+
+        self.node_buttons = []
+        self.node_button_text = []
+        self.convo_done = False
+        self.find_node_buttons()
+
+    def next_node(self, direction, node):
         self.current_node = node
         self.current_node.reset()
         self.find_node_buttons()
@@ -360,52 +458,19 @@ class TalkTab(Tab):
     def on_press(self, point):
         super().on_press(point)
         if self.current_node.on_press():
-            self.load_buttons(self.node_buttons)
-
-
-class ActionTab(Tab):
-
-    def __init__(self, game_view):
-        text_data = [{'x': 460, 'y': 90, 'width': 230, 'height': 90},
-                     {'x': 690, 'y': 0, 'width': 230, 'height': 90}]
-        display_data = [
-            {'x': -330, 'y': 70, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': text_data},
-            {'x': -330, 'y': -5, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': text_data},
-            {'x': -330, 'y': -80, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': text_data},
-            {'x': 10, 'y': 70, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': text_data},
-            {'x': 10, 'y': -5, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': text_data},
-            {'x': 10, 'y': -80, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': text_data}]
-        button_data = [{'x': -175 + ((math.floor(index/3))*340), 'y': 75-((index % 3)*75),
-                        "action": TriggerEventAction((game_view.select_action, action)),
-                        "texture": arcade.load_texture("assets/ui/ui_pieces.png", x=230, y=90, width=230, height=90),
-                        'text': f"{action[:1].upper()}{action[1:]}"} for index, action in enumerate(turn.ACTIONS)]
-        button_data.append({"x": 370, "y": 105,
-                            "action": ToggleTabAction((self, game_view.ui_elements)),
-                            'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)})
-
-        super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=3090, width=1030, height=650),
-                         669, 99, game_view, button_data=button_data, display_data=display_data)
+            if len(self.node_buttons):
+                self.load_buttons(self.node_buttons)
+            else:
+                self.convo_done = True
 
 
 class MasterTab(Tab):
 
     def __init__(self, game_view):
-        tab_data = (InvTab(game_view),
-                    TalkTab(game_view),
-                    ActionTab(game_view),
-                    DisplayTab(game_view))
-        button_data = ({"x": -220, "y": 120, "text": "INV",
-                        "action": ToggleTabAction((tab_data[0], game_view.ui_elements))},
-                       {"x": -220, "y": -15, "text": "TALK",
-                        "action": ToggleTabAction((tab_data[1], game_view.ui_elements))},
-                       {"x": -220, "y": -150, "text": "ACT",
-                        "action": ToggleTabAction((tab_data[2], game_view.ui_elements))})
+        button_data = ({"x": -220, "y": 70, "text": "INV",
+                        "action": ToggleTabAction((game_view.tabs[0], game_view.ui_elements))},
+                       {"x": -220, "y": -65, "text": "TALK",
+                        "action": ToggleTabAction((game_view.tabs[1], game_view.ui_elements))})
 
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", width=1030, height=650),
-                         204, 195, game_view, False, button_data, tab_data)
+                         204, 195, game_view, False, button_data, game_view.tabs)

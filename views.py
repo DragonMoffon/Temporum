@@ -1,4 +1,6 @@
 import random
+import time
+import math
 
 import arcade
 
@@ -48,8 +50,8 @@ class TemporumWindow(arcade.Window):
             self.close()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
-        self.mouse.center_x = self.view_x + x + self.mouse.width/2
-        self.mouse.center_y = self.view_y + y - self.mouse.height/2
+        self.mouse.center_x = c.round_to_x(self.view_x + x + self.mouse.width/2, 3)
+        self.mouse.center_y = c.round_to_x(self.view_y + y - self.mouse.height/2, 3)
 
 
 class GameView(arcade.View):
@@ -80,13 +82,18 @@ class GameView(arcade.View):
 
         self.selected_tile: player.Selected = None
 
+        self.action_tab = ui.ActionTab(self)
+
         # Ui Stuff
         self.ui_elements = arcade.SpriteList()
+        self.tabs = (ui.InvTab(self),
+                     ui.TalkTab(self),
+                     ui.DisplayTab(self))
         self.master_tab = ui.MasterTab(self)
         self.pressed = None
 
         # Turn System
-        self.turn_handler = turn.TurnHandler([self.player.action_handler, self.test_bot.action_handler])
+        self.turn_handler = turn.TurnHandler([self.player.action_handler, self.test_bot.action_handler], self)
 
         # keys for held checks
         self.shift = False
@@ -99,25 +106,72 @@ class GameView(arcade.View):
         self.pending_action = None
         self.current_handler = None
 
+        # View code
+        self.target_view_x = self.window.view_x
+        self.target_view_y = self.window.view_y
+        self.motion = False
+        self.motion_start = 0
+        self.motion_length = 1.5
+        self.motion_view_start = None
+
         # Shader Programs
 
         # Debugging shader
-        # self.test_program, self.buffer, self.description, self.triangle_geometry \
-        #     = shaders.setup_fullscreen_shader(self.window.ctx, "shaders/isometric_test_fs.glsl")
+        self.test_program, self.buffer, self.description, self.triangle_geometry \
+             = shaders.setup_fullscreen_shader(self.window.ctx, "shaders/isometric_test_fs.glsl")
 
         # Last action: reorder the shown isometric sprites
         c.ISO_LIST.reorder_isometric()
 
+    def move_view(self, dx, dy):
+        # Round to fit the pixels of sprites
+        rx = c.round_to_x(dx, 5 * c.SPRITE_SCALE)
+        ry = c.round_to_x(dy, 5 * c.SPRITE_SCALE)
+
+        # move the view by this amount
+        self.window.view_x -= rx
+        self.window.view_y -= ry
+
+        # Reset the target view so no motion happens
+        self.target_view_x = self.window.view_x
+        self.target_view_y = self.window.view_y
+        self.motion = False
+
+        # Move the ui and set the viewport.
+        self.ui_elements.move(-rx, -ry)
+        arcade.set_viewport(self.window.view_x, self.window.view_x + c.SCREEN_WIDTH,
+                            self.window.view_y, self.window.view_y + c.SCREEN_HEIGHT)
+
+    def set_view(self, x, y):
+        # find the change x and y then round to fit the pixels of sprites
+        dx = c.round_to_x(x - self.window.view_x, 5*c.SPRITE_SCALE)
+        dy = c.round_to_x(y - self.window.view_y, 5*c.SPRITE_SCALE)
+
+        # Set the view to the rounded inputs
+        self.window.view_x = c.round_to_x(x, 5*c.SPRITE_SCALE)
+        self.window.view_y = c.round_to_x(y, 5*c.SPRITE_SCALE)
+
+        # reset the target view so no motion happens
+        self.target_view_x = self.window.view_x
+        self.target_view_y = self.window.view_y
+        self.motion = False
+
+        # Move the ui and set the viewport
+        self.ui_elements.move(dx, dy)
+        arcade.set_viewport(self.window.view_x, self.window.view_x + c.SCREEN_WIDTH,
+                            self.window.view_y, self.window.view_y + c.SCREEN_HEIGHT)
+
     def on_draw(self):
         arcade.start_render()
         c.ISO_LIST.draw()
-        arcade.draw_point(0, 0, arcade.color.RAW_UMBER, 5)
         self.turn_handler.on_draw()
         if self.pending_action is not None:
             self.pending_action.draw()
 
         for element in self.ui_elements:
             element.draw()
+
+        self.action_tab.draw()
 
         """if self.player.path_finding_grid is not None:
             dirs = ((0, -0.25), (0.25, 0), (0, 0.25), (-0.25, 0))
@@ -131,8 +185,8 @@ class GameView(arcade.View):
                             if value.directions[dir_dex] is None:
                                 arcade.draw_point(iso_x, iso_y - 60, arcade.color.RADICAL_RED, 5)
                             else:
-                                arcade.draw_point(iso_x, iso_y - 60, arcade.color.WHITE, 5)
-        """
+                                arcade.draw_point(iso_x, iso_y - 60, arcade.color.WHITE, 5)"""
+
         # Debugging of the map_handler
         # self.map_handler.debug_draw(True)
 
@@ -148,25 +202,25 @@ class GameView(arcade.View):
                 arcade.draw_text(f"{x_dex}, {y_dex}", x_pos, y_pos, arcade.color.WHITE)
         """
 
-        self.window.mouse.draw()
         self.map_handler.debug_draw()
+        self.window.mouse.draw()
+
+        arcade.draw_point(self.target_view_x+c.SCREEN_WIDTH/2, self.target_view_y+c.SCREEN_HEIGHT/2,
+                          arcade.color.RIFLE_GREEN, 10)
 
     def on_update(self, delta_time: float):
         # Debug FPS
         # print(f"FPS: {1/delta_time}")
         self.turn_handler.on_update(delta_time)
         if self.current_handler != self.turn_handler.current_handler:
-            if self.turn_handler.current_handler == self.player.action_handler:
-                self.set_pending_action()
-                self.process_action()
-
             self.current_handler = self.turn_handler.current_handler
 
         if self.turn_handler.current_handler == self.test_bot.action_handler and \
                 self.test_bot.action_handler.current_action is None and self.test_bot.action_handler.initiative > 0:
             self.test_bot.load_paths()
-            move_location = random.choice(self.test_bot.path_finding_data[2]
-                                          [self.test_bot.action_handler.initiative]).location
+            move_node = random.choice(self.test_bot.path_finding_data[2]
+                                     [self.test_bot.action_handler.initiative]).location
+            move_location = self.map_handler.full_map[move_node].pieces
             self.test_bot.action_handler.current_action = turn.ACTIONS['move'](move_location,
                                                                                self.test_bot.action_handler)
 
@@ -174,39 +228,24 @@ class GameView(arcade.View):
         view_x, view_y = self.window.view_x, self.window.view_y
         arcade.set_viewport(view_x, view_x+c.SCREEN_WIDTH, view_y, view_y+c.SCREEN_HEIGHT)
 
-    def on_key_press(self, symbol: int, modifiers: int):
-        if symbol == arcade.key.ENTER and self.turn_handler.current_handler == self.player.action_handler:
-            self.push_action()
-
-    def on_key_release(self, _symbol: int, _modifiers: int):
-        if _symbol == arcade.key.LSHIFT:
-            self.shift = False
-
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
-        map_size = self.map_handler.map_size
         y_mod = ((160-c.FLOOR_TILE_THICKNESS)*c.SPRITE_SCALE)
         e_x, e_y = isometric.cast_from_iso(self.window.view_x + x, self.window.view_y + y + y_mod)
-        if 0 <= e_x < self.map_handler.map_width and 0 <= e_y < self.map_handler.map_height:
+        if 0 <= e_x < self.map_handler.map_width and 0 <= e_y < self.map_handler.map_height\
+                and not len(arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)):
             if e_x != self.select_tile.e_x or e_y != self.select_tile.e_y:
                 self.select_tile.new_pos(e_x, e_y)
                 c.iso_changed()
                 self.map_handler.run_display('mouse', e_x, e_y)
-                self.set_pending_action()
+                self.action_tab.on_mouse_motion(e_x, e_y)
         elif self.player.e_x != self.select_tile.e_x or self.player.e_y != self.select_tile.e_y:
             self.select_tile.new_pos(self.player.e_x, self.player.e_y)
             c.iso_changed()
             self.map_handler.run_display('mouse', self.player.e_x, self.player.e_y)
-            self.set_pending_action()
 
     def on_mouse_drag(self, x: float, y: float, dx: float, dy: float, _buttons: int, _modifiers: int):
         if _buttons == 2:
-            rx = c.round_to_x(dx, 5*c.SPRITE_SCALE)
-            ry = c.round_to_x(dy, 5*c.SPRITE_SCALE)
-            self.window.view_x -= rx
-            self.window.view_y -= ry
-            self.ui_elements.move(-rx, -ry)
-            arcade.set_viewport(self.window.view_x, self.window.view_x + c.SCREEN_WIDTH,
-                                self.window.view_y, self.window.view_y + c.SCREEN_HEIGHT)
+            self.move_view(dx, dy)
         elif _buttons == 1:
             dragged = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
             if self.pressed is None and len(dragged):
@@ -222,6 +261,7 @@ class GameView(arcade.View):
         self.pressed = None
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        self.action_tab.on_mouse_press(button)
         if button == 1:
             pressed = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
             if len(pressed):
@@ -234,13 +274,13 @@ class GameView(arcade.View):
                 else:
                     self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y)
 
-                self.process_action()
-
     def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
         pressed = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
         if len(pressed):
             self.pressed: ui.Tab = pressed[-1]
             self.pressed.on_scroll(scroll_y)
+        else:
+            self.action_tab.on_scroll(scroll_y/abs(scroll_y))
 
     def select_action(self, base_input, action: str):
         if action != self.selected_action:

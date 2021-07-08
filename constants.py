@@ -3,6 +3,7 @@ import json
 import arcade
 
 from isometric import IsoList
+import views
 
 """
 VARIABLES
@@ -54,10 +55,7 @@ def iso_extend(iterable: iter):
     changed = False
     for item in iterable:
         if item not in ISO_LIST:
-            changed = True
             iso_append(item)
-    if changed:
-        ISO_LIST.changed = changed
 
 
 def iso_strip(iterable: iter):

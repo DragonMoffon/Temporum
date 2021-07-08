@@ -1,13 +1,53 @@
 import numpy as np
 import json
+import time
 
 import arcade
 
 import isometric
 import constants as c
+import interaction
 
 CHECK_DIR = (1, 0), (0, 1), (1, 1)
 INV = {'mouse': 'player', 'player': 'mouse'}
+
+
+class Tile:
+
+    def __init__(self):
+        self.pieces = []
+        self.directions = [1, 1, 1, 1]
+        self.available_actions = {}
+
+    def mix_directions(self, other):
+        self.directions = [dirs*other[index] for index, dirs in enumerate(self.directions)]
+
+    def solve_direction(self, index):
+        for piece in self.pieces:
+            if not piece.directions[index]:
+                return False
+        return True
+
+    def add(self, other):
+        self.pieces.append(other)
+        self.mix_directions(other.direction)
+        for action in other.actions:
+            if action not in self.available_actions:
+                self.available_actions[action] = [other]
+            else:
+                self.available_actions[action].append(other)
+
+    def remove(self, other):
+        if other in self.pieces:
+            self.pieces.remove(other)
+            for index, direction in enumerate(other.direction):
+                if not direction:
+                    self.directions[index] = self.solve_direction(index)
+
+            for action in other.actions:
+                self.available_actions[action].remove(other)
+                if not len(self.available_actions[action]):
+                    self.available_actions.pop(action)
 
 
 class DisplayHandler:
@@ -16,6 +56,7 @@ class DisplayHandler:
         self.states = {'wall': 0, 'cover': 0, 'poi': 0}
         self.state_methods = {'wall': self.wall_switch, 'cover': self.cover_switch, 'poi': self.poi_switch}
         self.map_handler = map_handler
+        self.all_walls = 1
 
     def mod_state(self, direction, identifier):
         self.states[identifier] = (self.states[identifier] + direction) % 3
@@ -28,14 +69,19 @@ class DisplayHandler:
     def wall_switch(self):
         removed_tiles = []
         if self.states['wall'] == 2:
-            self.map_handler.input_hide(second_args=['wall'])
+            if self.all_walls != -1:
+                self.map_handler.input_hide(second_args=['wall'])
+                self.all_walls = -1
         elif self.states['wall']:
             for room in self.map_handler.current_rooms.values():
                 if room is not None and room.shown:
                     removed_tiles.extend(room.room_walls)
                     room.shown = False
+            self.all_walls = 0
         else:
-            self.map_handler.input_show(second_args=['wall'])
+            if self.all_walls != 1:
+                self.map_handler.input_show(second_args=['wall'])
+                self.all_walls = True
 
         c.iso_hide(removed_tiles)
 
@@ -52,6 +98,7 @@ class MapHandler:
         # Read the map. This will later be a list of maps depending on the area.
         self.current_location = "WorkroomEntrance"
         self.map = arcade.read_tmx(f"tiled/tilemaps/{self.current_location}.tmx")
+        self.poi_data = json.load(open(f"data/{self.current_location}.json"))
         self.display_handler = DisplayHandler(self)
 
         # Save the layers for the map in a dictionary
@@ -62,6 +109,7 @@ class MapHandler:
         self.ground_layer = None
         self.map_width, self.map_height = self.map.map_size
         self.map_size = [self.map_width, self.map_height]
+        self.full_map = np.empty(self.map_size, Tile)
         c.set_map_size(self.map_size)
         self.rooms = {'1': {}}
         self.current_rooms: dict[str, isometric.IsoRoom] = {'player': None, 'mouse': None}
@@ -79,8 +127,6 @@ class MapHandler:
         with open(f"data/{self.current_location}.json") as json_file:
             json_data = json.load(json_file)
         for layer_num, layer_data in enumerate(map_data.layers):
-            # Find the center Z modifier of the layer any tile ordering can be done properly.
-            z_mod = 0
             location = layer_data.name.split(" ")
 
             if layer_data.properties is not None:
@@ -136,13 +182,25 @@ class MapHandler:
             def generate_poi(data):
                 poi_data = json_data[str(data)]
                 data = poi_data['tile']
-                generate_layer(data)
+
+                current_tiles = isometric.find_poi_sprites(data, interaction.load_conversation(poi_data['interaction']),
+                                                           (e_x, e_y))
+                tile_list.extend(current_tiles)
+                tile_map[e_x, e_y] = current_tiles
+                for tile in current_tiles:
+                    if self.full_map[tile.e_x, tile.e_y] is None:
+                        self.full_map[tile.e_x, tile.e_y] = Tile()
+                    self.full_map[tile.e_x, tile.e_y].add(tile)
 
             def generate_layer(data):
                 # take the x and y coord of the tile in the map data to create the isometric position
                 current_tiles = isometric.find_iso_sprites(data, (e_x, e_y))
                 tile_list.extend(current_tiles)
                 tile_map[e_x, e_y] = current_tiles
+                for tile in current_tiles:
+                    if self.full_map[tile.e_x, tile.e_y] is None:
+                        self.full_map[tile.e_x, tile.e_y] = Tile()
+                    self.full_map[tile.e_x, tile.e_y].add(tile)
 
             generation_functions = {'floor': generate_layer, 'wall': generate_layer,
                                     'poi': generate_poi, 'room': generate_room}

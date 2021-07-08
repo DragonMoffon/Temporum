@@ -15,7 +15,8 @@
                     "start_x": 0,
                     "start_y": 0
                 }
-            ]
+            ],
+            "actions": ["move"]
         },
         {
             "texture": 0,
@@ -232,7 +233,8 @@
                     "start_x": 0,
                     "start_y": 0
                 }
-            ]
+            ],
+            "actions": ["interact"]
         },
         {
             "texture": 2,
@@ -243,7 +245,8 @@
                     "start_x": 160,
                     "start_y": 0
                 }
-            ]
+            ],
+            "actions": ["interact"]
         },
         {
             "texture": 3,
@@ -260,7 +263,8 @@
                     "start_x": 160,
                     "start_y": 0
                 }
-            ]
+            ],
+            "actions": ["interact"]
         },
         {
             "texture": 3,
@@ -277,7 +281,8 @@
                     "start_x": 160,
                     "start_y": 320
                 }
-            ]
+            ],
+            "actions": ["interact"]
         },
         {
             "texture": 0,
@@ -291,7 +296,8 @@
                     "start_x": 0,
                     "start_y": 0
                 }
-            ]
+            ],
+            "actions": []
         }
     ]
 }

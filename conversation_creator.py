@@ -452,8 +452,10 @@ class ConvoWindow(arcade.Window):
 
     def save_to_json(self):
         self.data = self.delve_node(self.start)
-        with open(f"data/conversations.json", "r+w") as save_file:
+        with open(f"data/conversations.json", "r+") as save_file:
             save_data = json.load(save_file)
+            save_file.seek(0)
+            save_file.truncate()
             save_data[self.convo_name] = self.data
             json.dump(save_data, save_file, indent=4)
 
