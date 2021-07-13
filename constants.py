@@ -24,6 +24,7 @@ DIRECTIONS = {(0, -1): 0, (1, 0): 1, (0, 1): 2, (-1, 0): 3}
 
 # The Isolist That holds all isometric items
 ISO_LIST = IsoList()
+GROUND_LIST = IsoList()
 
 # Map Information
 CURRENT_MAP_SIZE = 0, 0
@@ -52,7 +53,6 @@ def iso_append(item):
 
 
 def iso_extend(iterable: iter):
-    changed = False
     for item in iterable:
         if item not in ISO_LIST:
             iso_append(item)
@@ -69,6 +69,7 @@ def iso_hide(iterable: iter):
     for item in iterable:
         if item.hidden is not None and item in ISO_LIST:
             item.texture = item.hidden
+            item.hide = True
         else:
             strips.append(item)
     iso_strip(strips)
@@ -78,6 +79,7 @@ def iso_show(iterable: iter):
     show = []
     for item in iterable:
         item.texture = item.base
+        item.hide = False
         if item not in ISO_LIST:
             show.append(item)
     iso_extend(show)
@@ -85,3 +87,10 @@ def iso_show(iterable: iter):
 
 def iso_changed():
     ISO_LIST.changed = True
+
+
+def set_floor(items):
+    global GROUND_LIST
+    GROUND_LIST = IsoList()
+    GROUND_LIST.extend(items)
+    GROUND_LIST.reorder_isometric()

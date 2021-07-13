@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import json
 import time
@@ -7,6 +9,7 @@ import arcade
 import isometric
 import constants as c
 import interaction
+import tiles
 
 CHECK_DIR = (1, 0), (0, 1), (1, 1)
 INV = {'mouse': 'player', 'player': 'mouse'}
@@ -15,9 +18,27 @@ INV = {'mouse': 'player', 'player': 'mouse'}
 class Tile:
 
     def __init__(self):
-        self.pieces = []
+        self.pieces: list[isometric.IsoSprite] = []
         self.directions = [1, 1, 1, 1]
-        self.available_actions = {}
+        self.available_actions: dict[str, list] = {}
+
+    def update(self, other):
+        """
+        this updates the directions, and the availble actions of the tile.
+        :param other: A IsoSprite that should be in the tile.
+        """
+        if other not in self.pieces:
+            self.pieces.append(other)
+
+        self.mix_directions(other.direction)
+        actions = list(set(self.available_actions.keys()) | set(other.actions))
+        for action in actions:
+            if action not in self.available_actions:
+                self.available_actions[action] = [other]
+            elif other not in self.available_actions[action]:
+                self.available_actions[action].append(other)
+            elif other in self.available_actions[action] and action not in other.actions:
+                self.available_actions[action].remove(other)
 
     def mix_directions(self, other):
         self.directions = [dirs*other[index] for index, dirs in enumerate(self.directions)]
@@ -29,16 +50,19 @@ class Tile:
         return True
 
     def add(self, other):
-        self.pieces.append(other)
-        self.mix_directions(other.direction)
-        for action in other.actions:
-            if action not in self.available_actions:
-                self.available_actions[action] = [other]
-            else:
-                self.available_actions[action].append(other)
+        if other not in self.pieces:
+            other.tile = self
+            self.pieces.append(other)
+            self.mix_directions(other.direction)
+            for action in other.actions:
+                if action not in self.available_actions:
+                    self.available_actions[action] = [other]
+                else:
+                    self.available_actions[action].append(other)
 
     def remove(self, other):
         if other in self.pieces:
+            other.tile = None
             self.pieces.remove(other)
             for index, direction in enumerate(other.direction):
                 if not direction:
@@ -55,6 +79,7 @@ class DisplayHandler:
     def __init__(self, map_handler):
         self.states = {'wall': 0, 'cover': 0, 'poi': 0}
         self.state_methods = {'wall': self.wall_switch, 'cover': self.cover_switch, 'poi': self.poi_switch}
+        self.reapply_methods = {'wall': self.wall_reapply, 'cover': self.cover_reapply, 'poi': self.poi_reapply}
         self.map_handler = map_handler
         self.all_walls = 1
 
@@ -65,6 +90,24 @@ class DisplayHandler:
     def update_states(self):
         for method in self.state_methods.values():
             method()
+
+    def reapply(self, room):
+        for method in self.reapply_methods.values():
+            method(room)
+
+    def wall_reapply(self, room):
+        added_tiles = []
+        if self.states['wall'] != 2:
+            if not room.shown:
+                added_tiles.extend(room.room_walls)
+                room.shown = True
+        c.iso_show(added_tiles)
+
+    def cover_reapply(self, room):
+        pass
+
+    def poi_reapply(self, room):
+        pass
 
     def wall_switch(self):
         removed_tiles = []
@@ -94,8 +137,9 @@ class DisplayHandler:
 
 class MapHandler:
 
-    def __init__(self):
+    def __init__(self, game_view):
         # Read the map. This will later be a list of maps depending on the area.
+        self.game_view = game_view
         self.current_location = "WorkroomEntrance"
         self.map = arcade.read_tmx(f"tiled/tilemaps/{self.current_location}.tmx")
         self.poi_data = json.load(open(f"data/{self.current_location}.json"))
@@ -106,7 +150,7 @@ class MapHandler:
                                                                     'poi': None, 'room': None},
                                                               '2': {'floor': None, 'wall': None,
                                                                     'poi': None, 'room': None}}
-        self.ground_layer = None
+        self.ground_layer: isometric.IsoLayer = None
         self.map_width, self.map_height = self.map.map_size
         self.map_size = [self.map_width, self.map_height]
         self.full_map = np.empty(self.map_size, Tile)
@@ -180,7 +224,7 @@ class MapHandler:
                             self.rooms[location[0]][data].room_walls.append(tile)
 
             def generate_poi(data):
-                poi_data = json_data[str(data)]
+                poi_data = json_data['interact'][str(data)]
                 data = poi_data['tile']
 
                 current_tiles = isometric.find_poi_sprites(data, interaction.load_conversation(poi_data['interaction']),
@@ -191,6 +235,18 @@ class MapHandler:
                     if self.full_map[tile.e_x, tile.e_y] is None:
                         self.full_map[tile.e_x, tile.e_y] = Tile()
                     self.full_map[tile.e_x, tile.e_y].add(tile)
+
+            def generate_door(data):
+                door_data = json_data['door'].get(str(data))
+                tile_data = door_data['tiles']
+                target_id = data - 16
+
+                current_tile = isometric.find_toggle_sprites(tile_data, target_id, (e_x, e_y))
+                tile_list.append(current_tile)
+                tile_map[e_x, e_y] = current_tile
+                if self.full_map[e_x, e_y] is None:
+                    self.full_map[e_x, e_y] = Tile()
+                self.full_map[e_x, e_y].add(current_tile)
 
             def generate_layer(data):
                 # take the x and y coord of the tile in the map data to create the isometric position
@@ -203,20 +259,21 @@ class MapHandler:
                     self.full_map[tile.e_x, tile.e_y].add(tile)
 
             generation_functions = {'floor': generate_layer, 'wall': generate_layer,
-                                    'poi': generate_poi, 'room': generate_room}
+                                    'poi': generate_poi, 'room': generate_room,
+                                    'door': generate_door}
 
             # Loop through the tile data.
             for e_y, row in enumerate(map_data):
                 for e_x, tile_value in enumerate(row):
                     # If there is a tile in found in the data create the appropriate tile.
                     if tile_value:
-                        generation_functions[location[-1]](tile_value)
+                        generation_functions.get(location[-1], generate_layer)(tile_value)
 
             self.layers[location[0]][location[1]] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map, shown)
         self.ground_layer = self.layers['1']['floor'].map_data
         self.initial_show()
 
-    def input_show(self, first_args='1', second_args=('floor', 'wall', 'poi')):
+    def input_show(self, first_args='1', second_args=('wall', 'poi', 'door')):
         shown_tiles = []
         for args in first_args:
             for locator_args in second_args:
@@ -236,9 +293,10 @@ class MapHandler:
     def initial_show(self):
         shown_layers = []
         for key, layer in self.layers['1'].items():
-            if layer.shown:
+            if layer.shown and key != 'floor':
                 shown_layers.append(key)
         self.input_show(second_args=shown_layers)
+        c.set_floor(self.layers['1']['floor'].tiles)
 
     def run_display(self, setter, e_x, e_y):
         room = self.layers['1']['room'].map_data[e_y][e_x]
@@ -247,11 +305,13 @@ class MapHandler:
             if self.current_rooms[setter] != room:
                 if self.current_rooms[setter] is not None and not self.current_rooms[setter].shown:
                     if self.current_rooms[INV[setter]] != room:
-                        c.iso_show(self.current_rooms[setter].room_walls)
-                        self.current_rooms[setter].shown = True
+                        self.display_handler.reapply(self.current_rooms[setter])
                 self.current_rooms[setter] = room
                 self.display_handler.update_states()
 
     def debug_draw(self, a_star=False, display_draw=False):
+        if a_star:
+            pass
+
         if display_draw:
             arcade.draw_text(str(self.display_handler.states), 0, 0, arcade.color.WHITE)

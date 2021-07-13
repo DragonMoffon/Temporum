@@ -28,25 +28,25 @@ class Player(isometric.IsoActor):
         self.game_view.map_handler.run_display('player', self.e_x, self.e_y)
 
     def load_paths(self):
-        if self.path_finding_last['init'] != self.action_handler.initiative or \
-           self.path_finding_last['pos'] != (self.e_x, self.e_y):
-            c.iso_strip(self.walls)
-            super().load_paths()
-            self.walls = []
-            for node in self.path_finding_data[-1]:
-                if self.path_finding_data[1][node] <= self.action_handler.initiative:
+        if self.action_handler.initiative >= 0:
+            if self.path_finding_last['init'] != self.action_handler.initiative or \
+               self.path_finding_last['pos'] != (self.e_x, self.e_y):
+                c.iso_strip(self.walls)
+                super().load_paths()
+                self.walls = []
+                for node in self.path_finding_data[-1]:
+                    if self.path_finding_data[1][node] <= self.action_handler.initiative:
+                        for index, neighbor in enumerate(node.directions):
+                            if neighbor is None:
+                                self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
+                    else:
+                        break
+                for node in self.path_finding_data[2][self.action_handler.initiative]:
                     for index, neighbor in enumerate(node.directions):
-                        if neighbor is None:
+                        if neighbor is not None and self.path_finding_data[1][neighbor] > self.path_finding_data[1][node]:
                             self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
-                else:
-                    break
-
-            for node in self.path_finding_data[2][self.action_handler.initiative]:
-                for index, neighbor in enumerate(node.directions):
-                    if neighbor is not None and self.path_finding_data[1][neighbor] > self.path_finding_data[1][node]:
-                        self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
-            c.iso_extend(self.walls)
-            self.path_finding_last = {'init': self.action_handler.initiative, 'pos': (self.e_x, self.e_y)}
+                c.iso_extend(self.walls)
+                self.path_finding_last = {'init': self.action_handler.initiative, 'pos': (self.e_x, self.e_y)}
 
 
 class Select(isometric.IsoSprite):

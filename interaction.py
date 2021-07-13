@@ -4,13 +4,19 @@ import arcade
 
 import constants as c
 
+
 CONVERSATIONS = json.load(open("data/conversations.json"))
+characters = ['note', 'terminal', 'machine', 'computer', 'player']
+SPEAKERS = {character: arcade.load_texture("assets/interaction/portraits.png", y=265+(265*index),
+                                           width=280, height=265)
+            for index, character in enumerate(characters)}
 
 
 class DisplayText:
 
-    def __init__(self, pages: list, page_events: dict):
+    def __init__(self, pages: list, page_events: dict, speaker: arcade.Sprite):
         self.pages = pages
+        self.speaker = speaker
         self.page_events = page_events
         self.current_page = -1
         self.current_event = None
@@ -27,14 +33,18 @@ class DisplayText:
         if self.current_page < len(self.pages):
             if self.current_event is not None:
                 self.push_event()
-            else:
-                if self.current_page in self.page_events:
-                    self.current_event = self.page_events[self.current_page]
+            elif self.current_page in self.page_events:
+                self.current_event = self.page_events[self.current_page]
             return False
         return True
 
-    def on_press(self):
-        return self.cycle_step()
+    def back_step(self):
+        self.current_page -= 1
+        if self.current_page >= 0:
+            self.current_event = None
+            return False
+        self.current_page = 0
+        return True
 
     def push_event(self):
         self.current_event = None
@@ -45,6 +55,9 @@ class DisplayText:
     def display(self, x, y):
         arcade.draw_text(self.pages[self.current_page], x-465*c.SPRITE_SCALE, y+155*c.SPRITE_SCALE,
                          arcade.color.WHITE, anchor_y='top')
+        self.speaker.center_x = c.round_to_x(x + 255*c.SPRITE_SCALE, 5*c.SPRITE_SCALE)
+        self.speaker.center_y = c.round_to_x(y + 40*c.SPRITE_SCALE, 5*c.SPRITE_SCALE)
+        self.speaker.draw()
 
 
 class Node:
@@ -55,6 +68,8 @@ class Node:
         self.inputs: dict[str, Node] = inputs
         self.steps = {self.initiate_text: self.response_text, self.response_text: self.inputs}
         self.current_display = self.initiate_text
+        self.action: str = ''
+        self.target: int = -1
 
     def reset(self):
         self.current_display = self.initiate_text
@@ -66,9 +81,9 @@ class Node:
         else:
             pass
 
-    def on_press(self):
+    def forward_step(self):
         if isinstance(self.current_display, DisplayText):
-            if self.current_display.on_press():
+            if self.current_display.cycle_step():
                 self.current_display = self.steps[self.current_display]
                 if isinstance(self.current_display, dict):
                     return True
@@ -76,9 +91,20 @@ class Node:
                     self.current_display.reset()
         return False
 
+    def backward_step(self):
+        if isinstance(self.current_display, DisplayText):
+            if self.current_display.back_step():
+                self.current_display = self.initiate_text
+                self.current_display.back_step()
+            return False
+        self.current_display = self.response_text
+        self.current_display.back_step()
+        return True
 
-def load_conversation(conversation="sample"):
+
+def load_conversation(conversation="tutorial"):
     loop_data: list[tuple[(str, str)]] = []
+    default_speaker: list[str, str] = None
 
     def load_loop(convo):
         def find_node(loop):
@@ -96,13 +122,24 @@ def load_conversation(conversation="sample"):
 
         return convo
 
-    def load_display(display_data):
-        display: DisplayText = DisplayText([display_data], {0: None})
+    def load_display(display_data, speaker):
+        speaker_sprite = arcade.Sprite(scale=c.SPRITE_SCALE)
+        speaker_sprite.texture = SPEAKERS[speaker]
+        if isinstance(display_data, str):
+            display: DisplayText = DisplayText([display_data], {0: None}, speaker_sprite)
+        else:
+            display: DisplayText = DisplayText(display_data, {0: None}, speaker_sprite)
         return display
 
     def load_node(node_data, location=''):
-        initiate = load_display(node_data['initiate'])
-        response = load_display(node_data['response'])
+        nonlocal default_speaker
+        if 'speakers' in node_data and default_speaker is None:
+            default_speaker = node_data['speakers']
+        speakers = node_data.get('speakers', default_speaker)
+
+        initiate = load_display(node_data['initiate'], speakers[0])
+        response = load_display(node_data['response'], speakers[1])
+
         inputs = {}
         for key, next_node in node_data['inputs'].items():
             if isinstance(next_node, str):

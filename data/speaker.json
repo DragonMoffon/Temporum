@@ -3,47 +3,30 @@
     {
         "digital":
         {
-            "asset": "",
-            "start": [0, 0],
-            "frames": 1
+            "start": [0, 0]
         }
     },
     "characters":
     {
         "player":
         {
-            "asset": "",
             "start": [0, 0],
-            "frames": 1,
-            "background": "digital"
         },
         "machine":
         {
-            "asset": "",
             "start": [0, 0],
-            "frames": 1,
-            "background": "digital"
         },
         "computer":
         {
-            "asset": "",
             "start": [0, 0],
-            "frames": 1,
-            "background": "digital"
         },
         "terminal":
         {
-            "asset": "",
             "start": [0, 0],
-            "frames": 1,
-            "background": "digital"
         },
         "note":
         {
-            "asset": "",
             "start": [0, 0],
-            "frames": 1,
-            "background": "digital"
         }
     }
 }

@@ -1,4 +1,4 @@
-#version 330
+#version 420
 
 uniform vec2 screen_pos;
 

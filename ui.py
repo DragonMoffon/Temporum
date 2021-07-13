@@ -11,7 +11,7 @@ import constants as c
 
 class Action:
 
-    def __init__(self, data: tuple = ("default", "default")):
+    def __init__(self, data: tuple = ("default",)):
         """
         :param data: this is the input data for the Action family of classes, put everything needed for your Action here
         """
@@ -28,6 +28,12 @@ class HideTabAction(Action):
     def act(self):
         if self.data[0] in self.data[1]:
             self.data[1].remove(self.data[0])
+
+
+class ShowTabAction(Action):
+    def act(self):
+        if self.data[0] not in self.data[1]:
+            self.data[1].append(self.data[0])
 
 
 class ToggleTabAction(Action):
@@ -201,6 +207,10 @@ class Tab(Sprite):
         hover = arcade.check_for_collision_with_list(self.game_view.window.mouse, self.buttons)
         if len(hover):
             hover[-1].on_scroll(value)
+
+    def reset_pos(self, filler):
+        self.center_x = self.game_view.window.view_x + self.rel_x
+        self.center_y = self.game_view.window.view_y + self.rel_y
 
     def draw(self):
         super().draw()
@@ -398,6 +408,7 @@ class InvTab(Tab):
     def __init__(self, game_view):
         button_data = [{"x": 280, "y": 165,
                         "action": ToggleTabAction((self, game_view.ui_elements)),
+                        'secondary': TriggerEventAction((self.reset_pos,)),
                         'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)}]
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=1030, width=1030, height=650),
                          216, 948, game_view, button_data=button_data)
@@ -408,7 +419,15 @@ class TalkTab(Tab):
     def __init__(self, game_view):
         button_data = [{"x": 440, "y": 140,
                         "action": ToggleTabAction((self, game_view.ui_elements)),
-                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)}]
+                        'secondary': TriggerEventAction((self.reset_pos,)),
+                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)},
+                       {"x": -390, "y": -140,
+                        "action": TriggerEventAction((self.back,)),
+                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, y=270, width=230, height=90)},
+                       {"x": -225, "y": -140,
+                        "action": TriggerEventAction((self.next,)),
+                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=230, y=270, width=230, height=90)},
+                       ]
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=2060, width=1030, height=650),
                          c.SCREEN_WIDTH - 567, 123, game_view, button_data=button_data)
 
@@ -426,6 +445,9 @@ class TalkTab(Tab):
         self.node_buttons = []
         self.node_button_text = []
         self.convo_done = False
+
+        ShowTabAction((self, self.game_view.ui_elements)).act()
+
         self.find_node_buttons()
 
     def next_node(self, direction, node):
@@ -447,21 +469,31 @@ class TalkTab(Tab):
         self.node_buttons = node_buttons
 
     def draw(self):
-        super().draw()
-        self.current_node.draw(self.center_x, self.center_y)
-        # TODO: Create a proper text system and integrate into displays. Then remove this placeholder system.
-        if len(self.node_buttons) and self.node_buttons[0] in self.button_data:
-            for text in self.node_button_text:
-                draw_text(text[0], self.center_x + text[1] * c.SPRITE_SCALE, self.center_y + text[2] * c.SPRITE_SCALE,
-                          arcade.color.WHITE, anchor_y='top')
+        if self.convo_done:
+            HideTabAction((self, self.game_view.ui_elements))
+        else:
+            super().draw()
+            self.current_node.draw(self.center_x, self.center_y)
+            # TODO: Create a proper text system and integrate into displays. Then remove this placeholder system.
+            if len(self.node_buttons) and self.node_buttons[0] in self.button_data:
+                for text in self.node_button_text:
+                    draw_text(text[0], self.center_x + text[1] * c.SPRITE_SCALE, self.center_y + text[2] * c.SPRITE_SCALE,
+                              arcade.color.WHITE, anchor_y='top')
 
-    def on_press(self, point):
-        super().on_press(point)
-        if self.current_node.on_press():
+    def next(self, filler):
+        if self.current_node.forward_step():
             if len(self.node_buttons):
                 self.load_buttons(self.node_buttons)
             else:
                 self.convo_done = True
+
+    def back(self, filler):
+        if self.current_node.backward_step():
+            if len(self.node_buttons):
+                self.strip_buttons(self.node_buttons)
+
+    def on_press(self, point):
+        super().on_press(point)
 
 
 class MasterTab(Tab):

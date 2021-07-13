@@ -2,6 +2,10 @@
     "computer_1": {
         "initiate": "This is a computer monitor",
         "response": "Yes I am indeed a computer.\nBut I am actually a terminal\nnot a monitor you idiot.",
+        "speakers": [
+            "player",
+            "terminal"
+        ],
         "inputs": {
             "Wow that was rude.": {
                 "initiate": "Wow how rude of you computer. \nwhy did you say that? Like\nhonestly how could you!",
@@ -26,6 +30,10 @@
     "sample": {
         "initiate": "Hello there, I am an interested viewer of this\ncode. I would like to talk to you.",
         "response": "Hello to you too! I am info bot! i'd be happy \nto explain this conversation system, or have\njust a nice conversation.",
+        "speakers": [
+            "player",
+            "computer"
+        ],
         "inputs": {
             "How does the conversation system work?": {
                 "initiate": "I am wondering how the conversation\nsystem works, could you explain it to me?",
@@ -87,6 +95,10 @@
     "test": {
         "initiate": "Start",
         "response": "",
+        "speakers": [
+            "player",
+            "machine"
+        ],
         "inputs": {
             "This is a simple test": {
                 "initiate": "Yeah totally just a simple\nsaving test with a lil text\nmagic thrown in!",
@@ -97,6 +109,59 @@
                 "initiate": "yeah just test spice ya know. For the cool kids.o Oh it's broken. why?",
                 "response": "",
                 "inputs": {}
+            }
+        }
+    },
+    "tutorial": {
+        "initiate": "Hey you Player! The person\ncontrolling me! This is a\nsimple text tutorial! If you need \nto know the basics here is the info!\n\nIf you want to find\nout more press \"NEXT\"",
+        "response": "Hello! I am you onboard computer \nfor this game! I will answer any of your \nquestions that I have\ndecided you can ask me!\n\nTo ask questions press NEXT,\nthen click any of the 3\noptions availble.",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "inputs": {
+            "How does the turn system work?": {
+                "initiate": "How does the turn system work? \nAlso what are actions?",
+                "response": ["The turn system allows the player to take\nactions based on their\ninitiative. The higher your\ninitiative the more actions\nyou can take but the lower in the turn\norder you go.", "Every round every actor in the\ngame \"You, and the enemies\"\nare ordered from lowest to\nhighest based on your\ninitiative.","actions are certain things you can do\nwith your initiative."],
+                "inputs": {
+                    "How do I take an actions?": {
+                        "initiate": "What are actions? and how do I take them?",
+                        "response": ["An action is something your character\nor an enemy can\ndo. they all cost some\namount of initiative.", "To take an action you must hover \nover a valid tile. When you do a small\ntab will show up. This shows you \neverything that you can do \nwith this tile. Using the\nScroll wheel you can look at all the\npossible actions.", "when you have\ndecided on an action simply\nfollow the prompt and click\neither LMB or RMB."],
+                        "inputs": {
+                            "What actions are there?": {
+                                "initiate": "What actions can I take?",
+                                "response": ["Currently you can take 4 actions.","Move. This moves\nyou to the tile of your\nchoice or the closest tile\nyou can reach. Each tile\ncosts 1 initiative.", "Use. This\nallows you to interact with\nPOI. It opens the conversation\ntab so you can find\ninfo. It costs nothing but\nyou can't move until you\nfinish in the tab.", "Dash and Hold. are different\nmethods of ending your turn\nearly. Dash decreases your initiative allowing\n you to act sooner. Hold increases your initiative\nallowing you to do more but act later."],
+                                "inputs": {
+                                    "0": "What is with the other robot?",
+                                    "1": "What is all this UI for?"
+                                }
+                            },
+                            "1": "What is with the other robot?",
+                            "2": "What is all this UI for?"
+                        }
+                    }
+                }
+            },
+            "What is with the other robot?": {
+                "initiate": "What is with the robot?",
+                "response": "He is a enemy, however he is \ncurrently harmless and\njust randomly walks around.\nHe ensures your game\ndoesn't crash through you\nbreaking the turn system",
+                "inputs": {
+                    "0": "How does the turn system work?",
+                    "1": "What is all this UI for?",
+                    "That's everything thanks": {
+                        "initiate": "Thats everything thanks.",
+                        "response": "Awesome goodbye. There is no way to \nGo back through the\nconversation so have fun!!",
+                        "inputs": {}
+                    }
+                }
+            },
+            "What is all this UI for?": {
+                "initiate": "What is all this UI?",
+                "response": ["There are 5 pieces of ui. This tab is the \nconversation tab. If you\ninteract with a POI or talk\nto someone this will\nappear. The large piece in\nthe bottom corner is the\nmain ui. it allows you to\nopen the inventory and the\nconversation tab.", "In the bottom right\nis the display tab it\ncontrols what you see on\nscreen.\n\nthe top left piece\nis the inventory tab. It is\nuseless currently."],
+                "inputs": {
+                    "0": "How does the turn system work?",
+                    "1": "What is with the other robot?_That's everything thanks"
+                }
             }
         }
     }

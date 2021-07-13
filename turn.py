@@ -45,22 +45,14 @@ class MoveAction(Action):
                                            (self.actor.e_y, self.actor.e_x),
                                            (self.inputs[0].e_y, self.inputs[0].e_x))[:self.handler.initiative]
 
-        if len(path):
-            avg_x, avg_y = 0, 0
-            for node in path:
-                e_x, e_y = node.location
-                x, y, z = isometric.cast_to_iso(e_x, e_y)
-                avg_x += x
-                avg_y += y
-            self.handler.turn_handler.game_view.target_view_x = c.round_to_x(avg_x / len(path) - c.SCREEN_WIDTH / 2,
-                                                                             5 * c.SPRITE_SCALE)
-            self.handler.turn_handler.game_view.target_view_y = c.round_to_x(avg_y / len(path) - c.SCREEN_HEIGHT / 2,
-                                                                             5 * c.SPRITE_SCALE)
         self.data.append(path)
         self.find_cost()
 
     def begin(self):
-        pass
+        if len(self.data[0]):
+            x, y, z = isometric.cast_to_iso(*self.data[0][-1].location)
+            self.handler.turn_handler.game_view.pending_motion.append((x-c.SCREEN_WIDTH//2,
+                                                                       y-c.SCREEN_HEIGHT//2))
 
     def find_cost(self):
         if len(self.data[0]):
@@ -77,6 +69,7 @@ class MoveAction(Action):
         return True
 
     def final(self):
+        print(self.handler.initiative)
         self.actor.load_paths()
 
     def draw(self):
@@ -118,6 +111,7 @@ class DashAction(Action):
 
 
 class InteractAction(Action):
+
     def begin(self):
         self.data.append(self.handler.turn_handler.game_view.tabs[1])
         self.data[0].load_convo(self.inputs[0].interaction_data)
@@ -210,21 +204,25 @@ class TurnHandler:
     def new_action_handlers(self, new_handlers):
         self.complete.extend(new_handlers)
 
+    def next_actor(self):
+        self.current_handler = self.action_handlers.pop(0)
+        if self.current_handler.turn_handler is None:
+            self.current_handler.turn_handler = self
+
+        self.game_view.pending_motion.append((self.current_handler.actor.center_x - c.SCREEN_WIDTH//2,
+                                              self.current_handler.actor.center_y - c.SCREEN_HEIGHT//2))
+
     def cycle(self):
         self.update_timer = time.time()
         if self.current_handler is not None:
             self.complete.append(self.current_handler)
             self.current_handler.complete()
         if len(self.action_handlers):
-            self.current_handler = self.action_handlers.pop(0)
-            if self.current_handler.turn_handler is None:
-                self.current_handler.turn_handler = self
+            self.next_actor()
         else:
             self.action_handlers = sorted(self.complete, key=lambda handlers: handlers.initiative)
             self.complete = []
-            self.current_handler = self.action_handlers.pop(0)
-            if self.current_handler.turn_handler is None:
-                self.current_handler.turn_handler = self
+            self.next_actor()
 
     def on_update(self, delta_time: float = 1/60):
         if self.current_handler is None:

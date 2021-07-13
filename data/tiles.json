@@ -3,7 +3,8 @@
         {"file": "assets/tiles/metal_wall.png", "width": 160, "height": 320},
         {"file": "assets/tiles/metal_wall_hidden.png", "width": 160, "height": 320},
         {"file": "assets/POI/1-1.png", "width": 160, "height": 320},
-        {"file": "assets/POI/2-1.png", "width": 160, "height": 320}],
+        {"file": "assets/POI/2-1.png", "width": 160, "height": 320},
+        {"file": "assets/tiles/doors.png", "width": 160, "height": 320}],
     "tiles": [
         {
             "texture": 0,
@@ -283,6 +284,66 @@
                 }
             ],
             "actions": ["interact"]
+        },
+        {
+            "texture": 4,
+            "id": "CLgate_north",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [1, 1, 0, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "OLgate_north",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Cdoor_west",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [1, 0, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 640
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Odoor_west",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 960
+                }
+            ]
         },
         {
             "texture": 0,

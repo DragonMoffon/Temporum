@@ -10,7 +10,7 @@ import tiles
 
 def cast_to_iso(e_x: float, e_y: float, mods: tuple = (0, 0, 0)):
     """
-    Casts the imputed Euclidean x and y co-ordinates to the equivalent isometric x, y, z co-ordinates
+    Casts the inputted Euclidean x and y co-ordinates to the equivalent isometric x, y, z co-ordinates
 
     :param e_x: The Euclidean X that is to be cast to Isometric.
     :param e_y: The Euclidean Y that is to be cast to Isometric.
@@ -80,13 +80,42 @@ class IsoSprite(arcade.Sprite):
         # textures for functions
         self.texture = tile_data.texture
         self.hidden = tile_data.hidden
+        self.hide = False
         self.base = self.texture
+
+        # tile for data retrieval and triggers
+        self.tile = None
 
     def new_pos(self, e_x, e_y):
         self.center_x, self.center_y, self.center_w = cast_to_iso(e_x, e_y, self.position_mods)
         self.e_x = e_x + self.relative_pos[0]
         self.e_y = e_y + self.relative_pos[1]
         c.iso_changed()
+
+    def set_iso_texture(self, tile_data: IsoData):
+        self.relative_pos = tile_data.relative_pos
+        self.position_mods = tile_data.position_mods
+        x, y, w = cast_to_iso(self.e_x, self.e_y)
+
+        # The center positions of the tile.
+        self.center_x = x + self.position_mods[0] * c.SPRITE_SCALE
+        self.center_y = y + self.position_mods[1] * c.SPRITE_SCALE
+        self.center_w = w + self.position_mods[2]
+
+        # The isometric data
+        self.tile_data = tile_data
+        self.direction = tile_data.directions
+        self.actions = tile_data.actions
+
+        # textures for functions
+        self.texture = tile_data.texture
+        self.hidden = tile_data.hidden
+        self.base = self.texture
+        if self.hide:
+            self.texture = self.hidden
+
+        if self.tile is not None:
+            self.tile.update(self)
 
 
 class IsoActor(IsoSprite):
@@ -113,6 +142,19 @@ class IsoInteractor(IsoSprite):
         super().__init__(e_x, e_y, tile_data)
         # The Node based conversation tree the IsoSprite needs
         self.interaction_data = interaction_data
+
+
+class IsoStateSprite(IsoSprite):
+
+    def __init__(self, e_x, e_y, tile_states, target_id):
+        super().__init__(e_x, e_y, tile_states[0])
+        self.states = tile_states
+        self.current_state = 0
+        self.id = target_id
+
+    def toggle_states(self):
+        self.current_state = (self.current_state + 1) % len(self.states)
+        self.set_iso_texture(self.states[self.current_state])
 
 
 class IsoList(arcade.SpriteList):
@@ -180,6 +222,18 @@ def find_poi_sprites(tile_id, node, pos_data):
         pieces.append(IsoInteractor(*pos_data, data, node))
 
     return pieces
+
+
+def find_toggle_sprites(tile_ids, target_id, pos_data):
+    tile_data = [tiles.find_iso_data(i) for i in tile_ids]
+    pieces = []
+    for tile in tile_data:
+        for piece in tile.pieces:
+            data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
+                           (tile.pos_mods[0], tile.pos_mods[1], tile.pos_mods[2] + piece.mod_w),
+                           tile.directions, tile.actions)
+            pieces.append(data)
+    return IsoStateSprite(*pos_data, pieces, target_id)
 
 
 def find_iso_sprites(tile_id, pos_data):
