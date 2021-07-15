@@ -1,15 +1,13 @@
-import math
-
 import numpy as np
 import json
-import time
+from dataclasses import dataclass
 
 import arcade
 
+import algorithms
 import isometric
 import constants as c
 import interaction
-import tiles
 
 CHECK_DIR = (1, 0), (0, 1), (1, 1)
 INV = {'mouse': 'player', 'player': 'mouse'}
@@ -20,17 +18,21 @@ class Tile:
     def __init__(self):
         self.pieces: list[isometric.IsoSprite] = []
         self.directions = [1, 1, 1, 1]
+        self.neighbours: list[Tile, Tile, Tile, Tile] = [None, None, None, None]
+        self.location: tuple[int, int] = (0, 0)
         self.available_actions: dict[str, list] = {}
 
     def update(self, other):
         """
-        this updates the directions, and the availble actions of the tile.
+        this updates the directions, and the available actions of the tile.
         :param other: A IsoSprite that should be in the tile.
         """
+
         if other not in self.pieces:
             self.pieces.append(other)
 
-        self.mix_directions(other.direction)
+        self.find_directions()
+
         actions = list(set(self.available_actions.keys()) | set(other.actions))
         for action in actions:
             if action not in self.available_actions:
@@ -45,9 +47,13 @@ class Tile:
 
     def solve_direction(self, index):
         for piece in self.pieces:
-            if not piece.directions[index]:
+            if not piece.direction[index]:
                 return False
         return True
+
+    def find_directions(self):
+        for index, dirs in enumerate(self.directions):
+            self.directions[index] = self.solve_direction(index)
 
     def add(self, other):
         if other not in self.pieces:
@@ -64,14 +70,18 @@ class Tile:
         if other in self.pieces:
             other.tile = None
             self.pieces.remove(other)
-            for index, direction in enumerate(other.direction):
-                if not direction:
-                    self.directions[index] = self.solve_direction(index)
+            self.find_directions()
 
             for action in other.actions:
                 self.available_actions[action].remove(other)
                 if not len(self.available_actions[action]):
                     self.available_actions.pop(action)
+
+    def __le__(self, other):
+        return id(self) <= id(other)
+
+    def __lt__(self, other):
+        return id(self) < id(other)
 
 
 class DisplayHandler:
@@ -140,7 +150,7 @@ class MapHandler:
     def __init__(self, game_view):
         # Read the map. This will later be a list of maps depending on the area.
         self.game_view = game_view
-        self.current_location = "WorkroomEntrance"
+        self.current_location = "demo_1"
         self.map = arcade.read_tmx(f"tiled/tilemaps/{self.current_location}.tmx")
         self.poi_data = json.load(open(f"data/{self.current_location}.json"))
         self.display_handler = DisplayHandler(self)
@@ -150,14 +160,15 @@ class MapHandler:
                                                                     'poi': None, 'room': None},
                                                               '2': {'floor': None, 'wall': None,
                                                                     'poi': None, 'room': None}}
-        self.ground_layer: isometric.IsoLayer = None
+
+        self.toggle_sprites = {}
         self.map_width, self.map_height = self.map.map_size
         self.map_size = [self.map_width, self.map_height]
         self.full_map = np.empty(self.map_size, Tile)
+        self.map_bots = []
         c.set_map_size(self.map_size)
         self.rooms = {'1': {}}
         self.current_rooms: dict[str, isometric.IsoRoom] = {'player': None, 'mouse': None}
-        self.load_map(self.map)
 
     def load_map(self, map_data):
         """
@@ -167,6 +178,16 @@ class MapHandler:
         These IsoLayers are then stored by their name in a dictionary.
         :param map_data: The tmx map the layers are loaded from
         """
+        self.game_view.reset_bots()
+        self.map_bots = []
+        @dataclass()
+        class BotData:
+            x: int = 0
+            y: int = 0
+            bot_type: str = "basic"
+            shown: bool = False
+
+        self.toggle_sprites = {}
 
         with open(f"data/{self.current_location}.json") as json_file:
             json_data = json.load(json_file)
@@ -238,15 +259,20 @@ class MapHandler:
 
             def generate_door(data):
                 door_data = json_data['door'].get(str(data))
-                tile_data = door_data['tiles']
-                target_id = data - 16
+                if door_data is not None:
+                    tile_data = door_data['tiles']
+                    target_id = data - 16
 
-                current_tile = isometric.find_toggle_sprites(tile_data, target_id, (e_x, e_y))
-                tile_list.append(current_tile)
-                tile_map[e_x, e_y] = current_tile
-                if self.full_map[e_x, e_y] is None:
-                    self.full_map[e_x, e_y] = Tile()
-                self.full_map[e_x, e_y].add(current_tile)
+                    current_tile = isometric.find_toggle_sprites(tile_data, target_id, (e_x, e_y))
+                    tile_list.append(current_tile)
+                    tile_map[e_x, e_y] = current_tile
+                    if self.full_map[e_x, e_y] is None:
+                        self.full_map[e_x, e_y] = Tile()
+                    self.full_map[e_x, e_y].add(current_tile)
+
+                    if target_id not in self.toggle_sprites:
+                        self.toggle_sprites[target_id] = []
+                    self.toggle_sprites[target_id].append(current_tile)
 
             def generate_layer(data):
                 # take the x and y coord of the tile in the map data to create the isometric position
@@ -258,9 +284,18 @@ class MapHandler:
                         self.full_map[tile.e_x, tile.e_y] = Tile()
                     self.full_map[tile.e_x, tile.e_y].add(tile)
 
+            def generate_isoactor(data):
+                isoactor_data = json_data['character'].get(str(data))
+                if isoactor_data is not None:
+                    if isoactor_data['type'] == "player":
+                        self.game_view.player.new_pos(e_x, e_y)
+                    else:
+                        new_bot = BotData(e_x, e_y, isoactor_data['type'], isoactor_data['start_active'])
+                        self.map_bots.append(new_bot)
+
             generation_functions = {'floor': generate_layer, 'wall': generate_layer,
                                     'poi': generate_poi, 'room': generate_room,
-                                    'door': generate_door}
+                                    'door': generate_door, 'char': generate_isoactor}
 
             # Loop through the tile data.
             for e_y, row in enumerate(map_data):
@@ -270,7 +305,10 @@ class MapHandler:
                         generation_functions.get(location[-1], generate_layer)(tile_value)
 
             self.layers[location[0]][location[1]] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map, shown)
-        self.ground_layer = self.layers['1']['floor'].map_data
+        algorithms.find_neighbours(self.full_map)
+        for bot in self.map_bots:
+            if bot.shown:
+                self.game_view.new_bot(bot)
         self.initial_show()
 
     def input_show(self, first_args='1', second_args=('wall', 'poi', 'door')):
@@ -309,9 +347,40 @@ class MapHandler:
                 self.current_rooms[setter] = room
                 self.display_handler.update_states()
 
+    def toggle_target_sprites(self, target_id):
+        if target_id in self.toggle_sprites:
+            print("in it", target_id)
+            for door in self.toggle_sprites[target_id]:
+                door.toggle_states()
+
     def debug_draw(self, a_star=False, display_draw=False):
         if a_star:
-            pass
+            # A debugging draw that creates 4 points for each tile. one for each direction N, E, S, W.
+            # The point is red if it is not a connection, white if it is.
+            if self.full_map is not None:
+                dirs = ((0, 0.25), (0.25, 0), (0, -0.25), (-0.25, 0))
+                for x_dex, point_row in enumerate(self.full_map):
+                    for y_dex, value in enumerate(point_row):
+                        if value is not None:
+                            for dir_dex, direction in enumerate(dirs):
+                                t_x = x_dex + direction[0]
+                                t_y = y_dex + direction[1]
+                                iso_x, iso_y, iso_z = isometric.cast_to_iso(t_x, t_y)
+                                if value.neighbours[dir_dex] is None:
+                                    arcade.draw_point(iso_x, iso_y - 60, arcade.color.RADICAL_RED, 5)
+                                elif not value.directions[dir_dex]:
+                                    arcade.draw_point(iso_x, iso_y - 60, arcade.color.GREEN, 5)
+                                else:
+                                    arcade.draw_point(iso_x, iso_y - 60, arcade.color.WHITE, 5)
+
+            # draws a line from a tile to the tile it came from. they all lead back to the player.
+            if self.game_view.player.path_finding_data is not None:
+                for tile_node in self.game_view.player.path_finding_data[0]:
+                    came_from = self.game_view.player.path_finding_data[0][tile_node]
+                    if came_from is not None:
+                        start_x, start_y, z = isometric.cast_to_iso(*tile_node.location)
+                        end_x, end_y, z = isometric.cast_to_iso(*came_from.location)
+                        arcade.draw_line(start_x, start_y-60, end_x, end_y-60, arcade.color.RADICAL_RED)
 
         if display_draw:
             arcade.draw_text(str(self.display_handler.states), 0, 0, arcade.color.WHITE)

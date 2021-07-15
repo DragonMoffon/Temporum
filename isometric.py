@@ -133,7 +133,7 @@ class IsoActor(IsoSprite):
     def load_paths(self):
         if self.path_finding_grid is not None:
             import algorithms
-            self.path_finding_data = algorithms.path_2d(self.path_finding_grid, (self.e_y, self.e_x))
+            self.path_finding_data = algorithms.path_2d(self.path_finding_grid, (self.e_x, self.e_y))
 
 
 class IsoInteractor(IsoSprite):
@@ -184,7 +184,7 @@ class IsoList(arcade.SpriteList):
     def reorder_isometric(self):
         """
         This orders the sprites by their z value and then sorts the sprites index's and destroy the Vertex Object so
-        a new re-oredered vao is created at draw time.
+        a new re-ordered vao is created at draw time.
 
         This does slow down the one draw frame it happens however, This is hopefully unnoticeable.
         """

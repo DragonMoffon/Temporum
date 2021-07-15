@@ -24,7 +24,7 @@ class Action:
         pass
 
     def find_cost(self):
-        pass
+        self.cost = 1
 
     def update(self):
         return True
@@ -42,9 +42,8 @@ class MoveAction(Action):
         self.handler.actor.load_paths()
         path = algorithms.reconstruct_path(self.actor.path_finding_grid,
                                            self.actor.path_finding_data[0],
-                                           (self.actor.e_y, self.actor.e_x),
-                                           (self.inputs[0].e_y, self.inputs[0].e_x))[:self.handler.initiative]
-
+                                           (self.actor.e_x, self.actor.e_y),
+                                           (self.inputs[0].e_x, self.inputs[0].e_y))[:self.handler.initiative]
         self.data.append(path)
         self.find_cost()
 
@@ -203,6 +202,18 @@ class TurnHandler:
 
     def new_action_handlers(self, new_handlers):
         self.complete.extend(new_handlers)
+
+    def remove_action_handlers(self, removed_handlers):
+        for handler in removed_handlers:
+            if handler in self.action_handlers:
+                self.action_handlers.remove(handler)
+            elif handler in self.complete:
+                self.complete.remove(handler)
+
+        if self.current_handler in removed_handlers:
+            handler = self.current_handler
+            self.cycle()
+            self.complete.remove(handler)
 
     def next_actor(self):
         self.current_handler = self.action_handlers.pop(0)

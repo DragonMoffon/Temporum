@@ -62,14 +62,14 @@ class DisplayText:
 
 class Node:
 
-    def __init__(self, initiate, response, inputs):
+    def __init__(self, initiate, response, inputs, target):
         self.initiate_text: DisplayText = initiate
         self.response_text: DisplayText = response
         self.inputs: dict[str, Node] = inputs
         self.steps = {self.initiate_text: self.response_text, self.response_text: self.inputs}
         self.current_display = self.initiate_text
         self.action: str = ''
-        self.target: int = -1
+        self.target: int = target
 
     def reset(self):
         self.current_display = self.initiate_text
@@ -102,7 +102,7 @@ class Node:
         return True
 
 
-def load_conversation(conversation="tutorial"):
+def load_conversation(conversation="tutorial_start"):
     loop_data: list[tuple[(str, str)]] = []
     default_speaker: list[str, str] = None
 
@@ -140,6 +140,8 @@ def load_conversation(conversation="tutorial"):
         initiate = load_display(node_data['initiate'], speakers[0])
         response = load_display(node_data['response'], speakers[1])
 
+        target = node_data.get('target', -1)
+
         inputs = {}
         for key, next_node in node_data['inputs'].items():
             if isinstance(next_node, str):
@@ -147,7 +149,7 @@ def load_conversation(conversation="tutorial"):
             else:
                 inputs[key] = load_node(next_node, f"{location}{key}_")
 
-        return Node(initiate, response, inputs)
+        return Node(initiate, response, inputs, target)
 
     data = CONVERSATIONS[conversation]
 

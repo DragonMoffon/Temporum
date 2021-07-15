@@ -1,6 +1,5 @@
 import random
 import time
-import math
 
 import arcade
 
@@ -123,19 +122,27 @@ class GameView(arcade.View):
     def __init__(self):
         self.window: TemporumWindow
         super().__init__()
-        # Map Handler
-        self.map_handler = mapdata.MapHandler(self)
 
-        # Conversation Handler
-        self.convo_handler = interaction.load_conversation()
+        # Turn System
+        self.turn_handler = turn.TurnHandler([], self)
+
+        # The Current Ai info
+        self.current_ai = []
 
         # The player info
         self.player = player.Player(25, 25, self)
+        self.turn_handler.new_action_handlers([self.player.action_handler])
         c.iso_append(self.player)
 
-        # A Test Bot
-        self.test_bot = algorithms.create_bot(26, 25, algorithms.PathFindingGrid(self.map_handler))
-        c.iso_append(self.test_bot)
+        # Map Handler
+        self.map_handler = mapdata.MapHandler(self)
+        self.map_handler.load_map(self.map_handler.map)
+
+        # Setting player grid now that the map_handler has been initialised.
+        self.player.set_grid(self.map_handler.full_map)
+
+        # Conversation Handler
+        self.convo_handler = interaction.load_conversation()
 
         # Mouse Select
         self.select_tile = player.Select(0, 0)
@@ -155,9 +162,7 @@ class GameView(arcade.View):
         self.tabs[1].center_y = c.round_to_x(self.window.view_y + c.SCREEN_HEIGHT // 2, 5 * c.SPRITE_SCALE)
         self.master_tab = ui.MasterTab(self)
         self.pressed = None
-
-        # Turn System
-        self.turn_handler = turn.TurnHandler([self.player.action_handler, self.test_bot.action_handler], self)
+        self.ui_tabs_over = []
 
         # keys for held checks
         self.shift = False
@@ -236,21 +241,7 @@ class GameView(arcade.View):
             element.draw()
 
         self.action_tab.draw()
-
-        """if self.player.path_finding_grid is not None:
-            dirs = ((0, -0.25), (0.25, 0), (0, 0.25), (-0.25, 0))
-            for y_dex, point_row in enumerate(self.player.path_finding_grid.points):
-                for x_dex, value in enumerate(point_row):
-                    if value is not None:
-                        for dir_dex, direction in enumerate(dirs):
-                            t_x = x_dex + direction[0]
-                            t_y = y_dex + direction[1]
-                            iso_x, iso_y, iso_z = isometric.cast_to_iso(t_x, t_y)
-                            if value.directions[dir_dex] is None:
-                                arcade.draw_point(iso_x, iso_y - 60, arcade.color.RADICAL_RED, 5)
-                            else:
-                                arcade.draw_point(iso_x, iso_y - 60, arcade.color.WHITE, 5)"""
-
+#
         # Debugging of the map_handler
         # self.map_handler.debug_draw(True)
 
@@ -272,14 +263,8 @@ class GameView(arcade.View):
         if self.current_handler != self.turn_handler.current_handler:
             self.current_handler = self.turn_handler.current_handler
 
-        if self.turn_handler.current_handler == self.test_bot.action_handler and \
-                self.test_bot.action_handler.current_action is None and self.test_bot.action_handler.initiative > 0:
-            self.test_bot.load_paths()
-            move_node = random.choice(self.test_bot.path_finding_data[2]
-                                      [self.test_bot.action_handler.initiative]).location
-            move_location = self.map_handler.full_map[move_node].pieces
-            self.test_bot.action_handler.current_action = turn.ACTIONS['move'](move_location,
-                                                                               self.test_bot.action_handler)
+        if self.turn_handler.current_handler != self.player.action_handler:
+            self.turn_handler.current_handler.actor.update()
 
         if self.motion:
             t = (time.time() - self.motion_start) / self.motion_length
@@ -313,8 +298,9 @@ class GameView(arcade.View):
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         y_mod = ((160 - c.FLOOR_TILE_THICKNESS) * c.SPRITE_SCALE)
         e_x, e_y = isometric.cast_from_iso(self.window.view_x + x, self.window.view_y + y + y_mod)
+        self.ui_tabs_over = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
         if 0 <= e_x < self.map_handler.map_width and 0 <= e_y < self.map_handler.map_height \
-                and not len(arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)):
+                and not len(self.ui_tabs_over):
             if e_x != self.select_tile.e_x or e_y != self.select_tile.e_y:
                 self.select_tile.new_pos(e_x, e_y)
                 c.iso_changed()
@@ -333,10 +319,10 @@ class GameView(arcade.View):
             self.current_motion = None
             self.motion = False
         elif _buttons == 1:
-            dragged = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
-            if self.pressed is None and len(dragged):
-                dragged[-1].on_drag(dx, dy, (self.window.view_x + x, self.window.view_y + y))
-                self.pressed = dragged[-1]
+            self.ui_tabs_over = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
+            if self.pressed is None and len(self.ui_tabs_over):
+                self.ui_tabs_over[-1].on_drag(dx, dy, (self.window.view_x + x, self.window.view_y + y))
+                self.pressed = self.ui_tabs_over[-1]
             elif self.pressed is not None and self.pressed.pressed_button is None:
                 self.pressed.on_drag(dx, dy, (self.window.view_x + x, self.window.view_y + y))
 
@@ -367,6 +353,17 @@ class GameView(arcade.View):
             self.pressed.on_scroll(scroll_y)
         else:
             self.action_tab.on_scroll(scroll_y / abs(scroll_y))
+
+    def new_bot(self, bot):
+        new_bot = algorithms.create_bot(bot.x, bot.y, self.map_handler.full_map)
+        self.current_ai.append(new_bot)
+        c.iso_append(new_bot)
+        self.turn_handler.new_action_handlers([new_bot.action_handler])
+
+    def reset_bots(self):
+        self.turn_handler.remove_action_handlers(map(lambda bot: bot.action_handler, self.current_ai))
+        c.iso_strip(self.current_ai)
+        self.current_ai = []
 
 
 class TitleView(arcade.View):

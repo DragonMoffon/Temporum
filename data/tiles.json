@@ -35,7 +35,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0.3],
-            "directions": [1, 1, 1, 0],
+            "directions": [1, 0, 1, 1],
             "pieces" : [
                 {
                     "start_x": 160,
@@ -59,7 +59,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0.1],
-            "directions": [1, 0, 1, 1],
+            "directions": [1, 1, 1, 0],
             "pieces" : [
                 {
                     "start_x": 480,
@@ -71,7 +71,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0.3],
-            "directions": [0, 1, 1, 0],
+            "directions": [0, 0, 1, 1],
             "pieces" : [
                 {
                     "start_x": 0,
@@ -87,10 +87,10 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0],
-            "directions": [1, 1, 0, 0],
+            "directions": [1, 0, 0, 1],
             "pieces" : [
                 {
-                    "mod_w": 0.2,
+                    "mod_w": 0.3,
                     "start_x": 160,
                     "start_y": 320
                 },
@@ -105,7 +105,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0.2],
-            "directions": [1, 0, 0, 1],
+            "directions": [1, 1, 0, 0],
             "pieces" : [
                 {
                     "start_x": 320,
@@ -117,7 +117,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0],
-            "directions": [0, 0, 1, 1],
+            "directions": [0, 1, 1, 0],
             "pieces" : [
                 {
                     "mod_w": 0.1,
@@ -229,6 +229,7 @@
             "texture": 2,
             "hidden": 2,
             "mods" : [0, -5, 0.24],
+            "directions": [0, 0, 0, 0],
             "pieces" : [
                 {
                     "start_x": 0,
@@ -241,6 +242,7 @@
             "texture": 2,
             "hidden": 2,
             "mods" : [0, -5, 0.24],
+            "directions": [0, 0, 0, 0],
             "pieces" : [
                 {
                     "start_x": 160,
@@ -287,6 +289,66 @@
         },
         {
             "texture": 4,
+            "id": "CLgate_south",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [0, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "OLgate_south",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "CLgate_east",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [1, 0, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "OLgate_east",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 4,
             "id": "CLgate_north",
             "hidden": 0,
             "mods": [0, 20, 0.2],
@@ -317,10 +379,130 @@
         },
         {
             "texture": 4,
-            "id": "Cdoor_west",
+            "id": "CLgate_west",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [1, 1, 1, 0],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "OLgate_west",
+            "hidden": 0,
+            "mods": [0, 20, 0.2],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Cdoor_south",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [0, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 640
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Odoor_south",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 960
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Cdoor_east",
             "hidden": 0,
             "mods": [0, 20, 0.1],
             "directions": [1, 0, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 640
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Odoor_east",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 960
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Cdoor_north",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [1, 1, 0, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 640
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Odoor_north",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 960
+                }
+            ]
+        },
+        {
+            "texture": 4,
+            "id": "Cdoor_west",
+            "hidden": 0,
+            "mods": [0, 20, 0.1],
+            "directions": [1, 1, 1, 0],
             "pieces" : [
                 {
                     "relative_pos": [0, 0],

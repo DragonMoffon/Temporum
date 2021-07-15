@@ -1,9 +1,8 @@
-import json
 
 import arcade
 
 from isometric import IsoList
-import views
+
 
 """
 VARIABLES
@@ -20,7 +19,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = arcade.get_display_size()
 WINDOW_NAME, FULLSCREEN = "Temporum: The Melclex Incident", True
 
 # Movement dictionary
-DIRECTIONS = {(0, -1): 0, (1, 0): 1, (0, 1): 2, (-1, 0): 3}
+DIRECTIONS = {(0, 1): 0, (1, 0): 1, (0, -1): 2, (-1, 0): 3}
 
 # The Isolist That holds all isometric items
 ISO_LIST = IsoList()

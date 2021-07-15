@@ -1,4 +1,3 @@
-import math
 
 import arcade
 from arcade import *
@@ -61,7 +60,12 @@ class ToggleTextureAction(Action):
         self.__toggle__(direction)
 
 
-class TriggerEventAction(Action):
+class TriggerSimpleEventAction(Action):
+    def act(self):
+        self.data[0](*self.data[1:])
+
+
+class TriggerDirectionEventAction(Action):
 
     def act(self):
         self.data[0](1, *self.data[1:])
@@ -100,9 +104,9 @@ class Button(Sprite):
                 self.secondary_action.act()
 
     def on_scroll(self, value):
-        self.action.input_act([value])
+        self.action.input_act((value,))
         if self.secondary_action is not None:
-            self.secondary_action.input_act([value])
+            self.secondary_action.input_act((value,))
 
     def draw_hit_box(self, color: Color = arcade.color.WHITE, line_thickness: float = 1):
         arcade.draw_text(self.text, self.center_x, self.center_y, color, anchor_x='center', anchor_y='center')
@@ -164,7 +168,7 @@ class Tab(Sprite):
                                               width=text_data['width'], height=text_data['height'])
                 textures.append(texture)
             pos = self.center_x + data['x'] * c.SPRITE_SCALE, self.center_y + data['y'] * c.SPRITE_SCALE
-            displays.append(Display(textures, pos))
+            displays.append(Display(tuple(textures), pos))
         return displays
 
     def load_buttons(self, button_data):
@@ -208,7 +212,7 @@ class Tab(Sprite):
         if len(hover):
             hover[-1].on_scroll(value)
 
-    def reset_pos(self, filler):
+    def reset_pos(self):
         self.center_x = self.game_view.window.view_x + self.rel_x
         self.center_y = self.game_view.window.view_y + self.rel_y
 
@@ -290,7 +294,7 @@ ACTION_WORDS = {'move': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
                 'interact': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
                                           image_width=320, image_height=60, image_x=1280),
                 None: arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
-                                      image_width=320, image_height=60, image_x=960)}
+                                    image_width=320, image_height=60, image_x=960)}
 ACTION_PRIORITY = {'move': 0, 'interact': 1, 'shoot': 2, 'hold': 5, 'dash': 6}
 
 
@@ -311,30 +315,30 @@ class ActionTab(arcade.Sprite):
         self.second_pending: turn.Action = None
 
     def draw(self):
-        if self.game_view.select_tile.e_x != self.game_view.player.e_x\
-                or self.game_view.select_tile.e_y != self.game_view.player.e_y:
-            if self.game_view.player.action_handler == self.game_view.turn_handler.current_handler:
-                self.handle = True
-                self.center_x = self.game_view.window.mouse.center_x + 120
-                self.center_y = self.game_view.window.mouse.center_y - 90
-                super().draw()
-                if self.first_action is not None:
-                    self.first_action.center_x = self.center_x + 33
-                    self.first_action.center_y = self.center_y + 39
-                    self.first_action.draw()
-                if self.second_action is not None:
-                    self.second_action.center_x = self.center_x + 33
-                    self.second_action.center_y = self.center_y - 36
-                    self.second_action.draw()
-                if self.first_pending is not None:
-                    self.first_pending.draw()
-                if self.second_pending is not None:
-                    self.second_pending.draw()
-                return
+        if self.game_view.player.action_handler == self.game_view.turn_handler.current_handler and\
+                not len(self.game_view.ui_tabs_over):
+            self.handle = True
+            self.center_x = self.game_view.window.mouse.center_x + 120
+            self.center_y = self.game_view.window.mouse.center_y - 90
+            super().draw()
+            if self.first_action is not None:
+                self.first_action.center_x = self.center_x + 33
+                self.first_action.center_y = self.center_y + 39
+                self.first_action.draw()
+            if self.second_action is not None:
+                self.second_action.center_x = self.center_x + 33
+                self.second_action.center_y = self.center_y - 36
+                self.second_action.draw()
+            if self.first_pending is not None:
+                self.first_pending.draw()
+            if self.second_pending is not None:
+                self.second_pending.draw()
+            return
         self.handle = False
 
     def on_mouse_motion(self, e_x, e_y):
-        if self.handle and self.game_view.player.action_handler.current_action is None:
+        if self.handle and self.game_view.player.action_handler.current_action is None \
+                and self.game_view.map_handler.full_map[e_x, e_y] is not None:
             self.actions = {**dict(self.game_view.map_handler.full_map[e_x, e_y].available_actions), **self.defaults}
             if len(self.actions) % 2:
                 self.actions[None] = None
@@ -373,31 +377,34 @@ class ActionTab(arcade.Sprite):
 class DisplayTab(Tab):
 
     def __init__(self, game_view):
-        text_data = [{'x': 230, 'y': 180, 'width': 230, 'height': 90},
+        text_data = ({'x': 230, 'y': 180, 'width': 230, 'height': 90},
                      {'x': 460, 'y': 180, 'width': 230, 'height': 90},
-                     {'x': 690, 'y': 180, 'width': 230, 'height': 90}]
-        display_data = [{'x': -95, 'y': 75, 'text_location': 'assets/ui/ui_pieces.png',
+                     {'x': 690, 'y': 180, 'width': 230, 'height': 90})
+        display_data = ({'x': -95, 'y': 75, 'text_location': 'assets/ui/ui_pieces.png',
                          'textures': text_data},
                         {'x': -95, 'y': 0, 'text_location': 'assets/ui/ui_pieces.png',
                          'textures': text_data},
                         {'x': -95, 'y': -75, 'text_location': 'assets/ui/ui_pieces.png',
-                         'textures': text_data}]
+                         'textures': text_data})
 
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=4120, width=1030, height=650),
                          c.SCREEN_WIDTH - 126, 105, game_view, False, display_data=display_data)
         self.button_data = [{"x": 65, "y": 70,
                              "action": ToggleTextureAction((self.displays[0], self.displays[0].textures)),
-                             'secondary': TriggerEventAction((game_view.map_handler.display_handler.mod_state, 'wall')),
+                             'secondary': TriggerDirectionEventAction(
+                                 (game_view.map_handler.display_handler.mod_state, 'wall')),
                              'texture': arcade.load_texture("assets/ui/ui_pieces.png",
                                                             x=0, y=180, width=230, height=90)},
                             {"x": 65, "y": -5,
                              "action": ToggleTextureAction((self.displays[1], self.displays[1].textures)),
-                             'secondary': TriggerEventAction((game_view.map_handler.display_handler.mod_state, 'cover'))
-                             , 'texture': arcade.load_texture("assets/ui/ui_pieces.png",
-                                                              x=0, y=180, width=230, height=90)},
+                             'secondary': TriggerDirectionEventAction(
+                                 (game_view.map_handler.display_handler.mod_state, 'cover')),
+                             'texture': arcade.load_texture("assets/ui/ui_pieces.png",
+                                                            x=0, y=180, width=230, height=90)},
                             {"x": 65, "y": -80,
                              "action": ToggleTextureAction((self.displays[2], self.displays[2].textures)),
-                             'secondary': TriggerEventAction((game_view.map_handler.display_handler.mod_state, 'poi')),
+                             'secondary': TriggerDirectionEventAction(
+                                 (game_view.map_handler.display_handler.mod_state, 'poi')),
                              'texture': arcade.load_texture("assets/ui/ui_pieces.png",
                                                             x=0, y=180, width=230, height=90)}]
         self.buttons = self.process_buttons()
@@ -406,10 +413,10 @@ class DisplayTab(Tab):
 class InvTab(Tab):
 
     def __init__(self, game_view):
-        button_data = [{"x": 280, "y": 165,
+        button_data = ({"x": 280, "y": 165,
                         "action": ToggleTabAction((self, game_view.ui_elements)),
-                        'secondary': TriggerEventAction((self.reset_pos,)),
-                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)}]
+                        'secondary': TriggerSimpleEventAction((self.reset_pos,)),
+                        'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)},)
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=1030, width=1030, height=650),
                          216, 948, game_view, button_data=button_data)
 
@@ -417,31 +424,32 @@ class InvTab(Tab):
 class TalkTab(Tab):
 
     def __init__(self, game_view):
-        button_data = [{"x": 440, "y": 140,
+        button_data = ({"x": 440, "y": 140,
                         "action": ToggleTabAction((self, game_view.ui_elements)),
-                        'secondary': TriggerEventAction((self.reset_pos,)),
+                        'secondary': TriggerSimpleEventAction((self.reset_pos,)),
                         'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)},
                        {"x": -390, "y": -140,
-                        "action": TriggerEventAction((self.back,)),
+                        "action": TriggerSimpleEventAction((self.back,)),
                         'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, y=270, width=230, height=90)},
                        {"x": -225, "y": -140,
-                        "action": TriggerEventAction((self.next,)),
+                        "action": TriggerSimpleEventAction((self.next,)),
                         'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=230, y=270, width=230, height=90)},
-                       ]
+                       )
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=2060, width=1030, height=650),
                          c.SCREEN_WIDTH - 567, 123, game_view, button_data=button_data)
 
         self.convo: interaction.Node = game_view.convo_handler
-        self.current_node: interaction.Node = self.convo
+        self.current_node: interaction.Node = None
         self.node_buttons = []
         self.node_button_text = []
         self.convo_done = False
-        self.find_node_buttons()
+        self.next_node(self.convo)
 
     def load_convo(self, convo):
         self.convo = convo
         self.current_node = convo
 
+        self.strip_buttons(self.node_buttons)
         self.node_buttons = []
         self.node_button_text = []
         self.convo_done = False
@@ -450,8 +458,12 @@ class TalkTab(Tab):
 
         self.find_node_buttons()
 
-    def next_node(self, direction, node):
+    def next_node(self, node):
+        if self.current_node is not None:
+            self.current_node.reset()
         self.current_node = node
+        if self.current_node.target >= 0:
+            self.game_view.map_handler.toggle_target_sprites(self.current_node.target)
         self.current_node.reset()
         self.find_node_buttons()
 
@@ -461,7 +473,7 @@ class TalkTab(Tab):
         button_text = []
         for index, key_node in enumerate(self.current_node.inputs.items()):
             button = {"x": -360, "y": 120 - 80 * index,
-                      "action": TriggerEventAction((self.next_node, key_node[1])),
+                      "action": TriggerSimpleEventAction((self.next_node, key_node[1])),
                       'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=460, y=270, width=230, height=90)}
             button_text.append([key_node[0], button['x']-102, button['y']+39])
             node_buttons.append(button)
@@ -470,24 +482,26 @@ class TalkTab(Tab):
 
     def draw(self):
         if self.convo_done:
-            HideTabAction((self, self.game_view.ui_elements))
+            HideTabAction((self, self.game_view.ui_elements)).act()
         else:
             super().draw()
             self.current_node.draw(self.center_x, self.center_y)
             # TODO: Create a proper text system and integrate into displays. Then remove this placeholder system.
             if len(self.node_buttons) and self.node_buttons[0] in self.button_data:
                 for text in self.node_button_text:
-                    draw_text(text[0], self.center_x + text[1] * c.SPRITE_SCALE, self.center_y + text[2] * c.SPRITE_SCALE,
+                    draw_text(text[0],
+                              self.center_x + text[1] * c.SPRITE_SCALE,
+                              self.center_y + text[2] * c.SPRITE_SCALE,
                               arcade.color.WHITE, anchor_y='top')
 
-    def next(self, filler):
+    def next(self):
         if self.current_node.forward_step():
             if len(self.node_buttons):
                 self.load_buttons(self.node_buttons)
             else:
                 self.convo_done = True
 
-    def back(self, filler):
+    def back(self):
         if self.current_node.backward_step():
             if len(self.node_buttons):
                 self.strip_buttons(self.node_buttons)

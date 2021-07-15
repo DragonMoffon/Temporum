@@ -1,0 +1,42 @@
+{
+    "interact":
+    {
+        "16": {
+            "tile": 19,
+            "interaction": "tutorial_start"
+        },
+        "17": {
+            "tile": 18,
+            "interaction": "tutorial_terminal"
+        },
+        "18": {
+            "tile": 20,
+            "interaction": "tutorial_board"
+        },
+        "19": {
+            "tile": 19,
+            "interaction": "tutorial_final"
+        }
+    },
+    "door":
+    {
+        "16": {
+            "tiles": ["Cdoor_north", "Odoor_north"]
+        }
+    },
+    "character":
+    {
+        "16": {
+            "type": "player",
+            "start_active": true
+        },
+        "17": {
+            "type": "basic",
+            "start_active": true
+        },
+        "18": {
+            "type": "basic",
+            "start_active": false
+        }
+    }
+}
