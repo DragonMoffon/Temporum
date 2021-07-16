@@ -226,6 +226,7 @@
             ]
         },
         {
+            "id": "terminal_west",
             "texture": 2,
             "hidden": 2,
             "mods" : [0, -5, 0.24],
@@ -239,6 +240,7 @@
             "actions": ["interact"]
         },
         {
+            "id": "terminal_north",
             "texture": 2,
             "hidden": 2,
             "mods" : [0, -5, 0.24],
@@ -252,6 +254,7 @@
             "actions": ["interact"]
         },
         {
+            "id": "board_west",
             "texture": 3,
             "hidden": 3,
             "mods" : [0, 0, 0.24],
@@ -270,6 +273,7 @@
             "actions": ["interact"]
         },
         {
+            "id": "board_north",
             "texture": 3,
             "hidden": 3,
             "mods" : [0, 0, 0.24],

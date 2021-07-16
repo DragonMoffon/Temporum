@@ -49,7 +49,9 @@ class MoveAction(Action):
 
     def begin(self):
         if len(self.data[0]):
-            x, y, z = isometric.cast_to_iso(*self.data[0][-1].location)
+            all_points = tuple(zip(*tuple(map(lambda point: point.location, self.data[0]))))
+            avg_x, avg_y = sum(all_points[0]), sum(all_points[1])
+            x, y, z = isometric.cast_to_iso(avg_x/len(self.data[0]), avg_y/len(self.data[0]))
             self.handler.turn_handler.game_view.pending_motion.append((x-c.SCREEN_WIDTH//2,
                                                                        y-c.SCREEN_HEIGHT//2))
 
@@ -220,8 +222,9 @@ class TurnHandler:
         if self.current_handler.turn_handler is None:
             self.current_handler.turn_handler = self
 
-        self.game_view.pending_motion.append((self.current_handler.actor.center_x - c.SCREEN_WIDTH//2,
-                                              self.current_handler.actor.center_y - c.SCREEN_HEIGHT//2))
+        if self.current_handler == self.game_view.player.action_handler:
+            self.game_view.pending_motion.append((self.current_handler.actor.center_x - c.SCREEN_WIDTH//2,
+                                                  self.current_handler.actor.center_y - c.SCREEN_HEIGHT//2))
 
     def cycle(self):
         self.update_timer = time.time()

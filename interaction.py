@@ -50,7 +50,8 @@ class DisplayText:
         self.current_event = None
 
     def draw(self, x, y):
-        self.events[self.current_event](x, y)
+        if self.current_page < len(self.pages):
+            self.events[self.current_event](x, y)
 
     def display(self, x, y):
         arcade.draw_text(self.pages[self.current_page], x-465*c.SPRITE_SCALE, y+155*c.SPRITE_SCALE,

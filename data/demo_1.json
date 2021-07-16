@@ -2,26 +2,72 @@
     "interact":
     {
         "16": {
-            "tile": 19,
+            "tile": "terminal_north",
             "interaction": "tutorial_start"
         },
         "17": {
-            "tile": 18,
+            "tile": "terminal_west",
             "interaction": "tutorial_terminal"
         },
         "18": {
-            "tile": 20,
+            "tile": "board_west",
             "interaction": "tutorial_board"
         },
         "19": {
-            "tile": 19,
+            "tile": "terminal_north",
             "interaction": "tutorial_final"
+        },
+        "20": {
+            "tile": "terminal_west",
+            "interaction": "robot_gate_control"
+        },
+        "21": {
+            "tile": "terminal_west",
+            "interaction": "robot_room_control"
+        },
+        "22": {
+            "tile": "board_west",
+            "interaction": "server_room_notes"
+        },
+        "23": {
+            "tile": "board_north",
+            "interaction": "robot_room_notes"
+        },
+        "24": {
+            "tile": "terminal_north",
+            "interaction": "server_room_control"
+        },
+        "25": {
+            "tile": "terminal_west",
+            "interaction": "safety_lock_gate"
+        },
+        "26": {
+            "tile": "board_west",
+            "interaction": "tutorial_board"
         }
     },
     "door":
     {
         "16": {
             "tiles": ["Cdoor_north", "Odoor_north"]
+        },
+        "17": {
+            "tiles": ["Cdoor_north", "Odoor_north"]
+        },
+        "18": {
+            "tiles": ["CLgate_west", "OLgate_west"]
+        },
+        "19": {
+            "tiles": ["Odoor_west", "Cdoor_west"]
+        },
+        "20": {
+            "tiles": ["Odoor_west", "Cdoor_west"]
+        },
+        "21": {
+            "tiles": ["Cdoor_north", "Odoor_north"]
+        },
+        "22": {
+            "tiles": ["Cdoor_east", "Odoor_east"]
         }
     },
     "character":

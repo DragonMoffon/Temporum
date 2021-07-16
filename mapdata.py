@@ -180,6 +180,7 @@ class MapHandler:
         """
         self.game_view.reset_bots()
         self.map_bots = []
+
         @dataclass()
         class BotData:
             x: int = 0
@@ -245,17 +246,18 @@ class MapHandler:
                             self.rooms[location[0]][data].room_walls.append(tile)
 
             def generate_poi(data):
-                poi_data = json_data['interact'][str(data)]
-                data = poi_data['tile']
+                poi_data = json_data['interact'].get(str(data), None)
+                if poi_data is not None:
+                    data = poi_data['tile']
 
-                current_tiles = isometric.find_poi_sprites(data, interaction.load_conversation(poi_data['interaction']),
-                                                           (e_x, e_y))
-                tile_list.extend(current_tiles)
-                tile_map[e_x, e_y] = current_tiles
-                for tile in current_tiles:
-                    if self.full_map[tile.e_x, tile.e_y] is None:
-                        self.full_map[tile.e_x, tile.e_y] = Tile()
-                    self.full_map[tile.e_x, tile.e_y].add(tile)
+                    current_tiles = isometric.find_poi_sprites(data, interaction.load_conversation(poi_data['interaction']),
+                                                               (e_x, e_y))
+                    tile_list.extend(current_tiles)
+                    tile_map[e_x, e_y] = current_tiles
+                    for tile in current_tiles:
+                        if self.full_map[tile.e_x, tile.e_y] is None:
+                            self.full_map[tile.e_x, tile.e_y] = Tile()
+                        self.full_map[tile.e_x, tile.e_y].add(tile)
 
             def generate_door(data):
                 door_data = json_data['door'].get(str(data))

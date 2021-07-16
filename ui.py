@@ -449,6 +449,9 @@ class TalkTab(Tab):
         self.convo = convo
         self.current_node = convo
 
+        if self.current_node.target >= 0:
+            self.game_view.map_handler.toggle_target_sprites(self.current_node.target)
+
         self.strip_buttons(self.node_buttons)
         self.node_buttons = []
         self.node_button_text = []

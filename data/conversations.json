@@ -94,5 +94,75 @@
             "note"
         ],
         "inputs": {}
+    },
+    "robot_gate_control": {
+        "initiate": "This will deactivate the anti-personal laser array.\nDo you wish to proceed",
+        "response": "Yeah, yeah, what harm could it do?",
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "target": 2,
+        "inputs": {}
+    },
+    "robot_room_control": {
+        "initiate": "Opening door to robot chamber",
+        "response": "Cool.",
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "target": 5,
+        "inputs": {}
+    },
+    "server_room_notes": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
+        "inputs": {}
+    },
+    "robot_room_notes": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
+        "inputs": {}
+    },
+    "server_room_control": {
+        "initiate": "Opening Server Room",
+        "response": [],
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "target": 6,
+        "inputs": {}
+    },
+    "safety_lock_gate": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "computer",
+            "player"
+        ],
+        "target": 1,
+        "inputs": {}
+    },
+    "default": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
+        "inputs": {}
     }
 }
