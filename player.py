@@ -16,27 +16,17 @@ class Player(isometric.IsoActor):
         self.walls = []
         self.path_finding_last = {'init': 0, 'pos': (0, 0)}
 
-    def set_pos(self, e_x, e_y):
-        """
-        set_pos, and new_pos are nearly identical. However set pos must be run before the map_handler is initialised.
-        This is because the player is manipulated before the game_view has the map_handler setup.
-        This causes an Attribute error that isn't fixed when using a Try block.
-        :param e_x: the new euclidean x position
-        :param e_y: the new euclidean y position
-        """
-        super().new_pos(e_x, e_y)
-
     def new_pos(self, e_x, e_y):
         """
-        set_pos, and new_pos are nearly identical. However new pos is the method to run after the map_handler
-        is initialised. New Pos also runs the map handlers display method which finds which room the player is in.
+        new pos sets the x and y position of the player based on a e_x and e_y value. it also runs the display system
+        from the map handler.
         :param e_x: the new euclidean x position
         :param e_y: the new euclidean y position
         """
         super().new_pos(e_x, e_y)
         self.game_view.map_handler.run_display('player', self.e_x, self.e_y)
 
-    def load_paths(self):
+    def load_paths(self, algorithm='base'):
         if self.action_handler.initiative >= 0:
             if self.path_finding_last['init'] != self.action_handler.initiative or \
                self.path_finding_last['pos'] != (self.e_x, self.e_y):
@@ -49,18 +39,12 @@ class Player(isometric.IsoActor):
                             neighbor_to_node = (index + 2) % 4
                             if neighbor is None:
                                 self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
-                            elif not node.directions[index] or not neighbor.directions[neighbor_to_node]:
+                            elif not node.directions[index] or not neighbor.directions[neighbor_to_node] or\
+                                    neighbor not in self.path_finding_data[1]:
                                 self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
                     else:
                         break
 
-                for node in self.path_finding_data[2][self.action_handler.initiative]:
-                    for index, neighbor in enumerate(node.neighbours):
-                        if neighbor is not None:
-                            neighbor_to_node = (index + 2) % 4
-                            if node.directions[index] and neighbor.directions[neighbor_to_node] and\
-                               self.path_finding_data[1][neighbor] > self.path_finding_data[1][node]:
-                                self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
                 c.iso_extend(self.walls)
                 self.path_finding_last = {'init': self.action_handler.initiative, 'pos': (self.e_x, self.e_y)}
 

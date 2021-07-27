@@ -133,6 +133,7 @@ class GameView(arcade.View):
         self.player = player.Player(25, 25, self)
         self.turn_handler.new_action_handlers([self.player.action_handler])
         c.iso_append(self.player)
+        c.set_player(self.player)
 
         # Map Handler
         self.map_handler = mapdata.MapHandler(self)
@@ -244,14 +245,43 @@ class GameView(arcade.View):
 #
         # Debugging of the map_handler
         # self.map_handler.debug_draw(True)
+        if self.player is not None and 1 == 2:
+            p_location = self.player.e_x, self.player.e_y
+            px, py, z = isometric.cast_to_iso(*p_location)
+            seen = []
+            for tile in c.WALLS:
+                if tile is not None:
+                    dx, dy = p_location[0]-tile.location[0], p_location[1]-tile.location[1]
+                    nx, ny = abs(dx), abs(dy)
+                    sign_x, sign_y = 1 if dx > 0 else -1, 1 if dy > 0 else -1
 
-        """
-        # Debugging loop.
-        for y_dex, y in enumerate(self.map_handler.ground_layer):
-            for x_dex, x in enumerate(y):
-                x_pos, y_pos, z_pos = isometric.cast_to_iso(x_dex, y_dex, self.map_handler.ground_layer)
-                arcade.draw_text(f"{x_dex}, {y_dex}", x_pos, y_pos, arcade.color.WHITE)
-        """
+                    p = list(p_location)
+                    final = p_location
+                    ix, iy = 0, 0
+                    while ix < nx or iy < ny:
+                        current = self.map_handler.full_map[p[0], p[1]]
+
+                        if current is not None:
+                            if current not in seen:
+                                seen.append(current)
+
+                            if (0.5 + ix) * ny < (0.5 + iy) * nx:
+                                p[0] += sign_x
+                                ix += 1
+                                direction = c.DIRECTIONS[sign_x, 0]
+                            else:
+                                p[1] += sign_y
+                                iy += 1
+                                direction = c.DIRECTIONS[0, sign_y]
+
+                            if not current.vision[direction]:
+                                final = tuple(current.location)
+                                break
+                        else:
+                            break
+
+                    x, y, z = isometric.cast_to_iso(*final)
+                    arcade.draw_line(x, y-60, px, py-60, arcade.color.RADICAL_RED)
 
         self.map_handler.debug_draw()
         self.window.mouse.draw()

@@ -1,3 +1,4 @@
+import random
 import time
 
 import arcade
@@ -56,11 +57,7 @@ class MoveAction(Action):
                                                                        y-c.SCREEN_HEIGHT//2))
 
     def find_cost(self):
-        if len(self.data[0]):
-            node = self.data[0][-1]
-            self.cost = self.actor.path_finding_data[1][node]
-        else:
-            self.cost = 0
+        self.cost = len(self.data[0])
 
     def update(self):
         if len(self.data[0]):
@@ -70,8 +67,46 @@ class MoveAction(Action):
         return True
 
     def final(self):
-        print(self.handler.initiative)
         self.actor.load_paths()
+
+    def draw(self):
+        start = self.actor.e_x, self.actor.e_y
+        for node in self.data[0]:
+            end = node.location
+            end_x, end_y, end_z = isometric.cast_to_iso(end[0], end[1])
+            start_x, start_y, start_z = isometric.cast_to_iso(start[0], start[1])
+            arcade.draw_line(start_x, start_y-55, end_x, end_y-55, arcade.color.ELECTRIC_BLUE, 2)
+            start = end
+
+
+class MoveEAction(Action):
+    def setup(self):
+        target = (c.clamp(c.PLAYER.e_x + random.choice((-2, -1, 1, 2)), 0, c.CURRENT_MAP_SIZE[0]-1),
+                  c.clamp(c.PLAYER.e_y + random.choice((-2, -1, 1, -2)), 0, c.CURRENT_MAP_SIZE[1]-1))
+        path = algorithms.path_to_target(self.actor.path_finding_grid,
+                                         (self.actor.e_x, self.actor.e_y),
+                                         target,
+                                         self.handler.initiative)
+        self.data.append(path)
+        self.find_cost()
+
+    def begin(self):
+        if len(self.data[0]):
+            all_points = tuple(zip(*tuple(map(lambda point: point.location, self.data[0]))))
+            avg_x, avg_y = sum(all_points[0]), sum(all_points[1])
+            x, y, z = isometric.cast_to_iso(avg_x/len(self.data[0]), avg_y/len(self.data[0]))
+            self.handler.turn_handler.game_view.pending_motion.append((x-c.SCREEN_WIDTH//2,
+                                                                       y-c.SCREEN_HEIGHT//2))
+
+    def find_cost(self):
+        self.cost = len(self.data[0])
+
+    def update(self):
+        if len(self.data[0]):
+            next_node = self.data[0].pop(0)
+            self.actor.new_pos(*next_node.location)
+            return False
+        return True
 
     def draw(self):
         start = self.actor.e_x, self.actor.e_y
@@ -126,7 +161,8 @@ class ShootAction(Action):
         return True
 
 
-ACTIONS = {"move": MoveAction, "hold": HoldAction, "dash": DashAction, 'interact': InteractAction, 'shoot': ShootAction}
+ACTIONS = {"move": MoveAction, "hold": HoldAction, "dash": DashAction,
+           'interact': InteractAction, 'shoot': ShootAction, 'move_enemy': MoveEAction}
 
 
 class ActionHandler:

@@ -25,6 +25,12 @@ DIRECTIONS = {(0, 1): 0, (1, 0): 1, (0, -1): 2, (-1, 0): 3}
 ISO_LIST = IsoList()
 GROUND_LIST = IsoList()
 
+# A list of walls for line of sight
+WALLS = []
+
+# The Player Object
+PLAYER = None
+
 # Map Information
 CURRENT_MAP_SIZE = 0, 0
 
@@ -32,6 +38,28 @@ CURRENT_MAP_SIZE = 0, 0
 """
 FUNCTIONS
 """
+
+
+def flush_walls():
+    global WALLS
+    WALLS = []
+
+
+def add_wall(wall):
+    global WALLS
+    if wall not in WALLS:
+        WALLS.append(wall)
+
+
+def remove_wall(wall):
+    global WALLS
+    if wall in WALLS:
+        WALLS.remove(wall)
+
+
+def set_player(player):
+    global PLAYER
+    PLAYER = player
 
 
 def set_map_size(size):

@@ -18,6 +18,7 @@ class Tile:
     def __init__(self):
         self.pieces: list[isometric.IsoSprite] = []
         self.directions = [1, 1, 1, 1]
+        self.vision = [1, 1, 1, 1]
         self.neighbours: list[Tile, Tile, Tile, Tile] = [None, None, None, None]
         self.location: tuple[int, int] = (0, 0)
         self.available_actions: dict[str, list] = {}
@@ -31,7 +32,7 @@ class Tile:
         if other not in self.pieces:
             self.pieces.append(other)
 
-        self.find_directions()
+        self.find_direction_vision()
 
         actions = list(set(self.available_actions.keys()) | set(other.actions))
         for action in actions:
@@ -45,21 +46,40 @@ class Tile:
     def mix_directions(self, other):
         self.directions = [dirs*other[index] for index, dirs in enumerate(self.directions)]
 
+    def mix_vision(self, other):
+        self.vision = [vision*other[index] for index, vision in enumerate(self.vision)]
+        if 0 in self.vision:
+            c.add_wall(self)
+        else:
+            c.remove_wall(self)
+
     def solve_direction(self, index):
         for piece in self.pieces:
             if not piece.direction[index]:
                 return False
         return True
 
-    def find_directions(self):
+    def solve_vission(self, index):
+        for piece in self.pieces:
+            if not piece.vision_direction[index]:
+                return False
+        return True
+
+    def find_direction_vision(self):
         for index, dirs in enumerate(self.directions):
             self.directions[index] = self.solve_direction(index)
+            self.vision[index] = self.solve_vission(index)
+        if 0 in self.vision:
+            c.add_wall(self)
+        else:
+            c.remove_wall(self)
 
     def add(self, other):
         if other not in self.pieces:
             other.tile = self
             self.pieces.append(other)
             self.mix_directions(other.direction)
+            self.mix_vision(other.vision_direction)
             for action in other.actions:
                 if action not in self.available_actions:
                     self.available_actions[action] = [other]
@@ -70,7 +90,7 @@ class Tile:
         if other in self.pieces:
             other.tile = None
             self.pieces.remove(other)
-            self.find_directions()
+            self.find_direction_vision()
 
             for action in other.actions:
                 self.available_actions[action].remove(other)
@@ -250,7 +270,8 @@ class MapHandler:
                 if poi_data is not None:
                     data = poi_data['tile']
 
-                    current_tiles = isometric.find_poi_sprites(data, interaction.load_conversation(poi_data['interaction']),
+                    current_tiles = isometric.find_poi_sprites(data,
+                                                               interaction.load_conversation(poi_data['interaction']),
                                                                (e_x, e_y))
                     tile_list.extend(current_tiles)
                     tile_map[e_x, e_y] = current_tiles
@@ -351,7 +372,6 @@ class MapHandler:
 
     def toggle_target_sprites(self, target_id):
         if target_id in self.toggle_sprites:
-            print("in it", target_id)
             for door in self.toggle_sprites[target_id]:
                 door.toggle_states()
 

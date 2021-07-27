@@ -16,6 +16,7 @@ class PieceData:
 class TileData:
     pos_mods: tuple
     directions: tuple
+    vision: tuple
     pieces: list
     actions: tuple
 
@@ -55,6 +56,11 @@ def load_textures(location: str = 'tiles.json'):
             # than in can be assumed that the tile is accessible from any direction.
             directions = tile.get('directions', [1, 1, 1, 1])
 
+            # The vision directions for this tile. this is for the raycating. In most cases the  directions are
+            # identical to the directions, only items such as the laser gate and the terminal do not block LOS even
+            # though they stop movement
+            vision = tile.get('vision', directions)
+
             # The actions are the possible actions an actor in combat can take based on the tiles.
             actions = tuple(tile.get('actions', []))
 
@@ -85,7 +91,7 @@ def load_textures(location: str = 'tiles.json'):
                 pieces.append(PieceData(texture, hidden, relative_pos, mod_w, ))
 
             # Create the TileData and add to the dict.
-            textures[key] = TileData(pos_mods, directions, pieces, actions)
+            textures[key] = TileData(pos_mods, directions, vision, pieces, actions)
     return textures
 
 

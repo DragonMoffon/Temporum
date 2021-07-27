@@ -51,6 +51,7 @@ class IsoData:
     relative_pos: tuple
     position_mods: tuple
     directions: tuple
+    vision: tuple
     actions: tuple = ()
 
 
@@ -71,6 +72,7 @@ class IsoSprite(arcade.Sprite):
         # The isometric data
         self.tile_data = tile_data
         self.direction = tile_data.directions
+        self.vision_direction = tile_data.vision
         self.actions = tile_data.actions
 
         # The euclidean position of the sprite.
@@ -123,6 +125,7 @@ class IsoActor(IsoSprite):
     def __init__(self, e_x, e_y, tile_data: IsoData):
         super().__init__(e_x, e_y, tile_data)
         self.action_handler = turn.ActionHandler(self)
+        self.algorithm = "base"
         self.path_finding_grid = None
         self.path_finding_data = None
 
@@ -133,7 +136,9 @@ class IsoActor(IsoSprite):
     def load_paths(self):
         if self.path_finding_grid is not None:
             import algorithms
-            self.path_finding_data = algorithms.path_2d(self.path_finding_grid, (self.e_x, self.e_y))
+            self.path_finding_data = algorithms.path_2d(self.path_finding_grid, (self.e_x, self.e_y),
+                                                        max_dist=self.action_handler.initiative,
+                                                        algorithm=self.algorithm)
 
 
 class IsoInteractor(IsoSprite):
@@ -218,7 +223,7 @@ def find_poi_sprites(tile_id, node, pos_data):
     for piece in tile_data.pieces:
         data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
                        (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
-                       tile_data.directions, tile_data.actions)
+                       tile_data.directions, tile_data.vision, tile_data.actions)
         pieces.append(IsoInteractor(*pos_data, data, node))
 
     return pieces
@@ -231,7 +236,7 @@ def find_toggle_sprites(tile_ids, target_id, pos_data):
         for piece in tile.pieces:
             data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
                            (tile.pos_mods[0], tile.pos_mods[1], tile.pos_mods[2] + piece.mod_w),
-                           tile.directions, tile.actions)
+                           tile.directions, tile.vision, tile.actions)
             pieces.append(data)
     return IsoStateSprite(*pos_data, pieces, target_id)
 
@@ -242,7 +247,7 @@ def find_iso_sprites(tile_id, pos_data):
     for piece in tile_data.pieces:
         data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
                        (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
-                       tile_data.directions, tile_data.actions)
+                       tile_data.directions, tile_data.vision, tile_data.actions)
         pieces.append(IsoSprite(*pos_data, data))
 
     return pieces
@@ -254,7 +259,7 @@ def generate_iso_data_other(key):
     for piece in tile_data.pieces:
         data = IsoData(piece.texture, piece.hidden, piece.relative_pos,
                        (tile_data.pos_mods[0], tile_data.pos_mods[1], tile_data.pos_mods[2] + piece.mod_w),
-                       tile_data.directions, tile_data.actions)
+                       tile_data.directions, tile_data.vision, tile_data.actions)
         pieces.append(data)
 
     return pieces
