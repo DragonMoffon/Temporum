@@ -137,7 +137,7 @@ class GameView(arcade.View):
 
         # Map Handler
         self.map_handler = mapdata.MapHandler(self)
-        self.map_handler.load_map(self.map_handler.map)
+        self.map_handler.load_map()
 
         # Setting player grid now that the map_handler has been initialised.
         self.player.set_grid(self.map_handler.full_map)
@@ -183,12 +183,6 @@ class GameView(arcade.View):
         self.pending_motion: list[tuple[float, float]] = []
         self.current_motion = None
         self.current_motion_start: tuple[float, float] = (self.window.view_x, self.window.view_y)
-
-        # Shader Programs
-
-        # shaders
-        self.vision_field_program, self.vision_field_geometry = \
-            shaders.setup_fullscreen_shader(self.window.ctx, "shaders/vision_field_frag.glsl")
 
         # Last action: reorder the shown isometric sprites
         c.ISO_LIST.reorder_isometric()

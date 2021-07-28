@@ -8,6 +8,7 @@ import algorithms
 import isometric
 import constants as c
 import interaction
+from vision import VisionCalculator
 
 CHECK_DIR = (1, 0), (0, 1), (1, 1)
 INV = {'mouse': 'player', 'player': 'mouse'}
@@ -15,7 +16,9 @@ INV = {'mouse': 'player', 'player': 'mouse'}
 
 class Tile:
 
-    def __init__(self):
+    def __init__(self, vision_handler):
+        self.vision_handler = vision_handler
+
         self.pieces: list[isometric.IsoSprite] = []
         self.directions = [1, 1, 1, 1]
         self.vision = [1, 1, 1, 1]
@@ -48,10 +51,7 @@ class Tile:
 
     def mix_vision(self, other):
         self.vision = [vision*other[index] for index, vision in enumerate(self.vision)]
-        if 0 in self.vision:
-            c.add_wall(self)
-        else:
-            c.remove_wall(self)
+        self.vision_handler.modify_map(self.location, self.vision)
 
     def solve_direction(self, index):
         for piece in self.pieces:
@@ -59,7 +59,7 @@ class Tile:
                 return False
         return True
 
-    def solve_vission(self, index):
+    def solve_vision(self, index):
         for piece in self.pieces:
             if not piece.vision_direction[index]:
                 return False
@@ -68,11 +68,9 @@ class Tile:
     def find_direction_vision(self):
         for index, dirs in enumerate(self.directions):
             self.directions[index] = self.solve_direction(index)
-            self.vision[index] = self.solve_vission(index)
-        if 0 in self.vision:
-            c.add_wall(self)
-        else:
-            c.remove_wall(self)
+            self.vision[index] = self.solve_vision(index)
+
+        self.vision_handler.modify_map(self.location, self.vision)
 
     def add(self, other):
         if other not in self.pieces:
@@ -102,6 +100,175 @@ class Tile:
 
     def __lt__(self, other):
         return id(self) < id(other)
+
+
+class Map:
+
+    def __init__(self, game_view, location="demo_1"):
+        self.game_view = game_view
+
+        # The str location of the tmx data and the json data.
+        self.location = location
+        self.tmx_map = arcade.read_tmx(f"tiled/tilemaps/{self.location}.tmx")
+        self.item_data = json.load(open(f"data/{self.location}.json"))
+
+        # the maps unique vision handler.
+        self.vision_handler = VisionCalculator(game_view.window, game_view.player)
+
+        # The size of the map.
+        self.map_size = self.tmx_map.map_size
+        self.map_width, self.map_height = self.map_size
+
+        # The bots
+        self.bots = []
+
+        # The data of each layer, rooms, and tiles.
+        self.toggle_sprites = {}
+        self.layers = {}
+        self.rooms = {}
+        self.tile_map = np.empty(self.map_size, Tile)
+
+    def load_map(self):
+        """
+                The load map scrip runs through the provided map and creates an IsoLayer object for each layer which stores many
+                different values, these include the raw tile values as a 2D array and the tile sprites in a 2D numpy array.
+
+                These IsoLayers are then stored by their name in a dictionary.
+                """
+
+        self.game_view.reset_bots()
+        self.bots = []
+        self.vision_handler.setup(tuple(self.map_size))
+
+        @dataclass()
+        class BotData:
+            x: int = 0
+            y: int = 0
+            bot_type: str = "basic"
+            shown: bool = False
+
+        self.toggle_sprites = {}
+
+        for layer_num, layer_data in enumerate(self.tmx_map.layers):
+            location = layer_data.name
+
+            if layer_data.properties is not None:
+                shown = layer_data.properties.get('shown', True)
+            else:
+                print(f"Layer: {layer_data.name} does not have required properties."
+                      f" It will not be loaded, please check through your Tiled Map for errors")
+                continue
+
+            # Create the IsoList for the tiles, renames the layers raw tile 2D array for better readability,
+            # and create the 2D numpy array
+            tile_list = []
+            map_data = layer_data.layer_data
+            tile_map = np.empty(self.map_size, list)
+
+            def find_tile_walls(current_room, data_layer):
+                walls = []
+                check_self = False
+                for direction in CHECK_DIR:
+                    d_x = e_x + direction[0]
+                    d_y = e_y + direction[1]
+                    if 0 <= d_x < self.map_width and 0 <= d_y < self.map_height:
+                        if data_layer[d_y][d_x] != current_room:
+                            wall_tile = self.layers['wall'].tile_map[d_x][d_y]
+                            if wall_tile is not None:
+                                walls.extend(wall_tile)
+                            else:
+                                check_self = True
+                    else:
+                        check_self = True
+
+                if check_self:
+                    wall_tile = self.layers['wall'].tile_map[e_x][e_y]
+                    if wall_tile is not None:
+                        walls.extend(wall_tile)
+
+                return walls
+
+            def generate_room(data):
+                if data not in self.rooms:
+                    room = isometric.IsoRoom(arcade.SpriteList())
+
+                    room.room_walls.extend(find_tile_walls(data, map_data))
+
+                    self.rooms[data] = room
+
+                else:
+                    wall_tiles = find_tile_walls(data, map_data)
+                    for tile in wall_tiles:
+                        if tile not in self.rooms[data].room_walls:
+                            self.rooms[data].room_walls.append(tile)
+
+            def generate_poi(data):
+                poi_data = self.item_data['interact'].get(str(data), None)
+                if poi_data is not None:
+                    data = poi_data['tile']
+
+                    current_tiles = isometric.find_poi_sprites(data,
+                                                               interaction.load_conversation(poi_data['interaction']),
+                                                               (e_x, e_y))
+                    tile_list.extend(current_tiles)
+                    tile_map[e_x, e_y] = current_tiles
+                    for tile in current_tiles:
+                        if self.tile_map[tile.e_x, tile.e_y] is None:
+                            self.tile_map[tile.e_x, tile.e_y] = Tile(self.vision_handler)
+                        self.tile_map[tile.e_x, tile.e_y].add(tile)
+
+            def generate_door(data):
+                door_data = self.item_data['door'].get(str(data))
+                if door_data is not None:
+                    tile_data = door_data['tiles']
+                    target_id = data - 16
+
+                    current_tile = isometric.find_toggle_sprites(tile_data, target_id, (e_x, e_y))
+                    tile_list.append(current_tile)
+                    tile_map[e_x, e_y] = current_tile
+                    if self.tile_map[e_x, e_y] is None:
+                        self.tile_map[e_x, e_y] = Tile(self.vision_handler)
+                    self.tile_map[e_x, e_y].add(current_tile)
+
+                    if target_id not in self.toggle_sprites:
+                        self.toggle_sprites[target_id] = []
+                    self.toggle_sprites[target_id].append(current_tile)
+
+            def generate_layer(data):
+                # take the x and y coord of the tile in the map data to create the isometric position
+                current_tiles = isometric.find_iso_sprites(data, (e_x, e_y))
+                tile_list.extend(current_tiles)
+                tile_map[e_x, e_y] = current_tiles
+                for tile in current_tiles:
+                    if self.tile_map[tile.e_x, tile.e_y] is None:
+                        self.tile_map[tile.e_x, tile.e_y] = Tile(self.vision_handler)
+                    self.tile_map[tile.e_x, tile.e_y].add(tile)
+
+            def generate_isoactor(data):
+                isoactor_data = self.item_data['character'].get(str(data))
+                if isoactor_data is not None:
+                    if isoactor_data['type'] == "player":
+                        self.game_view.player.new_pos(e_x, e_y)
+                    else:
+                        new_bot = BotData(e_x, e_y, isoactor_data['type'], isoactor_data['start_active'])
+                        self.bots.append(new_bot)
+
+            generation_functions = {'floor': generate_layer, 'wall': generate_layer,
+                                    'poi': generate_poi, 'room': generate_room,
+                                    'door': generate_door, 'char': generate_isoactor}
+
+            # Loop through the tile data.
+            for e_y, row in enumerate(map_data):
+                for e_x, tile_value in enumerate(row):
+                    # If there is a tile in found in the data create the appropriate tile.
+                    if tile_value:
+                        generation_functions.get(location, generate_layer)(tile_value)
+
+            self.layers[location] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map, shown)
+        algorithms.find_neighbours(self.tile_map)
+        for bot in self.bots:
+            if bot.shown:
+                self.game_view.new_bot(bot)
 
 
 class DisplayHandler:
@@ -170,27 +337,14 @@ class MapHandler:
     def __init__(self, game_view):
         # Read the map. This will later be a list of maps depending on the area.
         self.game_view = game_view
-        self.current_location = "demo_1"
-        self.map = arcade.read_tmx(f"tiled/tilemaps/{self.current_location}.tmx")
-        self.poi_data = json.load(open(f"data/{self.current_location}.json"))
+        self.map = Map(game_view)
+        c.set_map_size(self.map.map_size)
+
         self.display_handler = DisplayHandler(self)
 
-        # Save the layers for the map in a dictionary
-        self.layers: dict[str, (dict, isometric.IsoLayer)] = {'1': {'floor': None, 'wall': None,
-                                                                    'poi': None, 'room': None},
-                                                              '2': {'floor': None, 'wall': None,
-                                                                    'poi': None, 'room': None}}
-
-        self.toggle_sprites = {}
-        self.map_width, self.map_height = self.map.map_size
-        self.map_size = [self.map_width, self.map_height]
-        self.full_map = np.empty(self.map_size, Tile)
-        self.map_bots = []
-        c.set_map_size(self.map_size)
-        self.rooms = {'1': {}}
         self.current_rooms: dict[str, isometric.IsoRoom] = {'player': None, 'mouse': None}
 
-    def load_map(self, map_data):
+    def load_map(self):
         """
         The load map scrip runs through the provided map and creates an IsoLayer object for each layer which stores many
         different values, these include the raw tile values as a 2D array and the tile sprites in a 2D numpy array.
@@ -198,171 +352,36 @@ class MapHandler:
         These IsoLayers are then stored by their name in a dictionary.
         :param map_data: The tmx map the layers are loaded from
         """
-        self.game_view.reset_bots()
-        self.map_bots = []
-
-        @dataclass()
-        class BotData:
-            x: int = 0
-            y: int = 0
-            bot_type: str = "basic"
-            shown: bool = False
-
-        self.toggle_sprites = {}
-
-        with open(f"data/{self.current_location}.json") as json_file:
-            json_data = json.load(json_file)
-        for layer_num, layer_data in enumerate(map_data.layers):
-            location = layer_data.name.split(" ")
-
-            if layer_data.properties is not None:
-                shown = layer_data.properties.get('shown', True)
-            else:
-                print(f"Layer: {layer_data.name} does not have required properties."
-                      f" It will not be loaded, please check through your Tiled Map for errors")
-                continue
-
-            # Create the IsoList for the tiles, renames the layers raw tile 2D array for better readability,
-            # and create the 2D numpy array
-            tile_list = []
-            map_data = layer_data.layer_data
-            tile_map = np.empty(self.map_size, list)
-
-            def find_tile_walls(current_room, data_layer):
-                walls = []
-                check_self = False
-                for direction in CHECK_DIR:
-                    d_x = e_x + direction[0]
-                    d_y = e_y + direction[1]
-                    if 0 <= d_x < self.map_width and 0 <= d_y < self.map_height:
-                        if data_layer[d_y][d_x] != current_room:
-                            wall_tile = self.layers['1']['wall'].tile_map[d_x][d_y]
-                            if wall_tile is not None:
-                                walls.extend(wall_tile)
-                            else:
-                                check_self = True
-                    else:
-                        check_self = True
-
-                if check_self:
-                    wall_tile = self.layers['1']['wall'].tile_map[e_x][e_y]
-                    if wall_tile is not None:
-                        walls.extend(wall_tile)
-
-                return walls
-
-            def generate_room(data):
-                if data not in self.rooms[location[0]]:
-                    room = isometric.IsoRoom(arcade.SpriteList())
-
-                    room.room_walls.extend(find_tile_walls(data, map_data))
-
-                    self.rooms[location[0]][data] = room
-
-                else:
-                    wall_tiles = find_tile_walls(data, map_data)
-                    for tile in wall_tiles:
-                        if tile not in self.rooms[location[0]][data].room_walls:
-                            self.rooms[location[0]][data].room_walls.append(tile)
-
-            def generate_poi(data):
-                poi_data = json_data['interact'].get(str(data), None)
-                if poi_data is not None:
-                    data = poi_data['tile']
-
-                    current_tiles = isometric.find_poi_sprites(data,
-                                                               interaction.load_conversation(poi_data['interaction']),
-                                                               (e_x, e_y))
-                    tile_list.extend(current_tiles)
-                    tile_map[e_x, e_y] = current_tiles
-                    for tile in current_tiles:
-                        if self.full_map[tile.e_x, tile.e_y] is None:
-                            self.full_map[tile.e_x, tile.e_y] = Tile()
-                        self.full_map[tile.e_x, tile.e_y].add(tile)
-
-            def generate_door(data):
-                door_data = json_data['door'].get(str(data))
-                if door_data is not None:
-                    tile_data = door_data['tiles']
-                    target_id = data - 16
-
-                    current_tile = isometric.find_toggle_sprites(tile_data, target_id, (e_x, e_y))
-                    tile_list.append(current_tile)
-                    tile_map[e_x, e_y] = current_tile
-                    if self.full_map[e_x, e_y] is None:
-                        self.full_map[e_x, e_y] = Tile()
-                    self.full_map[e_x, e_y].add(current_tile)
-
-                    if target_id not in self.toggle_sprites:
-                        self.toggle_sprites[target_id] = []
-                    self.toggle_sprites[target_id].append(current_tile)
-
-            def generate_layer(data):
-                # take the x and y coord of the tile in the map data to create the isometric position
-                current_tiles = isometric.find_iso_sprites(data, (e_x, e_y))
-                tile_list.extend(current_tiles)
-                tile_map[e_x, e_y] = current_tiles
-                for tile in current_tiles:
-                    if self.full_map[tile.e_x, tile.e_y] is None:
-                        self.full_map[tile.e_x, tile.e_y] = Tile()
-                    self.full_map[tile.e_x, tile.e_y].add(tile)
-
-            def generate_isoactor(data):
-                isoactor_data = json_data['character'].get(str(data))
-                if isoactor_data is not None:
-                    if isoactor_data['type'] == "player":
-                        self.game_view.player.new_pos(e_x, e_y)
-                    else:
-                        new_bot = BotData(e_x, e_y, isoactor_data['type'], isoactor_data['start_active'])
-                        self.map_bots.append(new_bot)
-
-            generation_functions = {'floor': generate_layer, 'wall': generate_layer,
-                                    'poi': generate_poi, 'room': generate_room,
-                                    'door': generate_door, 'char': generate_isoactor}
-
-            # Loop through the tile data.
-            for e_y, row in enumerate(map_data):
-                for e_x, tile_value in enumerate(row):
-                    # If there is a tile in found in the data create the appropriate tile.
-                    if tile_value:
-                        generation_functions.get(location[-1], generate_layer)(tile_value)
-
-            self.layers[location[0]][location[1]] = isometric.IsoLayer(layer_data, map_data, tile_list, tile_map, shown)
-        algorithms.find_neighbours(self.full_map)
-        for bot in self.map_bots:
-            if bot.shown:
-                self.game_view.new_bot(bot)
+        self.map.load_map()
         self.initial_show()
 
-    def input_show(self, first_args='1', second_args=('wall', 'poi', 'door')):
+    def input_show(self, second_args=('wall', 'poi', 'door')):
         shown_tiles = []
-        for args in first_args:
-            for locator_args in second_args:
-                layer = self.layers[args][locator_args]
-                shown_tiles.extend(layer.tiles)
+        for locator_args in second_args:
+            layer = self.layers[locator_args]
+            shown_tiles.extend(layer.tiles)
         c.iso_show(shown_tiles)
 
-    def input_hide(self, first_args='1', second_args=()):
+    def input_hide(self, second_args=()):
         hidden_tiles = []
-        for args in first_args:
-            for locator_args in second_args:
-                layer = self.layers[args][locator_args]
-                hidden_tiles.extend(layer.tiles)
+        for locator_args in second_args:
+            layer = self.layers[locator_args]
+            hidden_tiles.extend(layer.tiles)
 
         c.iso_hide(hidden_tiles)
 
     def initial_show(self):
         shown_layers = []
-        for key, layer in self.layers['1'].items():
+        for key, layer in self.layers.items():
             if layer.shown and key != 'floor':
                 shown_layers.append(key)
         self.input_show(second_args=shown_layers)
-        c.set_floor(self.layers['1']['floor'].tiles)
+        c.set_floor(self.layers['floor'].tiles)
 
     def run_display(self, setter, e_x, e_y):
-        room = self.layers['1']['room'].map_data[e_y][e_x]
+        room = self.layers['room'].map_data[e_y][e_x]
         if room:
-            room = self.rooms['1'][room]
+            room = self.rooms[room]
             if self.current_rooms[setter] != room:
                 if self.current_rooms[setter] is not None and not self.current_rooms[setter].shown:
                     if self.current_rooms[INV[setter]] != room:
@@ -406,3 +425,35 @@ class MapHandler:
 
         if display_draw:
             arcade.draw_text(str(self.display_handler.states), 0, 0, arcade.color.WHITE)
+
+    @property
+    def layers(self):
+        return self.map.layers
+
+    @property
+    def map_size(self):
+        return self.map.map_size
+
+    @property
+    def map_width(self):
+        return self.map.map_width
+
+    @property
+    def map_height(self):
+        return self.map.map_height
+
+    @property
+    def full_map(self):
+        return self.map.tile_map
+
+    @property
+    def rooms(self):
+        return self.map.rooms
+
+    @property
+    def toggle_sprites(self):
+        return self.map.toggle_sprites
+
+    @property
+    def map_bots(self):
+        return self.map.bots
