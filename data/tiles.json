@@ -81,7 +81,8 @@
                     "start_x": 160,
                     "start_y": 320
                 }
-            ]
+            ],
+            "actions": ["interact"]
         },
         {
             "texture": 0,

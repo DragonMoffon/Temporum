@@ -4,6 +4,8 @@ import arcade
 
 import constants as c
 
+CONVERSATIONS = json.load(open("data/conversations.json"))
+
 
 CONVERSATIONS = json.load(open("data/conversations.json"))
 characters = ['note', 'terminal', 'machine', 'computer', 'player']

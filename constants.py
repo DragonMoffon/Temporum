@@ -2,6 +2,7 @@
 import arcade
 
 from isometric import IsoList
+import views
 
 
 """

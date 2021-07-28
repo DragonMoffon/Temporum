@@ -26,14 +26,14 @@ class VisionCalculator:
             fragment_shader="shaders/vision_frag.glsl"
         )
 
-    def setup(self, map_size: tuple[int, int]):
+    def setup(self, map_size):
         self.map_size = map_size
         self.map_image = Image.new("RGBA", map_size)
         self.vision_texture = self.ctx.ctx.texture(map_size, filter=(gl.NEAREST, gl.NEAREST))
 
         self.buffer = self.ctx.ctx.framebuffer(color_attachments=self.vision_texture)
 
-    def modify_map(self, pos: tuple[int, int], data: tuple[int, int, int, int]):
+    def modify_map(self, pos, data):
         self.regenerate = True
         self.map_image.putpixel(pos, tuple((255*x for x in data)))
 
