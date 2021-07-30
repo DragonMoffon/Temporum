@@ -107,6 +107,7 @@ class IsoSprite(arcade.Sprite):
         # The isometric data
         self.tile_data = tile_data
         self.direction = tile_data.directions
+        self.vision_direction = tile_data.vision
         self.actions = tile_data.actions
 
         # textures for functions

@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass
 
 import arcade
+from typing import List, Tuple, Dict
 
 import algorithms
 import isometric
@@ -16,15 +17,15 @@ INV = {'mouse': 'player', 'player': 'mouse'}
 
 class Tile:
 
-    def __init__(self, vision_handler):
+    def __init__(self, pos: Tuple[int, int], vision_handler):
         self.vision_handler = vision_handler
 
-        self.pieces: list[isometric.IsoSprite] = []
+        self.pieces: List[isometric.IsoSprite] = []
         self.directions = [1, 1, 1, 1]
         self.vision = [1, 1, 1, 1]
-        self.neighbours: list[Tile, Tile, Tile, Tile] = [None, None, None, None]
-        self.location: tuple[int, int] = (0, 0)
-        self.available_actions: dict[str, list] = {}
+        self.neighbours: List[Tile, Tile, Tile, Tile] = [None, None, None, None]
+        self.location: Tuple[int, int] = pos
+        self.available_actions: Dict[str, list] = {}
 
     def update(self, other):
         """
@@ -214,7 +215,7 @@ class Map:
                     tile_map[e_x, e_y] = current_tiles
                     for tile in current_tiles:
                         if self.tile_map[tile.e_x, tile.e_y] is None:
-                            self.tile_map[tile.e_x, tile.e_y] = Tile(self.vision_handler)
+                            self.tile_map[tile.e_x, tile.e_y] = Tile((e_x, e_y), self.vision_handler)
                         self.tile_map[tile.e_x, tile.e_y].add(tile)
 
             def generate_door(data):
@@ -227,7 +228,7 @@ class Map:
                     tile_list.append(current_tile)
                     tile_map[e_x, e_y] = current_tile
                     if self.tile_map[e_x, e_y] is None:
-                        self.tile_map[e_x, e_y] = Tile(self.vision_handler)
+                        self.tile_map[e_x, e_y] = Tile((e_x, e_y), self.vision_handler)
                     self.tile_map[e_x, e_y].add(current_tile)
 
                     if target_id not in self.toggle_sprites:
@@ -241,7 +242,7 @@ class Map:
                 tile_map[e_x, e_y] = current_tiles
                 for tile in current_tiles:
                     if self.tile_map[tile.e_x, tile.e_y] is None:
-                        self.tile_map[tile.e_x, tile.e_y] = Tile(self.vision_handler)
+                        self.tile_map[tile.e_x, tile.e_y] = Tile((e_x, e_y), self.vision_handler)
                     self.tile_map[tile.e_x, tile.e_y].add(tile)
 
             def generate_isoactor(data):
@@ -269,6 +270,37 @@ class Map:
         for bot in self.bots:
             if bot.shown:
                 self.game_view.new_bot(bot)
+
+    def draw(self):
+        self.vision_handler.draw()
+        if self.vision_handler.recalculate == 1:
+            self.hide_walls()
+            self.vision_handler.recalculate = 0
+
+    def hide_walls(self):
+        remove = []
+        show = []
+        for bot in self.game_view.current_ai:
+            if not self.vision_handler.vision_image.getpixel((bot.e_x, bot.e_y))[0]:
+                c.iso_remove(bot)
+            else:
+                c.iso_append(bot)
+
+        for x in self.tile_map:
+            for y in x:
+                if y is not None:
+                    if not self.vision_handler.vision_image.getpixel(y.location)[0]:
+                        remove.extend(y.pieces)
+                    else:
+                        show.extend(y.pieces)
+                        for index, tile in enumerate(y.neighbours):
+                            if (tile is not None and
+                                    not self.vision_handler.vision_image.getpixel(tile.location)[0] and
+                                    y.vision[index] and not tile.vision[(index+2) % 4]):
+                                show.extend(tile.pieces)
+
+        c.iso_strip(remove)
+        c.iso_extend(show)
 
 
 class DisplayHandler:
@@ -350,7 +382,6 @@ class MapHandler:
         different values, these include the raw tile values as a 2D array and the tile sprites in a 2D numpy array.
 
         These IsoLayers are then stored by their name in a dictionary.
-        :param map_data: The tmx map the layers are loaded from
         """
         self.map.load_map()
         self.initial_show()
@@ -457,3 +488,6 @@ class MapHandler:
     @property
     def map_bots(self):
         return self.map.bots
+
+    def draw(self):
+        self.map.draw()

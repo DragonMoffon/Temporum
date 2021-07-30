@@ -86,12 +86,12 @@ class MoveEAction(Action):
         path = algorithms.path_to_target(self.actor.path_finding_grid,
                                          (self.actor.e_x, self.actor.e_y),
                                          target,
-                                         self.handler.initiative)
+                                         self.handler.initiative)[:self.handler.initiative]
         self.data.append(path)
         self.find_cost()
 
     def begin(self):
-        if len(self.data[0]):
+        if len(self.data[0]) and self.actor in c.ISO_LIST:
             all_points = tuple(zip(*tuple(map(lambda point: point.location, self.data[0]))))
             avg_x, avg_y = sum(all_points[0]), sum(all_points[1])
             x, y, z = isometric.cast_to_iso(avg_x/len(self.data[0]), avg_y/len(self.data[0]))
@@ -283,7 +283,7 @@ class TurnHandler:
                 self.cycle()
 
     def on_draw(self):
-        if self.current_handler is not None:
+        if self.current_handler is not None and self.current_handler.actor in c.ISO_LIST:
             self.current_handler.draw()
             arcade.draw_text(f"actor: {self.current_handler.actor},\n"
                              f"initiative: {self.current_handler.initiative},\n"

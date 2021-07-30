@@ -1,7 +1,8 @@
-import random
+
 import time
 
 import arcade
+from typing import List, Tuple
 
 import constants as c
 import mapdata
@@ -11,7 +12,6 @@ import ui
 import turn
 import interaction
 import algorithms
-import shaders
 
 
 class Mouse(arcade.Sprite):
@@ -180,12 +180,14 @@ class GameView(arcade.View):
         self.motion = False
         self.motion_start = 0
         self.motion_length = 1.10
-        self.pending_motion: list[tuple[float, float]] = []
+        self.pending_motion: List[Tuple[float, float]] = []
         self.current_motion = None
-        self.current_motion_start: tuple[float, float] = (self.window.view_x, self.window.view_y)
+        self.current_motion_start: Tuple[float, float] = (self.window.view_x, self.window.view_y)
 
         # Last action: reorder the shown isometric sprites
         c.ISO_LIST.reorder_isometric()
+
+        # set view port
 
     def move_view(self, dx, dy):
         # Round to fit the pixels of sprites
@@ -216,15 +218,14 @@ class GameView(arcade.View):
                             self.window.view_y, self.window.view_y + c.SCREEN_HEIGHT)
 
     def on_draw(self):
+        self.map_handler.map.vision_handler.draw_prep()
         arcade.start_render()
 
         c.GROUND_LIST.draw()
 
         # Middle Shaders Between floor and other isometric sprites
-        # self.vision_field_program['screenPos'] = self.window.view_x, self.window.view_y
-        # self.vision_field_program['playerPos'] = c.CURRENT_MAP_SIZE[1]//2 - self.player.e_y,\
-        #                                         c.CURRENT_MAP_SIZE[0]//2 - self.player.e_x
-        # self.vision_field_geometry.render(self.vision_field_program, mode=self.window.ctx.TRIANGLES)
+        if self.map_handler is not None:
+            self.map_handler.draw()
 
         c.ISO_LIST.draw()
 
@@ -280,6 +281,10 @@ class GameView(arcade.View):
         self.map_handler.debug_draw()
         self.window.mouse.draw()
 
+    def on_key_press(self, symbol: int, modifiers: int):
+        if symbol == arcade.key.L:
+            self.map_handler.map.vision_handler.calculate()
+
     def on_update(self, delta_time: float):
         # Debug FPS
         # print(f"FPS: {1/delta_time}")
@@ -317,7 +322,7 @@ class GameView(arcade.View):
                 self.motion = True
 
     def on_show(self):
-        self.set_view(self.player.center_x - c.SCREEN_WIDTH / 2, self.player.center_y - c.SCREEN_HEIGHT / 2, )
+        self.set_view(self.player.center_x - c.SCREEN_WIDTH / 2, self.player.center_y - c.SCREEN_HEIGHT / 2)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         y_mod = ((160 - c.FLOOR_TILE_THICKNESS) * c.SPRITE_SCALE)
@@ -397,7 +402,9 @@ class TitleView(arcade.View):
 
     def on_draw(self):
         arcade.start_render()
-        arcade.draw_text("Press Enter to start", c.SCREEN_WIDTH / 2, c.SCREEN_HEIGHT / 2 - 25, arcade.color.WHITE)
+        arcade.draw_text("Press Enter to start",
+                         self.window.view_x + c.SCREEN_WIDTH / 2,
+                         self.window.view_y + c.SCREEN_HEIGHT / 2 - 25, arcade.color.WHITE)
 
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.ENTER:

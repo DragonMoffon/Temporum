@@ -77,7 +77,8 @@ def round_to_x(value, x):
 
 
 def iso_append(item):
-    ISO_LIST.append(item)
+    if item not in GROUND_LIST:
+        ISO_LIST.append(item)
 
 
 def iso_extend(iterable: iter):
@@ -90,6 +91,11 @@ def iso_strip(iterable: iter):
     for item in iterable:
         if item in ISO_LIST:
             ISO_LIST.remove(item)
+
+
+def iso_remove(item):
+    if item in ISO_LIST:
+        ISO_LIST.remove(item)
 
 
 def iso_hide(iterable: iter):
