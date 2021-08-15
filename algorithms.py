@@ -223,7 +223,7 @@ def reconstruct_path(grid_2d, came_from: dict, start_xy: tuple, end_xy: tuple):
     return []
 
 
-def create_bot(e_x, e_y, grid_2d):
+def create_bot(x, y, grid_2d):
     import isometric
     import turn
 
@@ -232,16 +232,22 @@ def create_bot(e_x, e_y, grid_2d):
     class SimpleMoveBot(isometric.IsoActor):
 
         def __init__(self):
-            super().__init__(e_x, e_y, bot_text)
+            super().__init__(x, y, bot_text, 6)
             self.set_grid(grid_2d)
             self.algorithm = 'target_player'
             self.last_known_player_location = None
 
+        def new_pos(self, e_x, e_y):
+            super().new_pos(e_x, e_y)
+            if not c.PLAYER.game_view.map_handler.map.check_seen((e_x, e_y)):
+                c.iso_remove(self)
+            else:
+                c.iso_append(self)
+
         def update(self):
             if self.action_handler.current_action is None and self.action_handler.initiative > 0:
                 move_node = c.PLAYER.game_view.map_handler.full_map[c.PLAYER.e_x, c.PLAYER.e_y]
-                move_location = move_node.available_actions['move'][0]
-                self.action_handler.current_action = turn.ACTIONS['move_enemy']([move_location],
+                self.action_handler.current_action = turn.ACTIONS['move_enemy'](move_node.available_actions['move'],
                                                                                 self.action_handler)
 
     return SimpleMoveBot()

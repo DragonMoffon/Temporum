@@ -1,7 +1,9 @@
+import math
 import random
 import time
 
 import arcade
+from typing import List
 
 import algorithms
 import isometric
@@ -14,7 +16,7 @@ class Action:
         self.inputs = inputs
         self.handler = handler
         self.actor = handler.actor
-        self.data = []
+        self.data = {}
         self.cost = 0
         self.setup()
 
@@ -36,6 +38,11 @@ class Action:
     def draw(self):
         pass
 
+    def can_complete(self):
+        if self.cost <= self.handler.initiative:
+            return True
+        return False
+
 
 class MoveAction(Action):
 
@@ -45,23 +52,28 @@ class MoveAction(Action):
                                            self.actor.path_finding_data[0],
                                            (self.actor.e_x, self.actor.e_y),
                                            (self.inputs[0].e_x, self.inputs[0].e_y))[:self.handler.initiative]
-        self.data.append(path)
+        self.data['path'] = path
         self.find_cost()
 
+    def can_complete(self):
+        if len(self.data['path']):
+            return True
+        return False
+
     def begin(self):
-        if len(self.data[0]):
-            all_points = tuple(zip(*tuple(map(lambda point: point.location, self.data[0]))))
+        if len(self.data['path']):
+            all_points = tuple(zip(*tuple(map(lambda point: point.location, self.data['path']))))
             avg_x, avg_y = sum(all_points[0]), sum(all_points[1])
-            x, y, z = isometric.cast_to_iso(avg_x/len(self.data[0]), avg_y/len(self.data[0]))
+            x, y, z = isometric.cast_to_iso(avg_x/len(self.data['path']), avg_y/len(self.data['path']))
             self.handler.turn_handler.game_view.pending_motion.append((x-c.SCREEN_WIDTH//2,
                                                                        y-c.SCREEN_HEIGHT//2))
 
     def find_cost(self):
-        self.cost = len(self.data[0])
+        self.cost = len(self.data['path'])
 
     def update(self):
-        if len(self.data[0]):
-            next_node = self.data[0].pop(0)
+        if len(self.data['path']):
+            next_node = self.data['path'].pop(0)
             self.actor.new_pos(*next_node.location)
             return False
         return True
@@ -71,7 +83,7 @@ class MoveAction(Action):
 
     def draw(self):
         start = self.actor.e_x, self.actor.e_y
-        for node in self.data[0]:
+        for node in self.data['path']:
             end = node.location
             end_x, end_y, end_z = isometric.cast_to_iso(end[0], end[1])
             start_x, start_y, start_z = isometric.cast_to_iso(start[0], start[1])
@@ -87,30 +99,30 @@ class MoveEAction(Action):
                                          (self.actor.e_x, self.actor.e_y),
                                          target,
                                          self.handler.initiative)[:self.handler.initiative]
-        self.data.append(path)
+        self.data['path'] = path
         self.find_cost()
 
     def begin(self):
-        if len(self.data[0]) and self.actor in c.ISO_LIST:
-            all_points = tuple(zip(*tuple(map(lambda point: point.location, self.data[0]))))
+        if len(self.data['path']) and self.actor in c.ISO_LIST:
+            all_points = tuple(zip(*tuple(map(lambda point: point.location, self.data['path']))))
             avg_x, avg_y = sum(all_points[0]), sum(all_points[1])
-            x, y, z = isometric.cast_to_iso(avg_x/len(self.data[0]), avg_y/len(self.data[0]))
+            x, y, z = isometric.cast_to_iso(avg_x/len(self.data['path']), avg_y/len(self.data['path']))
             self.handler.turn_handler.game_view.pending_motion.append((x-c.SCREEN_WIDTH//2,
                                                                        y-c.SCREEN_HEIGHT//2))
 
     def find_cost(self):
-        self.cost = len(self.data[0])
+        self.cost = len(self.data['path'])
 
     def update(self):
-        if len(self.data[0]):
-            next_node = self.data[0].pop(0)
+        if len(self.data['path']):
+            next_node = self.data['path'].pop(0)
             self.actor.new_pos(*next_node.location)
             return False
         return True
 
     def draw(self):
         start = self.actor.e_x, self.actor.e_y
-        for node in self.data[0]:
+        for node in self.data['path']:
             end = node.location
             end_x, end_y, end_z = isometric.cast_to_iso(end[0], end[1])
             start_x, start_y, start_z = isometric.cast_to_iso(start[0], start[1])
@@ -149,20 +161,88 @@ class DashAction(Action):
 class InteractAction(Action):
 
     def begin(self):
-        self.data.append(self.handler.turn_handler.game_view.tabs[1])
-        self.data[0].load_convo(self.inputs[0].interaction_data)
+        self.data['interact'] = self.handler.turn_handler.game_view.tabs[0]
+        self.data['interact'].load_convo(self.inputs[0].interaction_data)
 
     def update(self):
-        return self.data[0].convo_done
+        return self.data['interact'].convo_done
+
+    def can_complete(self):
+        if (self.cost <= self.handler.initiative and
+                abs(self.inputs[0].e_x-self.actor.e_x) <= 1 and abs(self.inputs[0].e_y-self.actor.e_y) <= 1):
+            return True
+        return False
 
 
-class ShootAction(Action):
+class LeaveAction(Action):
+    def find_cost(self):
+        self.cost = 0
+
+    def can_complete(self):
+        if self.inputs[0].e_x == self.actor.e_x and self.inputs[0].e_y == self.actor.e_y:
+            return True
+        return False
+
     def update(self):
+        self.handler.turn_handler.game_view.map_handler.use_gate(self.inputs[0].gate_data)
         return True
 
 
-ACTIONS = {"move": MoveAction, "hold": HoldAction, "dash": DashAction,
-           'interact': InteractAction, 'shoot': ShootAction, 'move_enemy': MoveEAction}
+class ShootAction(Action):
+    def setup(self):
+        self.find_cost()
+        start_point = self.actor.e_x, self.actor.e_y
+        target_point = self.inputs[0].e_x, self.inputs[0].e_y
+
+        d_pos = target_point[0] - start_point[0], target_point[1] - start_point[1]
+        self.data['abs_pos'] = abs(d_pos[0]*2), abs(d_pos[1]*2)
+        self.data['sign_x'] = 0.5 if d_pos[0] > 0 else -0.5
+        self.data['sign_y'] = 0.5 if d_pos[1] > 0 else -0.5
+
+        self.data['iters'] = [0, 0]
+        self.data['bullet_pos'] = list(start_point)
+        self.data['last'] = list(start_point)
+
+        self.data['length'] = max(self.data['abs_pos'])
+        self.data['step'] = 0
+
+    def find_cost(self):
+        self.cost = int(5 + c.floor_to_x(math.sqrt((self.actor.e_x-self.inputs[0].e_x)**2 +
+                                                   (self.actor.e_y-self.inputs[0].e_y)**2), 10)/2)
+
+    def begin(self):
+        bullet_iso_data = isometric.IsoData(arcade.load_texture("assets/tiles/iso_bullet.png", width=160, height=320),
+                                            None)
+        self.data['bullet'] = isometric.IsoSprite(self.actor.e_x, self.actor.e_y, bullet_iso_data)
+        c.iso_append(self.data['bullet'])
+
+    def update(self):
+
+        def lerp(normal):
+            lerp_x = self.actor.e_x + (self.inputs[0].e_x-self.actor.e_x) * normal
+            lerp_y = self.actor.e_y + (self.inputs[0].e_y-self.actor.e_y) * normal
+            return lerp_x, lerp_y
+
+        if self.data['step'] <= self.data['length']:
+            bullet = self.data['bullet']
+            t = self.data['step']/self.data['length'] if self.data['step'] else 0.0
+            bullet.new_pos(*lerp(t))
+            self.data['step'] += 1
+            return False
+        c.iso_remove(self.data['bullet'])
+        return True
+
+    def draw(self):
+        if 'bullet' in self.data:
+            e_x = round(self.data['bullet'].e_x)
+            e_y = round(self.data['bullet'].e_y)
+            x, y, z = isometric.cast_to_iso(e_x, e_y)
+            arcade.draw_point(x, y-60, arcade.color.RADICAL_RED, 6)
+
+
+ACTIONS = {"move": MoveAction, "end": HoldAction, "dash": DashAction,
+           'interact': InteractAction, 'shoot': ShootAction, 'move_enemy': MoveEAction,
+           "leave": LeaveAction}
 
 
 class ActionHandler:
@@ -171,7 +251,7 @@ class ActionHandler:
         self._current_action: Action = None
         self.actor = actor
         self.base_initiative = base
-        self.initiative = base
+        self._initiative = base
         self.pending_initiative = base
         self.next_initiative = base
         self.turn_handler = None
@@ -197,6 +277,16 @@ class ActionHandler:
 
         if self.current_action is not None:
             self.current_action.draw()
+
+    @property
+    def initiative(self):
+        return self._initiative
+
+    @initiative.setter
+    def initiative(self, value):
+        self._initiative = value
+        if self.turn_handler is not None and self.turn_handler.current_handler == self:
+            self.actor.load_paths()
 
     @property
     def pending_action(self):
@@ -232,14 +322,20 @@ class ActionHandler:
 
 class TurnHandler:
     def __init__(self, action_handlers: list, game_view):
-        self.action_handlers: list[ActionHandler] = sorted(action_handlers, key=lambda handlers: handlers.initiative)
-        self.complete: list[ActionHandler] = []
+        self.action_handlers: List[ActionHandler] = sorted(action_handlers, key=lambda handlers: handlers.initiative)
+        self.complete: List[ActionHandler] = []
         self.current_handler: ActionHandler = None
         self.game_view = game_view
         self.update_timer = 0
 
     def new_action_handlers(self, new_handlers):
         self.complete.extend(new_handlers)
+
+    def reset_action_handlers(self, new_handlers):
+        self.action_handlers: List[ActionHandler] = sorted(new_handlers, key=lambda handlers: handlers.initiative)
+        self.current_handler: List[ActionHandler] = []
+        self.current_handler = None
+        self.update_timer = 0
 
     def remove_action_handlers(self, removed_handlers):
         for handler in removed_handlers:
@@ -258,21 +354,28 @@ class TurnHandler:
         if self.current_handler.turn_handler is None:
             self.current_handler.turn_handler = self
 
+        self.current_handler.actor.load_paths()
+
         if self.current_handler == self.game_view.player.action_handler:
+            self.game_view.player.gen_walls()
             self.game_view.pending_motion.append((self.current_handler.actor.center_x - c.SCREEN_WIDTH//2,
                                                   self.current_handler.actor.center_y - c.SCREEN_HEIGHT//2))
 
     def cycle(self):
         self.update_timer = time.time()
+        last = None
         if self.current_handler is not None:
             self.complete.append(self.current_handler)
-            self.current_handler.complete()
+            last = self.current_handler
         if len(self.action_handlers):
             self.next_actor()
         else:
-            self.action_handlers = sorted(self.complete, key=lambda handlers: handlers.initiative)
+            self.action_handlers = sorted(self.complete, key=lambda handlers: handlers.next_initiative)
             self.complete = []
             self.next_actor()
+
+        if last is not None:
+            last.complete()
 
     def on_update(self, delta_time: float = 1/60):
         if self.current_handler is None:

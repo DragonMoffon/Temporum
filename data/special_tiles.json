@@ -3,7 +3,9 @@
         {"file": "assets/characters/player.png", "width": 160, "height": 320},
         {"file": "assets/characters/robot.png", "width": 160, "height": 320},
         {"file": "assets/tiles/select_tiles.png", "width": 160, "height": 320},
-        {"file": "assets/tiles/player_movement_edge.png", "width": 160, "height": 320}],
+        {"file": "assets/tiles/player_movement_edge.png", "width": 160, "height": 320},
+        {"file": "assets/characters/dummy.png", "width": 160, "height": 320},
+        {"file": "assets/tiles/enemy_gate_highlights.png", "width": 160, "height": 320}],
     "tiles": [
         {
             "id": "player",
@@ -15,7 +17,8 @@
                     "start_x": 0,
                     "start_y": 0
                 }
-            ]
+            ],
+            "actions": ["shoot"]
         },
         {
             "id": "bot",
@@ -27,7 +30,21 @@
                     "start_x": 0,
                     "start_y": 0
                 }
-            ]
+            ],
+            "actions": ["shoot"]
+        },
+        {
+            "id": "dummy",
+            "texture": 4,
+            "hidden": 4,
+            "mods": [0, 50, 0.245],
+            "pieces" : [
+                {
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ],
+            "actions": ["shoot"]
         },
         {
             "id": "select",
@@ -92,6 +109,67 @@
                     "mod_w": 0
                 }
             ]
+        },
+        {
+            "id": "enemy_target",
+            "texture": 5,
+            "hidden": 5,
+            "mods": [0, 0, 0],
+            "direction": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0.9,
+                    "start_x": 0,
+                    "start_y": 0
+                },
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "id": "gate_highlight",
+            "texture": 5,
+            "hidden": 5,
+            "mods": [0, 0, 0],
+            "direction": [0, 0, 0, 0],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0.7,
+                    "start_x": 160,
+                    "start_y": 0
+                },
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0.7,
+                    "start_x": 160,
+                    "start_y": 320
+                },
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 640
+                },
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 960
+                },
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 640
+                }
+            ],
+            "actions": ["leave"]
         },
         {
             "texture": 0,

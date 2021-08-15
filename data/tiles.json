@@ -1,6 +1,6 @@
 {
     "files": [
-        {"file": "assets/tiles/metal_wall.png", "width": 160, "height": 320},
+        {"file": "assets/tiles/metal_wall_hidden.png", "width": 160, "height": 320},
         {"file": "assets/tiles/metal_wall_hidden.png", "width": 160, "height": 320},
         {"file": "assets/POI/1-1.png", "width": 160, "height": 320},
         {"file": "assets/POI/2-1.png", "width": 160, "height": 320},
@@ -81,8 +81,7 @@
                     "start_x": 160,
                     "start_y": 320
                 }
-            ],
-            "actions": ["interact"]
+            ]
         },
         {
             "texture": 0,
@@ -283,13 +282,13 @@
             "pieces" : [
                 {
                     "relative_pos": [0, 0],
-                    "start_x": 0,
-                    "start_y": 320
+                    "start_x": 320,
+                    "start_y": 0
                 },
                 {
                     "relative_pos": [-1, 0],
-                    "start_x": 160,
-                    "start_y": 320
+                    "start_x": 480,
+                    "start_y": 0
                 }
             ],
             "actions": ["interact"]
@@ -298,7 +297,7 @@
             "texture": 4,
             "id": "CLgate_south",
             "hidden": 0,
-            "mods": [0, 20, 0.2],
+            "mods": [0, 20, 0.9],
             "directions": [0, 1, 1, 1],
             "vision": [1, 1, 1, 1],
             "pieces" : [
@@ -314,7 +313,7 @@
             "texture": 4,
             "id": "OLgate_south",
             "hidden": 0,
-            "mods": [0, 20, 0.2],
+            "mods": [0, 20, 0.9],
             "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
@@ -329,7 +328,7 @@
             "texture": 4,
             "id": "CLgate_east",
             "hidden": 0,
-            "mods": [0, 20, 0.2],
+            "mods": [0, 20, 0.9],
             "directions": [1, 0, 1, 1],
             "vision": [1, 1, 1, 1],
             "pieces" : [
@@ -345,7 +344,7 @@
             "texture": 4,
             "id": "OLgate_east",
             "hidden": 0,
-            "mods": [0, 20, 0.2],
+            "mods": [0, 20, 0.9],
             "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
@@ -422,7 +421,7 @@
             "texture": 4,
             "id": "Cdoor_south",
             "hidden": 0,
-            "mods": [0, 20, 0.1],
+            "mods": [0, 20, 0.9],
             "directions": [0, 1, 1, 1],
             "pieces" : [
                 {
@@ -437,7 +436,7 @@
             "texture": 4,
             "id": "Odoor_south",
             "hidden": 0,
-            "mods": [0, 20, 0.1],
+            "mods": [0, 20, 0.9],
             "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
@@ -452,7 +451,7 @@
             "texture": 4,
             "id": "Cdoor_east",
             "hidden": 0,
-            "mods": [0, 20, 0.1],
+            "mods": [0, 20, 0.9],
             "directions": [1, 0, 1, 1],
             "pieces" : [
                 {
@@ -467,7 +466,7 @@
             "texture": 4,
             "id": "Odoor_east",
             "hidden": 0,
-            "mods": [0, 20, 0.1],
+            "mods": [0, 20, 0.9],
             "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
@@ -537,6 +536,84 @@
                     "start_y": 960
                 }
             ]
+        },
+        {
+            "id": "16",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [18, 0, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 320
+                }
+            ],
+            "actions": []
+        },
+        {
+            "id": "17",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [0, 18, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 640
+                }
+            ]
+        },
+        {
+            "id": "18",
+            "texture": 3,
+            "hidden": 3,
+            "mods": [0, 0, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0.3,
+                    "start_x": 640,
+                    "start_y": 320
+                },
+                {
+                    "relative_pos": [0, -1],
+                    "mod_w": 0.3,
+                    "start_x": 800,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "id": "19",
+            "texture": 0,
+            "hidden": 0,
+            "mods": [0, 0, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0.3,
+                    "start_x": 960,
+                    "start_y": 320
+                },
+                {
+                    "relative_pos": [-1, 0],
+                    "mod_w": 0.3,
+                    "start_x": 1120,
+                    "start_y": 320
+                }
+            ],
+            "actions": []
         },
         {
             "texture": 0,

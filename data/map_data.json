@@ -1,0 +1,121 @@
+{
+    "tutorial": {
+        "interact": {
+            "16": {
+                "tile": "terminal_west",
+                "interaction": "tutorial_start"
+            },
+            "17": {
+                "tile": "terminal_north",
+                "interaction": "tutorial_gun"
+            },
+            "18": {
+                "tile": "terminal_north",
+                "interaction": "tutorial_terminal"
+            },
+            "19": {
+                "tile": "board_north",
+                "interaction": "tutorial_board"
+            },
+            "20": {
+                "tile": "terminal_west",
+                "interaction": "tutorial_final"
+            }
+        },
+        "door": {
+            "16": {
+                "tiles": ["Cdoor_east", "Odoor_east"]
+            }
+        },
+        "character": {
+            "16": {
+            "type": "player",
+            "start_active": true
+            },
+            "17": {
+                "type": "dummy",
+                "start_active": true
+            }
+        },
+        "gates": {
+            "16": {
+                "target": "demo_1",
+                "position": [29, 22],
+                "start": [0, 7]
+            }
+        }
+    },
+    "demo_1":
+    {
+    "interact":
+    {
+    },
+    "door":
+    {
+        "16": {
+            "tiles": ["Cdoor_east", "Odoor_east"]
+        },
+        "17": {
+            "tiles": ["Odoor_west", "Cdoor_west"]
+        },
+        "18": {
+            "tiles": ["CLgate_west", "OLgate_west"]
+        }
+    },
+    "character":
+    {
+        "16": {
+            "type": "basic",
+            "start_active": true
+        }
+    },
+    "gates": {
+        "16": {
+            "target": "tutorial",
+            "position": [
+                14,
+                3
+            ],
+            "start": [
+                0,
+                3
+            ]
+        }
+    }
+},
+    "demo_2": {
+        "interact": {},
+        "door": {},
+        "character": {}
+    },
+    "demo_3": {
+        "interact": {},
+        "door": {},
+        "character": {}
+    },
+    "demo_4": {
+        "interact": {},
+        "door": {},
+        "character": {}
+    },
+    "demo_5": {
+        "interact": {},
+        "door": {},
+        "character": {}
+    },
+    "demo_6": {
+        "interact": {},
+        "door": {},
+        "character": {}
+    },
+    "demo_7": {
+        "interact": {},
+        "door": {},
+        "character": {}
+    },
+    "demo_8": {
+        "interact": {},
+        "door": {},
+        "character": {}
+    }
+}

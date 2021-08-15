@@ -1,5 +1,4 @@
 from PIL import Image
-from io import BytesIO
 
 import arcade
 import arcade.gl as gl

@@ -4,13 +4,13 @@ from math import *
 import arcade
 
 import constants as c
-import turn
+from turn import ActionHandler
 import tiles
 
 
 def cast_to_iso(e_x: float, e_y: float, mods: tuple = (0, 0, 0)):
     """
-    Casts the inputted Euclidean x and y co-ordinates to the equivalent isometric x, y, z co-ordinates
+    Casts the inputted Euclidean x and y co-ordinates to the equivalent isometric x, y, w co-ordinates
 
     :param e_x: The Euclidean X that is to be cast to Isometric.
     :param e_y: The Euclidean Y that is to be cast to Isometric.
@@ -28,7 +28,7 @@ def cast_to_iso(e_x: float, e_y: float, mods: tuple = (0, 0, 0)):
     iso_y = -(e_x + e_y) * ((c.TILE_HEIGHT*c.SPRITE_SCALE)/2) + mods[1]*c.SPRITE_SCALE
     iso_w = e_x + e_y + mods[2]
 
-    # reorder the IsoList then return the calculated values.
+    # return the calculated values.
     return iso_x, iso_y, iso_w
 
 
@@ -48,11 +48,48 @@ def cast_from_iso(x, y):
 class IsoData:
     texture: arcade.Texture
     hidden: arcade.Texture
-    relative_pos: tuple
-    position_mods: tuple
-    directions: tuple
-    vision: tuple
+    relative_pos: tuple = (0, 0)
+    position_mods: tuple = (0, 0, 0)
+    directions: tuple = (0, 0, 0, 0)
+    vision: tuple = (0, 0, 0, 0)
     actions: tuple = ()
+
+
+class IsoAnimation:
+
+    def __init__(self, location, size, start_xy, frames, speed):
+        self.current_frame = 0
+        self.frame_timer = 0
+        self.animation_speed = speed
+        self.textures = []
+        self.frames = 0
+        self.frame = 0
+        y = start_xy[1]
+        x = start_xy[0]
+        while frames > self.frames:
+            try:
+                texture = arcade.load_texture(location, x, y, *size)
+                self.textures.append(texture)
+                self.frames += 1
+                x += size[0]
+            except ValueError:
+                x = start_xy[0]
+                y += size[1]
+
+                if y >= 10*size[1]:
+                    print("animation error. The number of frames, or the size is incorrect.")
+                    break
+
+    def update_animation(self, delta_time):
+        self.frame_timer += delta_time
+        if self.frame_timer > self.animation_speed:
+            self.frame_timer -= self.animation_speed
+            self.frame += 1
+            if self.frame >= self.frames:
+                self.frame = 0
+                return None
+
+        return self.textures[self.frame]
 
 
 class IsoSprite(arcade.Sprite):
@@ -123,9 +160,9 @@ class IsoSprite(arcade.Sprite):
 
 class IsoActor(IsoSprite):
 
-    def __init__(self, e_x, e_y, tile_data: IsoData):
+    def __init__(self, e_x, e_y, tile_data: IsoData, initiative=10):
         super().__init__(e_x, e_y, tile_data)
-        self.action_handler = turn.ActionHandler(self)
+        self.action_handler = ActionHandler(self, initiative)
         self.algorithm = "base"
         self.path_finding_grid = None
         self.path_finding_data = None
@@ -134,12 +171,30 @@ class IsoActor(IsoSprite):
         self.path_finding_grid = path_grid_2d
         self.load_paths()
 
+    def new_pos(self, e_x, e_y):
+        if self.path_finding_grid is not None:
+            old = self.path_finding_grid[self.e_x, self.e_y]
+            if old is not None:
+                old.light_remove(self)
+            super().new_pos(e_x, e_y)
+            new = self.path_finding_grid[e_x, e_y]
+            if new is not None:
+                new.light_add(self)
+        else:
+            super().new_pos(e_x, e_y)
+
+    def new_map_pos(self, e_x, e_y):
+        super().new_pos(e_x, e_y)
+        new = self.path_finding_grid[e_x, e_y]
+        if new is not None:
+            new.light_add(self)
+
     def load_paths(self):
         if self.path_finding_grid is not None:
-            import algorithms
-            self.path_finding_data = algorithms.path_2d(self.path_finding_grid, (self.e_x, self.e_y),
-                                                        max_dist=self.action_handler.initiative,
-                                                        algorithm=self.algorithm)
+            from algorithms import path_2d
+            self.path_finding_data = path_2d(self.path_finding_grid, (self.e_x, self.e_y),
+                                             max_dist=self.action_handler.initiative,
+                                             algorithm=self.algorithm)
 
 
 class IsoInteractor(IsoSprite):
@@ -161,6 +216,13 @@ class IsoStateSprite(IsoSprite):
     def toggle_states(self):
         self.current_state = (self.current_state + 1) % len(self.states)
         self.set_iso_texture(self.states[self.current_state])
+
+
+class IsoGateSprite(IsoSprite):
+
+    def __init__(self, e_x, e_y, iso_data, gate_data):
+        super().__init__(e_x, e_y, iso_data)
+        self.gate_data = gate_data
 
 
 class IsoList(arcade.SpriteList):

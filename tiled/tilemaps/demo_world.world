@@ -1,0 +1,69 @@
+{
+    "maps": [
+        {
+            "fileName": "demo_1.tmx",
+            "height": 640,
+            "width": 480,
+            "x": 0,
+            "y": 0
+        },
+        {
+            "fileName": "demo_2.tmx",
+            "height": 480,
+            "width": 240,
+            "x": -240,
+            "y": 0
+        },
+        {
+            "fileName": "tutorial.tmx",
+            "height": 240,
+            "width": 480,
+            "x": 480,
+            "y": 240
+        },
+        {
+            "fileName": "demo3.tmx",
+            "height": 480,
+            "width": 480,
+            "x": -480,
+            "y": 480
+        },
+        {
+            "fileName": "demo_4.tmx",
+            "height": 480,
+            "width": 480,
+            "x": -480,
+            "y": -480
+        },
+        {
+            "fileName": "demo_5.tmx",
+            "height": 480,
+            "width": 480,
+            "x": -960,
+            "y": -480
+        },
+        {
+            "fileName": "demo_6.tmx",
+            "height": 960,
+            "width": 960,
+            "x": -1920,
+            "y": -480
+        },
+        {
+            "fileName": "demo_7.tmx",
+            "height": 480,
+            "width": 480,
+            "x": -1440,
+            "y": 480
+        },
+        {
+            "fileName": "demo_8.tmx",
+            "height": 240,
+            "width": 480,
+            "x": -960,
+            "y": 480
+        }
+    ],
+    "onlyShowAdjacentMaps": false,
+    "type": "world"
+}

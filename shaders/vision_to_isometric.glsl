@@ -12,6 +12,7 @@ out vec4 fragColor;
 
 void main() {
 	vec2 pos = floor((gl_FragCoord.xy + screen_pos_resolution.xy + vec2(0, 84))/3)*3;
+	pos.x = floor(pos.x/2)*2;
 	float x = pos.x/96 - pos.y/48 + screen_pos_resolution.z/2 + 1;
 	float y = - pos.x/96- pos.y/48 + screen_pos_resolution.w/2 + 1;
 

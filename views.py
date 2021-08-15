@@ -22,6 +22,8 @@ class Mouse(arcade.Sprite):
         self.window = window
         self.rel_x = 0
         self.rel_y = 0
+        self.e_x = 0
+        self.e_y = 0
 
     def _get_center_x(self) -> float:
         """ Get the center x coordinate of the sprite. """
@@ -68,10 +70,11 @@ class TemporumWindow(arcade.Window):
     """
 
     def __init__(self):
-        super().__init__(c.SCREEN_WIDTH, c.SCREEN_HEIGHT, c.WINDOW_NAME, fullscreen=c.FULLSCREEN)
+        super().__init__(c.SCREEN_WIDTH, c.SCREEN_HEIGHT, c.WINDOW_NAME, fullscreen=c.FULL_SCREEN)
         arcade.set_background_color(arcade.color.BLACK)
 
         # View data
+        self.zoom = 1
         self._view_x = c.round_to_x(-c.SCREEN_WIDTH / 2, 5 * c.SPRITE_SCALE)
         self._view_y = c.round_to_x(-c.SCREEN_HEIGHT / 2, 5 * c.SPRITE_SCALE)
 
@@ -155,12 +158,10 @@ class GameView(arcade.View):
 
         # Ui Stuff
         self.ui_elements = arcade.SpriteList()
-        self.tabs = (ui.InvTab(self),
-                     ui.TalkTab(self),
-                     ui.DisplayTab(self))
+        self.tabs = (ui.TalkTab(self),)
 
-        self.tabs[1].center_x = c.round_to_x(self.window.view_x + c.SCREEN_WIDTH // 2, 5 * c.SPRITE_SCALE)
-        self.tabs[1].center_y = c.round_to_x(self.window.view_y + c.SCREEN_HEIGHT // 2, 5 * c.SPRITE_SCALE)
+        self.tabs[0].center_x = c.round_to_x(self.window.view_x + c.SCREEN_WIDTH // 2, 5 * c.SPRITE_SCALE)
+        self.tabs[0].center_y = c.round_to_x(self.window.view_y + c.SCREEN_HEIGHT // 2, 5 * c.SPRITE_SCALE)
         self.master_tab = ui.MasterTab(self)
         self.pressed = None
         self.ui_tabs_over = []
@@ -185,7 +186,7 @@ class GameView(arcade.View):
         self.current_motion_start: Tuple[float, float] = (self.window.view_x, self.window.view_y)
 
         # Last action: reorder the shown isometric sprites
-        c.ISO_LIST.reorder_isometric()
+        c.iso_changed()
 
         # set view port
 
@@ -291,6 +292,10 @@ class GameView(arcade.View):
         self.turn_handler.on_update(delta_time)
         if self.current_handler != self.turn_handler.current_handler:
             self.current_handler = self.turn_handler.current_handler
+            if self.current_handler is self.player.action_handler:
+                if self.selected_tile is not None:
+                    self.selected_tile.new_pos(self.player.e_x, self.player.e_y)
+                self.action_tab.find_actions(self.player.e_x, self.player.e_y)
 
         if self.turn_handler.current_handler != self.player.action_handler:
             self.turn_handler.current_handler.actor.update()
@@ -321,6 +326,8 @@ class GameView(arcade.View):
                 self.motion_start = time.time()
                 self.motion = True
 
+        self.player.update_animation(delta_time)
+
     def on_show(self):
         self.set_view(self.player.center_x - c.SCREEN_WIDTH / 2, self.player.center_y - c.SCREEN_HEIGHT / 2)
 
@@ -333,12 +340,10 @@ class GameView(arcade.View):
             if e_x != self.select_tile.e_x or e_y != self.select_tile.e_y:
                 self.select_tile.new_pos(e_x, e_y)
                 c.iso_changed()
-                self.map_handler.run_display('mouse', e_x, e_y)
                 self.action_tab.on_mouse_motion(e_x, e_y)
         elif self.player.e_x != self.select_tile.e_x or self.player.e_y != self.select_tile.e_y:
             self.select_tile.new_pos(self.player.e_x, self.player.e_y)
             c.iso_changed()
-            self.map_handler.run_display('mouse', self.player.e_x, self.player.e_y)
 
     def on_mouse_drag(self, x: float, y: float, dx: float, dy: float, _buttons: int, _modifiers: int):
         if _buttons == 2:
@@ -375,14 +380,6 @@ class GameView(arcade.View):
                 else:
                     self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y)
 
-    def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
-        pressed = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
-        if len(pressed):
-            self.pressed: ui.Tab = pressed[-1]
-            self.pressed.on_scroll(scroll_y)
-        else:
-            self.action_tab.on_scroll(scroll_y / abs(scroll_y))
-
     def new_bot(self, bot):
         new_bot = algorithms.create_bot(bot.x, bot.y, self.map_handler.full_map)
         self.current_ai.append(new_bot)
@@ -394,17 +391,27 @@ class GameView(arcade.View):
         c.iso_strip(self.current_ai)
         self.current_ai = []
 
+    def set_bots(self, bots):
+        self.turn_handler.new_action_handlers(map(lambda bot: bot.action_handler, self.current_ai))
+        self.current_ai = bots
+
 
 class TitleView(arcade.View):
     """
     The TitleView is the title
     """
 
+    def __init__(self):
+        super().__init__()
+        self.image = arcade.Sprite("assets/Title.png", c.SPRITE_SCALE,
+                                   center_x=c.SCREEN_WIDTH/2, center_y=c.SCREEN_HEIGHT/2)
+
     def on_draw(self):
         arcade.start_render()
+        self.image.draw()
         arcade.draw_text("Press Enter to start",
-                         self.window.view_x + c.SCREEN_WIDTH / 2,
-                         self.window.view_y + c.SCREEN_HEIGHT / 2 - 25, arcade.color.WHITE)
+                         c.SCREEN_WIDTH//2,
+                          c.SCREEN_HEIGHT // 2 - 25, arcade.color.WHITE)
 
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.ENTER:
@@ -413,4 +420,5 @@ class TitleView(arcade.View):
 
 def main():
     window = TemporumWindow()
+    # c.start_music()
     arcade.run()
