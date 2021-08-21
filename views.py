@@ -1,4 +1,3 @@
-
 import time
 
 import arcade
@@ -91,12 +90,18 @@ class TemporumWindow(arcade.Window):
 
     def on_key_press(self, symbol: int, modifiers: int):
         # At all times the ESCAPE key will close the game.
-        if symbol == arcade.key.X:
+        if symbol == arcade.key.X or symbol == arcade.key.ESCAPE:
             self.close()
+        elif symbol == arcade.key.TAB:
+            self.show_view(PauseMenu())
+            self.minimize()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         self.mouse.center_x = c.round_to_x(self.view_x + x + self.mouse.width / 2, 3)
         self.mouse.center_y = c.round_to_x(self.view_y + y - self.mouse.height / 2, 3)
+
+        y_mod = ((160 - c.FLOOR_TILE_THICKNESS) * c.SPRITE_SCALE)
+        self.mouse.e_x, self.mouse.e_y = isometric.cast_from_iso(self.view_x + x, self.view_y + y + y_mod)
 
     @property
     def view_x(self):
@@ -115,6 +120,20 @@ class TemporumWindow(arcade.Window):
     def view_y(self, value):
         self._view_y = value
         self.mouse.center_y = value + self.mouse.rel_y
+
+
+class PauseMenu(arcade.View):
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text("GAME PAUSED. PRESS ANY KEY TO CONTINUE",
+                         self.window.view_x + self.window.width/2,
+                         self.window.view_y + self.window.height/2,
+                         arcade.color.WHITE, anchor_x="center", anchor_y="center", align="center",
+                         font_size=24)
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        self.window.show_view(self.window.game)
 
 
 class GameView(arcade.View):
@@ -238,53 +257,15 @@ class GameView(arcade.View):
             element.draw()
 
         self.action_tab.draw()
-#
+
         # Debugging of the map_handler
         # self.map_handler.debug_draw(True)
-        if self.player is not None and 1 == 2:
-            p_location = self.player.e_x, self.player.e_y
-            px, py, z = isometric.cast_to_iso(*p_location)
-            seen = []
-            for tile in c.WALLS:
-                if tile is not None:
-                    dx, dy = p_location[0]-tile.location[0], p_location[1]-tile.location[1]
-                    nx, ny = abs(dx), abs(dy)
-                    sign_x, sign_y = 1 if dx > 0 else -1, 1 if dy > 0 else -1
-
-                    p = list(p_location)
-                    final = p_location
-                    ix, iy = 0, 0
-                    while ix < nx or iy < ny:
-                        current = self.map_handler.full_map[p[0], p[1]]
-
-                        if current is not None:
-                            if current not in seen:
-                                seen.append(current)
-
-                            if (0.5 + ix) * ny < (0.5 + iy) * nx:
-                                p[0] += sign_x
-                                ix += 1
-                                direction = c.DIRECTIONS[sign_x, 0]
-                            else:
-                                p[1] += sign_y
-                                iy += 1
-                                direction = c.DIRECTIONS[0, sign_y]
-
-                            if not current.vision[direction]:
-                                final = tuple(current.location)
-                                break
-                        else:
-                            break
-
-                    x, y, z = isometric.cast_to_iso(*final)
-                    arcade.draw_line(x, y-60, px, py-60, arcade.color.RADICAL_RED)
 
         self.map_handler.debug_draw()
         self.window.mouse.draw()
 
     def on_key_press(self, symbol: int, modifiers: int):
-        if symbol == arcade.key.L:
-            self.map_handler.map.vision_handler.calculate()
+        self.tabs[0].on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time: float):
         # Debug FPS
@@ -327,9 +308,15 @@ class GameView(arcade.View):
                 self.motion = True
 
         self.player.update_animation(delta_time)
+        for sprite in self.map_handler.map.animated_sprites:
+            sprite.update_animation(delta_time)
 
     def on_show(self):
         self.set_view(self.player.center_x - c.SCREEN_WIDTH / 2, self.player.center_y - c.SCREEN_HEIGHT / 2)
+
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
+        direction = scroll_y/abs(scroll_y)
+        self.action_tab.on_scroll(direction)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         y_mod = ((160 - c.FLOOR_TILE_THICKNESS) * c.SPRITE_SCALE)
@@ -367,22 +354,30 @@ class GameView(arcade.View):
         self.pressed = None
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        self.action_tab.on_mouse_press(button)
+        select = False
         if button == 1:
             pressed = arcade.check_for_collision_with_list(self.window.mouse, self.ui_elements)
             if len(pressed):
                 self.pressed: ui.Tab = pressed[-1]
                 self.pressed.on_press((self.window.view_x + x, self.window.view_y + y))
             else:
-                if self.selected_tile is None:
-                    self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y)
-                    c.ISO_LIST.append(self.selected_tile)
-                else:
-                    self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y)
+                select = True
+        elif button == 4:
+            select = True
+
+        if select:
+            self.action_tab.on_mouse_press(button)
+            if self.selected_tile is None:
+                self.selected_tile = player.Selected(self.select_tile.e_x, self.select_tile.e_y)
+                c.ISO_LIST.append(self.selected_tile)
+            else:
+                self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y)
 
     def new_bot(self, bot):
         new_bot = algorithms.create_bot(bot.x, bot.y, self.map_handler.full_map)
         self.current_ai.append(new_bot)
+        if len(new_bot.animations):
+            self.map_handler.map.animated_sprites.append(new_bot)
         c.iso_append(new_bot)
         self.turn_handler.new_action_handlers([new_bot.action_handler])
 
@@ -406,16 +401,60 @@ class TitleView(arcade.View):
         self.image = arcade.Sprite("assets/Title.png", c.SPRITE_SCALE,
                                    center_x=c.SCREEN_WIDTH/2, center_y=c.SCREEN_HEIGHT/2)
 
+        self.state = 0
+        self.timer = 0
+
+        self.text = None
+
     def on_draw(self):
         arcade.start_render()
-        self.image.draw()
-        arcade.draw_text("Press Enter to start",
-                         c.SCREEN_WIDTH//2,
-                          c.SCREEN_HEIGHT // 2 - 25, arcade.color.WHITE)
+        color = [255, 255, 255, 255]
+        alpha = 255
+        elapsed = time.time() - self.timer
+
+        def start_draw():
+            nonlocal alpha
+
+            t = elapsed/2.3 if elapsed else 0
+            if t <= 1:
+                alpha = 255*t
+
+            if self.text is None:
+                text = ("This Game is an Investigative Narrative.\n"
+                        "\n"
+                        "It is recommended that you have a set 15 to 30 minutes to play.\n"
+                        "There is no saving. A pen and note pad is suggested.\n"
+                        "\n"
+                        "The Aim is to understand the story and to survive.\n"
+                        "Pay attention, and watch your back.\n"
+                        "\n"
+                        "Press Any Key to Continue.")
+
+                self.text = arcade.draw_text(text, c.SCREEN_WIDTH // 2, c.SCREEN_HEIGHT // 2, tuple(color),
+                                             anchor_x="center", anchor_y="center", align="center", font_size=24)
+            else:
+                self.text.alpha = alpha
+                self.text.draw()
+
+        def wait_draw():
+            self.image.draw()
+            arcade.draw_text("Press anything to start",
+                             c.SCREEN_WIDTH // 2,
+                             c.SCREEN_HEIGHT // 2 - 25, tuple(color))
+
+        states = [start_draw, wait_draw]
+        if self.state < len(states):
+            states[self.state]()
+        else:
+            self.window.show_view(self.window.game)
+
+    def on_show(self):
+        self.state = 0
+        self.timer = time.time()
 
     def on_key_press(self, symbol: int, modifiers: int):
-        if symbol == arcade.key.ENTER:
-            self.window.show_view(self.window.game)
+        self.state += 1
+        self.timer = time.time()
 
 
 def main():

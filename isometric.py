@@ -64,21 +64,26 @@ class IsoAnimation:
         self.textures = []
         self.frames = 0
         self.frame = 0
+        self.facing = 0
         y = start_xy[1]
         x = start_xy[0]
         while frames > self.frames:
             try:
                 texture = arcade.load_texture(location, x, y, *size)
-                self.textures.append(texture)
+                flip_texture = arcade.load_texture(location, x, y, *size, flipped_horizontally=True)
+                self.textures.append((texture, flip_texture))
                 self.frames += 1
                 x += size[0]
             except ValueError:
-                x = start_xy[0]
+                x = 0
                 y += size[1]
 
                 if y >= 10*size[1]:
                     print("animation error. The number of frames, or the size is incorrect.")
                     break
+
+    def start_animation(self):
+        return self.textures[self.frame][self.facing]
 
     def update_animation(self, delta_time):
         self.frame_timer += delta_time
@@ -89,14 +94,16 @@ class IsoAnimation:
                 self.frame = 0
                 return None
 
-        return self.textures[self.frame]
+        return self.textures[self.frame][self.facing]
 
 
 class IsoSprite(arcade.Sprite):
     """
     The base isometric tile class, basically just the arcade.Sprite with methods and variables for isometric casting.
     """
-    def __init__(self, e_x, e_y, tile_data: IsoData):
+    def __init__(self, e_x, e_y, tile_data: IsoData, animations=None):
+        if animations is None:
+            animations = {}
         self.relative_pos = tile_data.relative_pos
         self.position_mods = tile_data.position_mods
         x, y, w = cast_to_iso(e_x + self.relative_pos[0], e_y + self.relative_pos[1])
@@ -124,6 +131,12 @@ class IsoSprite(arcade.Sprite):
 
         # tile for data retrieval and triggers
         self.tile = None
+
+        # The animation system in the sprite.
+        self.animations = animations
+        self.pending_animations = []
+        self.current_animation = None
+        self.current_trigger = None
 
     def new_pos(self, e_x, e_y):
         self.center_x, self.center_y, self.center_w = cast_to_iso(e_x, e_y, self.position_mods)
@@ -157,6 +170,69 @@ class IsoSprite(arcade.Sprite):
         if self.tile is not None:
             self.tile.update(self)
 
+    def add_animation(self, animation, trigger, facing=0):
+        if animation in self.animations:
+            self.pending_animations.append((animation, trigger, facing))
+        elif trigger is not None:
+            trigger.done_animating()
+
+    def push_animation(self, animation, trigger, facing=0):
+        if animation in self.animations:
+            self.pending_animations.insert(0, (animation, trigger, facing))
+        elif trigger is not None:
+            trigger.done_animating()
+
+    def update_animation(self, delta_time: float = 1/60):
+        """
+        Every update this runs. The basic system is that every update it either animates or finds the next animation.
+        :param delta_time: the difference between two frames in seconds. used to count how long an animation needs to
+        run for.
+        """
+
+        if self.current_animation is not None:
+            # If there is a current animation find the next frame.
+            next_frame = self.current_animation.update_animation(delta_time)
+
+            # if the animation is finished then the frame is none, else its the next texture needed.
+            if next_frame is not None:
+                self.texture = next_frame
+            else:
+                # If the animation was triggered by something we need to tell the trigger that it is done.
+                if self.current_trigger is not None:
+                    self.current_trigger.done_animating()
+                    self.current_trigger = None
+
+                # reset
+                self.texture = self.base
+                self.current_animation = None
+
+                # if there are pending animations we want to start animating them.
+                if len(self.pending_animations):
+                    # Loop until we find the next valid animation. This is to protect against using the wrong key in a
+                    # dict. Most of the time it will run once.
+                    while len(self.pending_animations) and self.current_animation is None:
+                        next_animation, next_trigger, facing = self.pending_animations.pop(0)
+                        if next_animation in self.animations:
+                            self.current_animation = self.animations[next_animation]
+                            self.current_animation.facing = facing
+                            self.current_trigger = next_trigger
+                            self.texture = self.current_animation.start_animation()
+                        else:
+                            next_animation.done_animating()
+
+        elif len(self.pending_animations):
+            # Loop until we find the next valid animation. This is to protect against using the wrong key in a
+            # dict. Most of the time it will run once.
+            while len(self.pending_animations) and self.current_animation is None:
+                next_animation, next_trigger, facing = self.pending_animations.pop(0)
+                if next_animation in self.animations:
+                    self.current_animation = self.animations[next_animation]
+                    self.current_animation.facing = facing
+                    self.current_trigger = next_trigger
+                    self.texture = self.current_animation.start_animation()
+                else:
+                    next_animation.done_animating()
+
 
 class IsoActor(IsoSprite):
 
@@ -169,7 +245,6 @@ class IsoActor(IsoSprite):
 
     def set_grid(self, path_grid_2d):
         self.path_finding_grid = path_grid_2d
-        self.load_paths()
 
     def new_pos(self, e_x, e_y):
         if self.path_finding_grid is not None:
@@ -195,6 +270,9 @@ class IsoActor(IsoSprite):
             self.path_finding_data = path_2d(self.path_finding_grid, (self.e_x, self.e_y),
                                              max_dist=self.action_handler.initiative,
                                              algorithm=self.algorithm)
+
+    def hit(self, shooter):
+        print(self, "hit by", shooter)
 
 
 class IsoInteractor(IsoSprite):

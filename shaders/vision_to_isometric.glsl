@@ -1,8 +1,7 @@
 #version 330
 
-#define N = 50
-
 uniform vec4 screen_pos_resolution;
+uniform bool lit;
 uniform sampler2D vision_tiles;
 
 in vec4 gl_FragCoord;
@@ -21,6 +20,13 @@ void main() {
 	fragColor = vec4(vec3(0), 1);
 	if (vision.x > 0)
 	{
-		fragColor = vec4(0, 0, 0, vision.g*0.8);
+		if (lit)
+		{
+			fragColor = vec4(1, 1, 1, 0);
+		}
+		else
+		{
+			fragColor = vec4(0, 0, 0, (screen_pos_resolution.z/15) * (vision.g));
+		}
 	}
 }

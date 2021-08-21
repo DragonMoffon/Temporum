@@ -2,6 +2,7 @@
 
 uniform sampler2D vision_map;
 uniform vec4 cast_pos_resolution;
+uniform bool lit;
 
 float one_step = 1/cast_pos_resolution.z;
 
@@ -137,5 +138,13 @@ void main()
     vec2 cast_pos_square = (cast_pos_resolution.xy) * one_step;
     vec2 pos_square = pos * one_step;
     float dist = distance(cast_pos_square, pos_square);
-    frag_color = vec4(point_cast(ivec2(frag_uv*cast_pos_resolution.zw), ivec2(cast_pos_resolution.xy)), dist, 1, 1);
+    if (dist < 15/cast_pos_resolution.z || lit)
+    {
+        frag_color = vec4(point_cast(ivec2(frag_uv*cast_pos_resolution.zw), ivec2(cast_pos_resolution.xy)), dist, 1, 1);
+    }
+    else
+    {
+        frag_color = vec4(0, 0, 1, 1);
+    }
+
 }

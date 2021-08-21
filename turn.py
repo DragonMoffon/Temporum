@@ -43,6 +43,9 @@ class Action:
             return True
         return False
 
+    def done_animating(self):
+        pass
+
 
 class MoveAction(Action):
 
@@ -195,9 +198,11 @@ class ShootAction(Action):
         target_point = self.inputs[0].e_x, self.inputs[0].e_y
 
         d_pos = target_point[0] - start_point[0], target_point[1] - start_point[1]
-        self.data['abs_pos'] = abs(d_pos[0]*2), abs(d_pos[1]*2)
-        self.data['sign_x'] = 0.5 if d_pos[0] > 0 else -0.5
-        self.data['sign_y'] = 0.5 if d_pos[1] > 0 else -0.5
+        self.data['abs_pos'] = abs(d_pos[0]), abs(d_pos[1])
+        if d_pos[0]:
+            self.data['facing'] = 0 if d_pos[0] > 0 else 1
+        else:
+            self.data['facing'] = 0 if d_pos[1] < 0 else 1
 
         self.data['iters'] = [0, 0]
         self.data['bullet_pos'] = list(start_point)
@@ -210,27 +215,36 @@ class ShootAction(Action):
         self.cost = int(5 + c.floor_to_x(math.sqrt((self.actor.e_x-self.inputs[0].e_x)**2 +
                                                    (self.actor.e_y-self.inputs[0].e_y)**2), 10)/2)
 
+    def can_complete(self):
+        if (self.actor not in self.inputs and self.cost <= self.handler.initiative and
+               (self.actor.e_x != self.inputs[0].e_x or self.actor.e_y != self.inputs[0].e_y)):
+            return True
+        return False
+
     def begin(self):
-        bullet_iso_data = isometric.IsoData(arcade.load_texture("assets/tiles/iso_bullet.png", width=160, height=320),
-                                            None)
-        self.data['bullet'] = isometric.IsoSprite(self.actor.e_x, self.actor.e_y, bullet_iso_data)
-        c.iso_append(self.data['bullet'])
+        self.actor.add_animation('fire', self, self.data['facing'])
 
     def update(self):
-
         def lerp(normal):
             lerp_x = self.actor.e_x + (self.inputs[0].e_x-self.actor.e_x) * normal
             lerp_y = self.actor.e_y + (self.inputs[0].e_y-self.actor.e_y) * normal
             return lerp_x, lerp_y
 
-        if self.data['step'] <= self.data['length']:
-            bullet = self.data['bullet']
-            t = self.data['step']/self.data['length'] if self.data['step'] else 0.0
-            bullet.new_pos(*lerp(t))
-            self.data['step'] += 1
-            return False
-        c.iso_remove(self.data['bullet'])
-        return True
+        if 'bullet' in self.data:
+            if self.data['step'] <= self.data['length']:
+                bullet = self.data['bullet']
+                t = self.data['step']/self.data['length'] if self.data['step'] else 0.0
+                bullet.new_pos(*lerp(t))
+                self.data['step'] += 1
+                return False
+
+            if isinstance(self.inputs[0], isometric.IsoActor):
+                self.inputs[0].hit(self.actor)
+            else:
+                self.inputs[0].push_animation('hit', None, 1-self.data['facing'])
+            c.iso_remove(self.data['bullet'])
+            return True
+        return False
 
     def draw(self):
         if 'bullet' in self.data:
@@ -238,6 +252,25 @@ class ShootAction(Action):
             e_y = round(self.data['bullet'].e_y)
             x, y, z = isometric.cast_to_iso(e_x, e_y)
             arcade.draw_point(x, y-60, arcade.color.RADICAL_RED, 6)
+
+    def done_animating(self):
+        if 'bullet' not in self.data:
+            # If the bullet has not been made yet then only the firing animation has played. Time to make bullet and
+            # play recoil animation.
+            bullet_iso_data = isometric.IsoData(arcade.load_texture("assets/characters/player_bullet.png",
+                                                                    width=160, height=10),
+                                                None)
+            self.data['bullet'] = isometric.IsoSprite(self.actor.e_x, self.actor.e_y, bullet_iso_data)
+
+            # Find the isometric angle between the shooter and the target. This is the bullet's angle.
+            iso_x_diff = (self.inputs[0].e_x - self.inputs[0].e_y) - (self.actor.e_x - self.actor.e_y)
+            iso_y_diff = 0.5 * (-(self.inputs[0].e_x + self.inputs[0].e_y) + (self.actor.e_x + self.actor.e_y))
+            angle = math.atan2(iso_y_diff, iso_x_diff)
+            self.data['bullet'].radians = angle
+
+            c.iso_append(self.data['bullet'])
+
+            self.actor.push_animation('recoil', None, self.data['facing'])
 
 
 ACTIONS = {"move": MoveAction, "end": HoldAction, "dash": DashAction,
@@ -255,6 +288,9 @@ class ActionHandler:
         self.pending_initiative = base
         self.next_initiative = base
         self.turn_handler = None
+
+    def pass_turn(self):
+        self.turn_handler.cycle()
 
     def complete(self):
         self.current_action = None
@@ -380,7 +416,7 @@ class TurnHandler:
     def on_update(self, delta_time: float = 1/60):
         if self.current_handler is None:
             self.cycle()
-        elif time.time() > self.update_timer + 1/6:
+        elif time.time() > self.update_timer + 0:
             self.update_timer = time.time()
             if self.current_handler.on_update(delta_time):
                 self.cycle()

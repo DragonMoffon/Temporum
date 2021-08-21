@@ -49,6 +49,54 @@
     {
     "interact":
     {
+        "16": {
+                "tile": "terminal_north",
+                "interaction": "lobby_terminal_1"
+            },
+        "17": {
+                "tile": "board_north",
+                "interaction": "lobby_board"
+            },
+        "18": {
+                "tile": "terminal_west",
+                "interaction": "lobby_terminal_2"
+            },
+        "19": {
+                "tile": "terminal_west",
+                "interaction": "server_room_terminal"
+            },
+        "20": {
+                "tile": "terminal_north",
+                "interaction": "caesar-4_interface_terminal"
+            },
+        "21": {
+                "tile": "terminal_north",
+                "interaction": "admin_door_terminal"
+            },
+        "22": {
+                "tile": "board_north",
+                "interaction": "server_room_board"
+            },
+        "23": {
+                "tile": "terminal_north",
+                "interaction": "admin_terminal"
+            },
+        "24": {
+                "tile": "terminal_north",
+                "interaction": "caesar-4_gate_terminal"
+            },
+        "25": {
+                "tile": "board_west",
+                "interaction": "boardroom_board"
+            },
+        "26": {
+                "tile": "terminal_north",
+                "interaction": "server_door_terminal"
+            },
+        "27": {
+            "tile": "terminal_west",
+            "interaction": "hallway_door_terminal"
+        }
     },
     "door":
     {
@@ -59,7 +107,25 @@
             "tiles": ["Odoor_west", "Cdoor_west"]
         },
         "18": {
-            "tiles": ["CLgate_west", "OLgate_west"]
+            "tiles": ["Cdoor_south", "Odoor_south"]
+        },
+        "19": {
+            "tiles": ["Cdoor_west", "Odoor_west"]
+        },
+        "20": {
+            "tiles": ["Cdoor_south", "Odoor_south"]
+        },
+        "21": {
+            "tiles": ["Cdoor_west", "Odoor_west"]
+        },
+        "22": {
+            "tiles": ["CLgate_south", "OLgate_south"]
+        },
+        "23": {
+            "tiles": ["Cdoor_east", "Odoor_east"]
+        },
+        "24": {
+            "tiles": ["CLgate_east", "OLgate_east"]
         }
     },
     "character":
@@ -71,7 +137,7 @@
     },
     "gates": {
         "16": {
-            "target": "tutorial",
+            "target": "demo_2",
             "position": [
                 14,
                 3
@@ -86,7 +152,20 @@
     "demo_2": {
         "interact": {},
         "door": {},
-        "character": {}
+        "character": {},
+        "gates": {
+            "16": {
+                "target": "demo_1",
+                "position": [
+                    0,
+                    3
+                ],
+                "start": [
+                    14,
+                    3
+                ]
+            }
+        }
     },
     "demo_3": {
         "interact": {},

@@ -36,13 +36,13 @@ def load_textures(location: str = 'tiles.json'):
         # creation.
         textures = {}
         for index, tile in enumerate(tiles[:-1]):
-            # It creates an variable for each part of the tile.
+            # It creates a variable for each part of the tile.
 
             # The texture data take from the files list.
             texture_data = files[tile['texture']]
 
             # The secondary texture data, this is for if the item should be hidden.
-            hidden_data = files[tile['hidden']]
+            hidden_data = files[tile.get('hidden', tile['texture'])]
 
             # The key for the dict.
             # only really needed in special edge cases so that is why the key defaults to the index
@@ -79,9 +79,11 @@ def load_textures(location: str = 'tiles.json'):
                 # If it is not found in the dict it is assumed to be 0
                 mod_w = piece.get('mod_w', 0)
 
+                file = files[piece.get('other_texture', tile['texture'])]
+
                 # Create the two textures and create the piece data.
-                texture = arcade.load_texture(texture_data['file'], piece['start_x'], piece['start_y'],
-                                              texture_data['width'], texture_data['height'])
+                texture = arcade.load_texture(file['file'], piece['start_x'], piece['start_y'],
+                                              file['width'], file['height'])
 
                 if hidden_data == texture_data:
                     hidden = None

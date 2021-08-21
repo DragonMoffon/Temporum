@@ -12,131 +12,17 @@ import isometric
 import constants as c
 import interaction
 from vision import VisionCalculator
+from map_tile import Tile
 
-CHECK_DIR = (1, 0), (0, 1), (1, 1)
-INV = {'mouse': 'player', 'player': 'mouse'}
+# GATES and POI_LIGHTS are the highlights used to show the player points of interest and gates. each index represents a
+# direction in order: south, east, north, west
 GATES = {index: data for index, data in enumerate(isometric.generate_iso_data_other("gate_highlight"))}
-
-
-class Tile:
-
-    def __init__(self, pos: Tuple[int, int], tile_map):
-        self.vision_handler = tile_map.vision_handler
-        self.map = tile_map
-        self.seen = False
-
-        self.pieces: List[isometric.IsoSprite] = []
-        self.actors: List[isometric.IsoActor] = []
-        self.directions = [1, 1, 1, 1]
-        self.vision = [1, 1, 1, 1]
-        self.neighbours: List[Tile, Tile, Tile, Tile] = [None, None, None, None]
-        self.location: Tuple[int, int] = pos
-        self.available_actions: Dict[str, list] = {}
-
-    def light_add(self, other):
-        if other not in self.actors:
-            self.actors.append(other)
-
-            for action in other.actions:
-                if action not in self.available_actions:
-                    self.available_actions[action] = [other]
-                else:
-                    self.available_actions[action].append(other)
-
-    def light_remove(self, other):
-        if other in self.actors:
-            self.actors.append(other)
-
-            for action in other.actions:
-                if action in self.available_actions and other in self.available_actions[action]:
-                    self.available_actions[action].remove(other)
-                    if not len(self.available_actions[action]):
-                        self.available_actions.pop(action)
-
-    def update(self, other):
-        """
-        this updates the directions, and the available actions of the tile.
-        :param other: A IsoSprite that should be in the tile.
-        """
-
-        if other not in self.pieces:
-            self.pieces.append(other)
-
-        self.find_direction_vision()
-
-        actions = list(set(self.available_actions.keys()) | set(other.actions))
-        for action in actions:
-            if action not in self.available_actions:
-                self.available_actions[action] = [other]
-            elif other not in self.available_actions[action]:
-                self.available_actions[action].append(other)
-            elif other in self.available_actions[action] and action not in other.actions:
-                self.available_actions[action].remove(other)
-
-        self.map.changed = True
-
-    def mix_directions(self, other):
-        self.directions = [dirs*other[index] for index, dirs in enumerate(self.directions)]
-
-    def mix_vision(self, other):
-        self.vision = [vision*other[index] for index, vision in enumerate(self.vision)]
-        self.vision_handler.modify_map(self.location, self.vision)
-
-    def solve_direction(self, index):
-        for piece in self.pieces:
-            if not piece.direction[index]:
-                return False
-        return True
-
-    def solve_vision(self, index):
-        for piece in self.pieces:
-            if not piece.vision_direction[index]:
-                return False
-        return True
-
-    def find_direction_vision(self):
-        for index, dirs in enumerate(self.directions):
-            self.directions[index] = self.solve_direction(index)
-            self.vision[index] = self.solve_vision(index)
-
-        self.vision_handler.modify_map(self.location, self.vision)
-
-    def add(self, other):
-        if other not in self.pieces:
-            other.tile = self
-            self.pieces.append(other)
-            self.mix_directions(other.direction)
-            self.mix_vision(other.vision_direction)
-            for action in other.actions:
-                if action not in self.available_actions:
-                    self.available_actions[action] = [other]
-                else:
-                    self.available_actions[action].append(other)
-
-            self.map.changed = True
-
-    def remove(self, other):
-        if other in self.pieces:
-            other.tile = None
-            self.pieces.remove(other)
-            self.find_direction_vision()
-
-            for action in other.actions:
-                self.available_actions[action].remove(other)
-                if not len(self.available_actions[action]):
-                    self.available_actions.pop(action)
-
-            self.map.changed = True
-
-    def __le__(self, other):
-        return id(self) <= id(other)
-
-    def __lt__(self, other):
-        return id(self) < id(other)
-
+POI_LIGHTS = {index: data for index, data in enumerate(isometric.generate_iso_data_other("poi_highlight"))}
 
 class Map:
-
+    """
+    Map holds the tiles and other data for a single tmx map.
+    """
     def __init__(self, game_view, data, location="tutorial"):
         self.game_view = game_view
 
@@ -146,7 +32,8 @@ class Map:
         self.item_data = data[location]
 
         # the maps unique vision handler.
-        self.vision_handler = VisionCalculator(game_view.window, game_view.player)
+        self.lit = location == "tutorial"
+        self.vision_handler = VisionCalculator(game_view.window, game_view.player, self.lit)
 
         # The size of the map.
         self.map_size = self.tmx_map.map_size
@@ -164,9 +51,8 @@ class Map:
         self.rooms = {}
         self.tile_map = np.empty(self.map_size, Tile)
 
-        # times
-
-        self.times = []
+        # sprites with animations.
+        self.animated_sprites = []
 
     def load_map(self):
         """
@@ -181,6 +67,7 @@ class Map:
         self.game_view.reset_bots()
         self.bots = []
         self.vision_handler.setup(tuple(self.map_size))
+        self.animated_sprites = []
 
         c.set_map_size(self.map_size)
 
@@ -202,7 +89,7 @@ class Map:
             else:
                 shown = True
 
-            # Create the IsoList for the tiles, renames the layers raw tile 2D array for better readability,
+            # Create the IsoList for the tiles, renames the layer's raw tile 2D array for better readability,
             # and create the 2D numpy array
             tile_list = []
             map_data = layer_data.layer_data
@@ -216,12 +103,31 @@ class Map:
                     current_tiles = isometric.find_poi_sprites(data,
                                                                interaction.load_conversation(poi_data['interaction']),
                                                                (e_x, e_y))
+
+                    tile_directions = set()
                     tile_list.extend(current_tiles)
-                    tile_map[e_x, e_y] = current_tiles
+                    tile_map[e_x, e_y] = list(current_tiles)
                     for tile in current_tiles:
-                        if self.tile_map[tile.e_x, tile.e_y] is None:
-                            self.tile_map[tile.e_x, tile.e_y] = Tile((e_x, e_y), self)
-                        self.tile_map[tile.e_x, tile.e_y].add(tile)
+                        if len(tile.animations):
+                            self.animated_sprites.append(tile)
+
+                        pos = (tile.e_x, tile.e_y)
+                        if pos not in tile_directions:
+                            tile_directions.add(pos)
+                        if self.tile_map[pos] is None:
+                            self.tile_map[pos] = Tile(pos, self)
+                        self.tile_map[pos].add(tile)
+
+                    if len(current_tiles):
+                        for tile in current_tiles:
+                            for i in range(4):
+                                direction = (i % 2 * ((math.floor(i / 2) * -2) + 1),
+                                             (1 - i % 2) * ((math.floor(i / 2) * -2) + 1))
+                                if (tile.e_x + direction[0], tile.e_y + direction[1]) not in tile_directions:
+                                    highlight = isometric.IsoSprite(tile.e_x, tile.e_y, POI_LIGHTS[i])
+                                    tile_list.append(highlight)
+                                    tile_map[e_x, e_y].append(highlight)
+                                    self.tile_map[tile.e_x, tile.e_y].add(highlight)
 
             def generate_door(data):
                 door_data = self.item_data['door'].get(str(data))
@@ -272,21 +178,17 @@ class Map:
                 tile_map[e_x, e_y] = current_tiles
 
             def generate_decoration(data):
-                # take the x and y coord of the tile in the map data to create the isometric position
-                current_tiles = isometric.find_iso_sprites(str(data), (e_x, e_y))
-                tile_list.extend(current_tiles)
-                tile_map[e_x, e_y] = current_tiles
-                for tile in current_tiles:
-                    if self.tile_map[tile.e_x, tile.e_y] is None:
-                        self.tile_map[tile.e_x, tile.e_y] = Tile((e_x, e_y), self)
-                    self.tile_map[tile.e_x, tile.e_y].add(tile)
+                # same as generate layer but takes a str not an int.
+                generate_layer(str(data))
 
             def generate_layer(data):
-                # take the x and y coord of the tile in the map data to create the isometric position
+                # find the pieces(individual sprites) that make up the IsoSprite.
                 current_tiles = isometric.find_iso_sprites(data, (e_x, e_y))
                 tile_list.extend(current_tiles)
                 tile_map[e_x, e_y] = current_tiles
                 for tile in current_tiles:
+                    if len(tile.animations):
+                        self.animated_sprites.append(tile)
                     if self.tile_map[tile.e_x, tile.e_y] is None:
                         self.tile_map[tile.e_x, tile.e_y] = Tile((e_x, e_y), self)
                     self.tile_map[tile.e_x, tile.e_y].add(tile)
@@ -298,9 +200,13 @@ class Map:
                         self.game_view.player.new_pos(e_x, e_y)
                     elif isoactor_data['type'] == "dummy":
                         iso_data = isometric.generate_iso_data_other(isoactor_data['type'])
-                        dummy = isometric.IsoSprite(e_x, e_y, *iso_data)
+                        dummy = isometric.IsoSprite(e_x, e_y, *iso_data,
+                                                    {'hit': isometric.IsoAnimation(
+                                                        "assets/characters/iso_dummy.png",
+                                                        (160, 320), (160, 0), 4, 1/12)})
                         tile_list.append(dummy)
                         tile_map[e_x, e_y] = dummy
+                        self.animated_sprites.append(dummy)
                         if self.tile_map[e_x, e_y] is None:
                             self.tile_map[e_x, e_y] = Tile((e_x, e_y), self)
                         self.tile_map[e_x, e_y].add(dummy)
@@ -382,7 +288,16 @@ class Map:
                         y.seen = True
                         for piece in y.pieces:
                             piece.alpha = 255
-                            piece.color = (255, 255, 255)
+
+                            if self.lit:
+                                color = 255
+                            else:
+                                # the distance is the value normalised and the map size relative to 15.
+                                # so dist/255 * map/15 or (map*dist)/(255*15) or (map*dist)/3825
+                                distance = self.vision_handler.vision_image.getpixel(y.location)[1]*self.map_size[0]/3825
+
+                                color = max(int(255 - 255*distance), 0)
+                            piece.color = (color, color, color)
 
                         for index, tile in enumerate(y.neighbours):
                             if (tile is not None and tile not in checked and
@@ -392,7 +307,17 @@ class Map:
                                 tile.seen = True
                                 for piece in tile.pieces:
                                     piece.alpha = 255
-                                    piece.color = (255, 255, 255)
+
+                                    if self.lit:
+                                        color = 255
+                                    else:
+                                        # the distance is the value normalised and the map size relative to 15.
+                                        # so dist/255 * map/15 or (map*dist)/(255*15) or (map*dist)/3825
+                                        distance = self.vision_handler.vision_image.getpixel(y.location)[1] * \
+                                                   self.map_size[0] / 3825
+
+                                        color = max(int(255 - 255 * distance), 0)
+                                    piece.color = (color, color, color)
 
     def check_seen(self, location):
         return bool(self.vision_handler.vision_image.getpixel(location)[0])
@@ -426,6 +351,12 @@ class MapHandler:
 
         self.game_view.player.set_grid(self.map.tile_map)
         self.game_view.player.new_map_pos(*gate_data['land_pos'])
+        self.game_view.selected_tile.new_pos(self.game_view.player.e_x, self.game_view.player.e_y)
+        self.game_view.set_view(self.game_view.player.center_x-c.SCREEN_WIDTH//2,
+                                self.game_view.player.center_y-c.SCREEN_HEIGHT//2)
+        self.game_view.pending_motion = []
+        self.game_view.current_motion = None
+        self.game_view.motion = False
         c.iso_append(self.game_view.player)
 
     def load_map(self):

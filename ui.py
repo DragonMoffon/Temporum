@@ -3,6 +3,7 @@ import arcade
 
 
 import interaction
+import puzzle
 import turn
 import constants as c
 
@@ -306,6 +307,7 @@ class ActionTab(arcade.Sprite):
                          image_x=3090)
         self.game_view = game_view
         self.handle = False
+        self.recheck = True
         self.actions = {}
         self.defaults = {'end': None}
         self.actions_ordered = []
@@ -316,11 +318,24 @@ class ActionTab(arcade.Sprite):
         self.second_pending: turn.Action = None
 
     def draw(self):
+        if self.game_view.player.action_handler != self.game_view.turn_handler.current_handler:
+            self.recheck = True
+
         if self.game_view.player.action_handler == self.game_view.turn_handler.current_handler and\
                 not len(self.game_view.ui_tabs_over) and self.game_view.player.action_handler.current_action is None:
+            if self.recheck and self.game_view.player.action_handler.initiative:
+                self.find_actions(self.game_view.window.mouse.e_x, self.game_view.window.mouse.e_y)
+                self.recheck = False
+
             self.handle = True
             self.center_x = self.game_view.window.mouse.center_x + 120
             self.center_y = self.game_view.window.mouse.center_y - 90
+
+            if self.first_pending is not None:
+                self.first_pending.draw()
+            if self.second_pending is not None:
+                self.second_pending.draw()
+
             super().draw()
             if self.first_action is not None:
                 self.first_action.center_x = self.center_x + 51
@@ -330,16 +345,12 @@ class ActionTab(arcade.Sprite):
                 self.second_action.center_x = self.center_x + 51
                 self.second_action.center_y = self.center_y - 36
                 self.second_action.draw()
-            if self.first_pending is not None:
-                self.first_pending.draw()
-            if self.second_pending is not None:
-                self.second_pending.draw()
+
             return
         self.handle = False
 
     def find_actions(self, e_x, e_y):
-        if self.handle and self.game_view.player.action_handler.current_action is None \
-                and self.game_view.map_handler.full_map[e_x, e_y] is not None:
+        if self.handle and self.game_view.map_handler.full_map[e_x, e_y] is not None:
             self.actions = {**dict(self.game_view.map_handler.full_map[e_x, e_y].available_actions), **self.defaults}
 
             if len(self.actions) % 2:
@@ -356,8 +367,13 @@ class ActionTab(arcade.Sprite):
         if self.handle and self.game_view.player.action_handler.current_action is None:
             if button == 1 and self.first_pending.can_complete():
                 self.game_view.turn_handler.current_handler.current_action = self.first_pending
+                self.find_actions(self.game_view.window.mouse.e_x, self.game_view.window.mouse.e_y)
             elif button == 4 and self.second_pending.can_complete():
                 self.game_view.turn_handler.current_handler.current_action = self.second_pending
+                self.find_actions(self.game_view.window.mouse.e_x, self.game_view.window.mouse.e_y)
+
+            if not self.game_view.player.action_handler.initiative:
+                self.recheck = True
 
     def on_scroll(self, direction):
         if self.handle and self.game_view.player.action_handler.current_action is None:
@@ -416,7 +432,10 @@ class TalkTab(Tab):
         self.convo = convo
         self.current_node = convo
 
-        if self.current_node.target >= 0:
+        if isinstance(self.current_node.target, list):
+            for target in self.current_node.target:
+                self.game_view.map_handler.toggle_target_sprites(target)
+        elif self.current_node.target >= 0:
             self.game_view.map_handler.toggle_target_sprites(self.current_node.target)
 
         self.strip_buttons(self.node_buttons)
@@ -432,7 +451,10 @@ class TalkTab(Tab):
         if self.current_node is not None:
             self.current_node.reset()
         self.current_node = node
-        if self.current_node.target >= 0:
+        if isinstance(self.current_node.target, list):
+            for target in self.current_node.target:
+                self.game_view.map_handler.toggle_target_sprites(target)
+        elif self.current_node.target >= 0:
             self.game_view.map_handler.toggle_target_sprites(self.current_node.target)
         self.current_node.reset()
         self.find_node_buttons()
@@ -473,11 +495,16 @@ class TalkTab(Tab):
 
     def back(self):
         if self.current_node.backward_step():
+            if isinstance(self.current_node.current_display, puzzle.TextPuzzle):
+                self.convo_done = True
             if len(self.node_buttons):
                 self.strip_buttons(self.node_buttons)
 
     def on_press(self, point):
         super().on_press(point)
+
+    def on_key_press(self, key, modifier):
+        self.current_node.on_key_press(key, modifier)
 
 
 class MasterTab(Tab):

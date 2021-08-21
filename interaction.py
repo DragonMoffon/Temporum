@@ -1,11 +1,10 @@
 import json
 
 import arcade
+from typing import Dict, List, Tuple
 
 import constants as c
-
-CONVERSATIONS = json.load(open("data/conversations.json"))
-
+import puzzle
 
 CONVERSATIONS = json.load(open("data/conversations.json"))
 characters = ['note', 'terminal', 'machine', 'computer', 'player']
@@ -51,11 +50,15 @@ class DisplayText:
     def push_event(self):
         self.current_event = None
 
+    def key_input(self, key, modifier):
+        pass
+
     def draw(self, x, y):
         if self.current_page < len(self.pages):
-            self.events[self.current_event](x, y)
+            # This error doesn't make sense with my current knowledge
+            self.events[self.current_event](*(x, y))
 
-    def display(self, x, y):
+    def display(self, x: float, y: float):
         arcade.draw_text(self.pages[self.current_page], x-465*c.SPRITE_SCALE, y+155*c.SPRITE_SCALE,
                          arcade.color.WHITE, anchor_y='top')
         self.speaker.center_x = c.round_to_x(x + 255*c.SPRITE_SCALE, 5*c.SPRITE_SCALE)
@@ -68,7 +71,7 @@ class Node:
     def __init__(self, initiate, response, inputs, target):
         self.initiate_text: DisplayText = initiate
         self.response_text: DisplayText = response
-        self.inputs: dict[str, Node] = inputs
+        self.inputs: Dict[str, Node] = inputs
         self.steps = {self.initiate_text: self.response_text, self.response_text: self.inputs}
         self.current_display = self.initiate_text
         self.action: str = ''
@@ -79,15 +82,21 @@ class Node:
         self.current_display.reset()
 
     def draw(self, x, y):
-        if isinstance(self.current_display, DisplayText):
+        if isinstance(self.current_display, DisplayText) or isinstance(self.current_display, puzzle.TextPuzzle):
             self.current_display.draw(x, y)
         else:
             pass
 
+    def on_key_press(self, key, modifier):
+        if self.current_display is not self.inputs:
+            self.current_display.key_input(key, modifier)
+
     def forward_step(self):
-        if isinstance(self.current_display, DisplayText):
+        if isinstance(self.current_display, DisplayText) or isinstance(self.current_display, puzzle.TextPuzzle):
             if self.current_display.cycle_step():
                 self.current_display = self.steps[self.current_display]
+                if isinstance(self.current_display, DisplayText) and not len(self.current_display.pages):
+                    self.forward_step()
                 if isinstance(self.current_display, dict):
                     return True
                 else:
@@ -100,14 +109,17 @@ class Node:
                 self.current_display = self.initiate_text
                 self.current_display.back_step()
             return False
-        self.current_display = self.response_text
-        self.current_display.back_step()
+        elif isinstance(self.current_display, dict):
+            self.current_display = self.response_text
+            if not len(self.current_display.pages):
+                self.current_display = self.initiate_text
+            self.current_display.back_step()
         return True
 
 
 def load_conversation(conversation="tutorial_start"):
-    loop_data: list[tuple[(str, str)]] = []
-    default_speaker: list[str, str] = None
+    loop_data: List[Tuple[(str, str, str)]] = []
+    default_speaker: List[str, str] = None
 
     def load_loop(convo):
         def find_node(loop):
@@ -121,23 +133,32 @@ def load_conversation(conversation="tutorial_start"):
         for node_loop in loop_data:
             target_node, target_location = find_node(node_loop[0])
             loop_node, loop_location = find_node(node_loop[1])
+            if node_loop[-1].strip('_') != "":
+                target_location = node_loop[-1]
             loop_node.inputs[target_location] = target_node
 
         return convo
 
     def load_display(display_data, speaker):
-        speaker_sprite = arcade.Sprite(scale=c.SPRITE_SCALE)
-        speaker_sprite.texture = SPEAKERS[speaker]
-        if isinstance(display_data, str):
-            display: DisplayText = DisplayText([display_data], {0: None}, speaker_sprite)
+        if 'puzzle_' in display_data:
+            speaker_sprite = arcade.Sprite(scale=c.SPRITE_SCALE)
+            speaker_sprite.texture = SPEAKERS[speaker]
+
+            return puzzle.TextPuzzle(display_data.split('_')[-1], speaker_sprite)
         else:
-            display: DisplayText = DisplayText(display_data, {0: None}, speaker_sprite)
-        return display
+            speaker_sprite = arcade.Sprite(scale=c.SPRITE_SCALE)
+            speaker_sprite.texture = SPEAKERS[speaker]
+            if isinstance(display_data, str):
+                display: DisplayText = DisplayText([display_data], {0: None}, speaker_sprite)
+            else:
+                display: DisplayText = DisplayText(display_data, {0: None}, speaker_sprite)
+            return display
 
     def load_node(node_data, location=''):
         nonlocal default_speaker
-        if 'speakers' in node_data and default_speaker is None:
-            default_speaker = node_data['speakers']
+        default_speaker = node_data.get("default", default_speaker)
+        if default_speaker is None:
+            default_speaker = node_data.get("speakers", default_speaker)
         speakers = node_data.get('speakers', default_speaker)
 
         initiate = load_display(node_data['initiate'], speakers[0])
@@ -148,7 +169,7 @@ def load_conversation(conversation="tutorial_start"):
         inputs = {}
         for key, next_node in node_data['inputs'].items():
             if isinstance(next_node, str):
-                loop_data.append((next_node, f"{location}{key}"))
+                loop_data.append((next_node, f"{location}{key}", key))
             else:
                 inputs[key] = load_node(next_node, f"{location}{key}_")
 

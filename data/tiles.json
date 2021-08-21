@@ -135,6 +135,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0.3],
+            "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
                     "start_x": 0,
@@ -146,6 +147,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0],
+            "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
                     "start_x": 160,
@@ -157,6 +159,7 @@
             "texture": 0,
             "hidden": 0,
             "mods" : [0, 20, 0],
+            "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
                     "start_x": 320,
@@ -168,7 +171,7 @@
             "texture": 0,
             "hidden": 1,
             "mods" : [0, 20, 0],
-            "directions": [0, 0, 0, 0],
+            "directions": [1, 1, 1, 1],
             "pieces" : [
                 {
                     "relative_pos": [0, 0],
@@ -197,30 +200,6 @@
             "pieces" : [
                 {
                     "start_x": 160,
-                    "start_y": 960
-                }
-            ]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mods" : [0, 20, 0],
-            "directions": [0, 0, 0, 0],
-            "pieces" : [
-                {
-                    "start_x": 320,
-                    "start_y": 960
-                }
-            ]
-        },
-        {
-            "texture": 0,
-            "hidden": 1,
-            "mods" : [0, 20, 0],
-            "directions": [0, 0, 0, 0],
-            "pieces" : [
-                {
-                    "start_x": 480,
                     "start_y": 960
                 }
             ]
@@ -541,7 +520,7 @@
             "id": "16",
             "texture": 2,
             "hidden": 2,
-            "mods": [18, 0, 0],
+            "mods": [18, 0, 0.3],
             "directions": [0, 0, 0, 0],
             "vision": [1, 1, 1, 1],
             "pieces" : [
@@ -558,6 +537,22 @@
             "id": "17",
             "texture": 2,
             "hidden": 2,
+            "mods": [18, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "id": "18",
+            "texture": 2,
+            "hidden": 2,
             "mods": [0, 18, 0],
             "directions": [0, 0, 0, 0],
             "vision": [1, 1, 1, 1],
@@ -571,7 +566,170 @@
             ]
         },
         {
-            "id": "18",
+            "id": "19",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [0, 18, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 640
+                }
+            ]
+        },
+        {
+            "id": "20",
+            "texture": 2,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 1280
+                }
+            ]
+        },
+        {
+            "id": "21",
+            "texture": 2,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 1280
+                }
+            ]
+        },
+        {
+            "id": "22",
+            "texture": 2,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 1280
+                }
+            ]
+        },
+        {
+            "id": "23",
+            "texture": 2,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 1600
+                }
+            ]
+        },
+        {
+            "id": "24",
+            "texture": 2,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 1600
+                }
+            ]
+        },
+        {
+            "id": "25",
+            "texture": 2,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 1600
+                }
+            ]
+        },
+        {
+            "id": "26",
+            "texture": 2,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 1600
+                }
+            ]
+        },
+        {
+            "id": "33",
+            "texture": 3,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 320
+                },
+                {
+                    "relative_pos": [0, -1],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "id": "34",
+            "texture": 3,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 320
+                },
+                {
+                    "relative_pos": [-1, 0],
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "id": "35",
             "texture": 3,
             "hidden": 3,
             "mods": [0, 0, 0],
@@ -593,31 +751,94 @@
             ]
         },
         {
-            "id": "19",
-            "texture": 0,
-            "hidden": 0,
+            "id": "36",
+            "texture": 3,
+            "hidden": 3,
+            "mods": [0, 0, 0.3],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 960,
+                    "start_y": 320
+                },
+                {
+                    "relative_pos": [-1, 0],
+                    "mod_w": 0,
+                    "start_x": 1120,
+                    "start_y": 320
+                }
+            ]
+        },
+        {
+            "id": "37",
+            "texture": 2,
+            "hidden": 2,
             "mods": [0, 0, 0],
             "directions": [0, 0, 0, 0],
             "vision": [1, 1, 1, 1],
             "pieces" : [
                 {
                     "relative_pos": [0, 0],
-                    "mod_w": 0.3,
-                    "start_x": 960,
-                    "start_y": 320
-                },
-                {
-                    "relative_pos": [-1, 0],
-                    "mod_w": 0.3,
-                    "start_x": 1120,
-                    "start_y": 320
+                    "mod_w": 0,
+                    "start_x": 0,
+                    "start_y": 960
                 }
-            ],
-            "actions": []
+            ]
         },
         {
+            "id": "38",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [0, 0, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 160,
+                    "start_y": 960
+                }
+            ]
+        },
+        {
+            "id": "39",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [0, 0, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 320,
+                    "start_y": 960
+                }
+            ]
+        },
+        {
+            "id": "40",
+            "texture": 2,
+            "hidden": 2,
+            "mods": [0, 0, 0],
+            "directions": [0, 0, 0, 0],
+            "vision": [1, 1, 1, 1],
+            "pieces" : [
+                {
+                    "relative_pos": [0, 0],
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 960
+                }
+            ]
+        },
+        {
+            "id": "",
             "texture": 0,
-            "hidden": 0,
             "mods": [0, 0, 0],
             "directions": [0, 0, 0, 0],
             "vision": [0, 0, 0, 0],
@@ -628,8 +849,7 @@
                     "start_x": 0,
                     "start_y": 0
                 }
-            ],
-            "actions": []
+            ]
         }
     ]
 }

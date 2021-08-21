@@ -1,7 +1,7 @@
 {
     "tutorial_start": {
         "initiate": "Hey you Player! The person\ncontrolling me! This is a\nsimple text tutorial! If you need \nto know the basics here is the info!\n\nIf you want to find\nout more press \"NEXT\"",
-        "response": "Hello! I am you onboard computer \nfor this game! I will answer any of your \nquestions that I have\ndecided you can ask me!\n\nTo ask questions press NEXT,\nthen click any of the 3\noptions availble.",
+        "response": "Hello! I am you onboard computer \nfor this game! I will answer any of your \nquestions that I have\ndecided you can ask me!\n\nTo ask questions press NEXT,\nthen click any of the 3\noptions available.",
         "speakers": [
             "player",
             "computer"
@@ -9,22 +9,35 @@
         "inputs": {
             "How does the turn system work?": {
                 "initiate": "How does the turn system work? \nAlso what are actions?",
-                "response": ["The turn system allows the player to take\nactions based on their\ninitiative. The higher your\ninitiative the more actions\nyou can take but the lower in the turn\norder you go.", "Every round every actor in the\ngame \"You, and the enemies\"\nare ordered from lowest to\nhighest based on your\ninitiative.","actions are certain things you can do\nwith your initiative."],
+                "response": [
+                    "The turn system allows the player to take\nactions based on their\ninitiative. The higher your\ninitiative the more actions\nyou can take but the lower in the turn\norder you go.",
+                    "Every round every actor in the\ngame \"You, and the enemies\"\nare ordered from lowest to\nhighest based on your\ninitiative.",
+                    "actions are certain things you can do\nwith your initiative."
+                ],
                 "inputs": {
                     "How do I take an actions?": {
                         "initiate": "What are actions? and how do I take them?",
-                        "response": ["An action is something your character\nor an enemy can\ndo. they all cost some\namount of initiative.", "To take an action you must hover \nover a valid tile. When you do a small\ntab will show up. This shows you \neverything that you can do \nwith this tile. Using the\nScroll wheel you can look at all the\npossible actions.", "when you have\ndecided on an action simply\nfollow the prompt and click\neither LMB or RMB."],
+                        "response": [
+                            "An action is something your character\nor an enemy can\ndo. they all cost some\namount of initiative.",
+                            "To take an action you must hover \nover a valid tile. When you do a small\ntab will show up. This shows you \neverything that you can do \nwith this tile. Using the\nScroll wheel you can look at all the\npossible actions.",
+                            "when you have\ndecided on an action simply\nfollow the prompt and click\neither LMB or RMB."
+                        ],
                         "inputs": {
                             "What actions are there?": {
                                 "initiate": "What actions can I take?",
-                                "response": ["Currently you can take 4 actions.","Move. This moves\nyou to the tile of your\nchoice or the closest tile\nyou can reach. Each tile\ncosts 1 initiative.", "Use. This\nallows you to interact with\nPOI. It opens the conversation\ntab so you can find\ninfo. It costs nothing but\nyou can't move until you\nfinish in the tab.", "Dash and Hold. are different\nmethods of ending your turn\nearly. Dash decreases your initiative allowing\n you to act sooner. Hold increases your initiative\nallowing you to do more but act later."],
+                                "response": [
+                                    "Currently you can take 4 actions.",
+                                    "Move. This moves\nyou to the tile of your\nchoice or the closest tile\nyou can reach. Each tile\ncosts 1 initiative.",
+                                    "Use. This\nallows you to interact with\nPOI. It opens the conversation\ntab so you can find\ninfo. It costs nothing but\nyou can't move until you\nfinish in the tab.",
+                                    "Dash and Hold. are different\nmethods of ending your turn\nearly. Dash decreases your initiative allowing\n you to act sooner. Hold increases your initiative\nallowing you to do more but act later."
+                                ],
                                 "inputs": {
-                                    "0": "What is with the other robot?",
-                                    "1": "What is all this UI for?"
+                                    "": "What is with the other robot?",
+                                    "_": "What is all this UI for?"
                                 }
                             },
-                            "1": "What is with the other robot?",
-                            "2": "What is all this UI for?"
+                            "": "What is with the other robot?",
+                            "_": "What is all this UI for?"
                         }
                     }
                 }
@@ -33,10 +46,10 @@
                 "initiate": "What is with the robot?",
                 "response": "He is a enemy, however he is \ncurrently harmless and\njust randomly walks around.\nHe ensures your game\ndoesn't crash through you\nbreaking the turn system",
                 "inputs": {
-                    "0": "How does the turn system work?",
-                    "1": "What is all this UI for?",
+                    "": "How does the turn system work?",
+                    "_": "What is all this UI for?",
                     "That's everything thanks": {
-                        "initiate": "Thats everything thanks.",
+                        "initiate": "That's everything thanks.",
                         "response": "Awesome goodbye. There is no way to \nGo back through the\nconversation so have fun!!",
                         "inputs": {}
                     }
@@ -44,17 +57,20 @@
             },
             "What is all this UI for?": {
                 "initiate": "What is all this UI?",
-                "response": ["There are 5 pieces of ui. This tab is the \nconversation tab. If you\ninteract with a POI or talk\nto someone this will\nappear. The large piece in\nthe bottom corner is the\nmain ui. it allows you to\nopen the inventory and the\nconversation tab.", "In the bottom right\nis the display tab it\ncontrols what you see on\nscreen.\n\nthe top left piece\nis the inventory tab. It is\nuseless currently."],
+                "response": [
+                    "There are 5 pieces of ui. This tab is the \nconversation tab. If you\ninteract with a POI or talk\nto someone this will\nappear. The large piece in\nthe bottom corner is the\nmain ui. it allows you to\nopen the inventory and the\nconversation tab.",
+                    "In the bottom right\nis the display tab it\ncontrols what you see on\nscreen.\n\nthe top left piece\nis the inventory tab. It is\nuseless currently."
+                ],
                 "inputs": {
-                    "0": "How does the turn system work?",
-                    "1": "What is with the other robot?_That's everything thanks"
+                    "": "How does the turn system work?",
+                    "_": "What is with the other robot?_That's everything thanks"
                 }
             }
         }
     },
     "tutorial_start_terminal": {
         "initiate": "Hey you Player! The person\ncontrolling me! This is a\nsimple text tutorial! If you need \nto know the basics here is the info!\n\nIf you want to find\nout more press \"NEXT\"",
-        "response": "Hello! I am you onboard computer \nfor this game! I will answer any of your \nquestions that I have\ndecided you can ask me!\n\nTo ask questions press NEXT,\nthen click any of the 3\noptions availble.",
+        "response": "Hello! I am you onboard computer \nfor this game! I will answer any of your \nquestions that I have\ndecided you can ask me!\n\nTo ask questions press NEXT,\nthen click any of the 3\noptions available.",
         "speakers": [
             "player",
             "computer"
@@ -62,15 +78,28 @@
         "inputs": {
             "How does the turn system work?": {
                 "initiate": "How does the turn system work? \nAlso what are actions?",
-                "response": ["The turn system allows the player to take\nactions based on their\ninitiative. The higher your\ninitiative the more actions\nyou can take but the lower in the turn\norder you go.", "Every round every actor in the\ngame \"You, and the enemies\"\nare ordered from lowest to\nhighest based on your\ninitiative.","actions are certain things you can do\nwith your initiative."],
+                "response": [
+                    "The turn system allows the player to take\nactions based on their\ninitiative. The higher your\ninitiative the more actions\nyou can take but the lower in the turn\norder you go.",
+                    "Every round every actor in the\ngame \"You, and the enemies\"\nare ordered from lowest to\nhighest based on your\ninitiative.",
+                    "actions are certain things you can do\nwith your initiative."
+                ],
                 "inputs": {
                     "How do I take an actions?": {
                         "initiate": "What are actions? and how do I take them?",
-                        "response": ["An action is something your character\nor an enemy can\ndo. they all cost some\namount of initiative.", "To take an action you must hover \nover a valid tile. When you do a small\ntab will show up. This shows you \neverything that you can do \nwith this tile. Using the\nScroll wheel you can look at all the\npossible actions.", "when you have\ndecided on an action simply\nfollow the prompt and click\neither LMB or RMB."],
+                        "response": [
+                            "An action is something your character\nor an enemy can\ndo. they all cost some\namount of initiative.",
+                            "To take an action you must hover \nover a valid tile. When you do a small\ntab will show up. This shows you \neverything that you can do \nwith this tile. Using the\nScroll wheel you can look at all the\npossible actions.",
+                            "when you have\ndecided on an action simply\nfollow the prompt and click\neither LMB or RMB."
+                        ],
                         "inputs": {
                             "What actions are there?": {
                                 "initiate": "What actions can I take?",
-                                "response": ["Currently you can take 4 actions.","Move. This moves\nyou to the tile of your\nchoice or the closest tile\nyou can reach. Each tile\ncosts 1 initiative.", "Use. This\nallows you to interact with\nPOI. It opens the conversation\ntab so you can find\ninfo. It costs nothing but\nyou can't move until you\nfinish in the tab.", "Dash and Hold. are different\nmethods of ending your turn\nearly. Dash decreases your initiative allowing\n you to act sooner. Hold increases your initiative\nallowing you to do more but act later."],
+                                "response": [
+                                    "Currently you can take 4 actions.",
+                                    "Move. This moves\nyou to the tile of your\nchoice or the closest tile\nyou can reach. Each tile\ncosts 1 initiative.",
+                                    "Use. This\nallows you to interact with\nPOI. It opens the conversation\ntab so you can find\ninfo. It costs nothing but\nyou can't move until you\nfinish in the tab.",
+                                    "Dash and Hold. are different\nmethods of ending your turn\nearly. Dash decreases your initiative allowing\n you to act sooner. Hold increases your initiative\nallowing you to do more but act later."
+                                ],
                                 "inputs": {
                                     "0": "What is with the other robot?",
                                     "1": "What is all this UI for?"
@@ -89,7 +118,7 @@
                     "0": "How does the turn system work?",
                     "1": "What is all this UI for?",
                     "That's everything thanks": {
-                        "initiate": "Thats everything thanks.",
+                        "initiate": "That's everything thanks.",
                         "response": "Awesome goodbye. There is no way to \nGo back through the\nconversation so have fun!!",
                         "inputs": {}
                     }
@@ -97,7 +126,10 @@
             },
             "What is all this UI for?": {
                 "initiate": "What is all this UI?",
-                "response": ["There are 5 pieces of ui. This tab is the \nconversation tab. If you\ninteract with a POI or talk\nto someone this will\nappear. The large piece in\nthe bottom corner is the\nmain ui. it allows you to\nopen the inventory and the\nconversation tab.", "In the bottom right\nis the display tab it\ncontrols what you see on\nscreen.\n\nthe top left piece\nis the inventory tab. It is\nuseless currently."],
+                "response": [
+                    "There are 5 pieces of ui. This tab is the \nconversation tab. If you\ninteract with a POI or talk\nto someone this will\nappear. The large piece in\nthe bottom corner is the\nmain ui. it allows you to\nopen the inventory and the\nconversation tab.",
+                    "In the bottom right\nis the display tab it\ncontrols what you see on\nscreen.\n\nthe top left piece\nis the inventory tab. It is\nuseless currently."
+                ],
                 "inputs": {
                     "0": "How does the turn system work?",
                     "1": "What is with the other robot?_That's everything thanks"
@@ -120,7 +152,11 @@
             },
             "Open The Door!": {
                 "initiate": "Okay, open the door! I am ready for this.\nLet me Leave please",
-                "response": ["Opening Bay Doors", "....", "Ready for departure."],
+                "response": [
+                    "Opening Bay Doors",
+                    "....",
+                    "Ready for departure."
+                ],
                 "speakers": [
                     "player",
                     "terminal"
@@ -132,7 +168,12 @@
     },
     "tutorial_terminal": {
         "initiate": "So what do I do here?",
-        "response": ["Booting T.E.R.M.I.N.A.L systems....", "...", "DONE.", "This is a standard Melclex terminal\n\nThis machine often has lots of useful data on it.\nthough often it will not have the personal touch\na note might have\n\nTerminals can also open doors or turn off laser gates"],
+        "response": [
+            "Booting T.E.R.M.I.N.A.L systems....",
+            "...",
+            "DONE.",
+            "This is a standard Melclex terminal\n\nThis machine often has lots of useful data on it.\nthough often it will not have the personal touch\na note might have\n\nTerminals can also open doors or turn off laser gates"
+        ],
         "speakers": [
             "player",
             "terminal"
@@ -150,71 +191,324 @@
     },
     "tutorial_gun": {
         "initiate": "So what do I do here?",
-        "response": ["Booting T.E.R.M.I.N.A.L systems....", "...", "DONE.", "This is a standard Melclex terminal\n\nThis machine often has lots of useful data on it.\nthough often it will not have the personal touch\na note might have\n\nTerminals can also open doors or turn off laser gates"],
+        "response": [
+            "Booting T.E.R.M.I.N.A.L systems....",
+            "...",
+            "DONE.",
+            "This is a standard Melclex terminal\n\nThis machine often has lots of useful data on it.\nthough often it will not have the personal touch\na note might have\n\nTerminals can also open doors or turn off laser gates"
+        ],
         "speakers": [
             "player",
             "terminal"
         ],
-        "inputs": {}
+        "inputs": {
+            "Enter Password": {
+                "initiate": "puzzle_password",
+                "response": "password entered",
+                "inputs": {}
+            }
+        }
     },
-    "robot_gate_control": {
-        "initiate": "This will deactivate the anti-personal laser array.\nDo you wish to proceed",
-        "response": "Yeah, yeah, what harm could it do?",
+    "lobby_terminal_1": {
+        "initiate": "Welcome to the Institute of Advanced Robotics.\nIf you were expected please sign in.\nRemember you safety is our No. 1 priority.\nNo matter what security class you hold else where\nyou are still a guest here.\n\nThank you for joining us here at the IAR.",
+        "response": "Oh yeah, I'm real excited for this.",
         "speakers": [
             "terminal",
             "player"
         ],
-        "target": 2,
-        "inputs": {}
+        "inputs": {
+            "Login as a guest.": {
+                "initiate": "Unfortunately there are no registered visitors\ntoday. If this is a mistake or you would like to\nregister please contact IAR admin Max Caplin.\n\nSorry for the inconvenience. We hope to see you\nagain sometime.",
+                "response": "I don't know what good that would do for me\nanyway.",
+                "inputs": {
+                    "Exit System": {
+                        "initiate": "Exiting system.\nThank you for coming to the\nInstitute of Advanced Robotics",
+                        "response": "Yeah, I'm in love with the atmosphere already.\nSo welcoming.",
+                        "inputs": {}
+                    },
+                    "": "News",
+                    "_": "Visitor Rules"
+                }
+            },
+            "News": {
+                "initiate": "A small Quanta-net window opens.\nLarge red text scrolls across the top\n\n\"ERROR: QUANTANET KEY DISCONNECTED.\nWindow running off back-up.\"\nThe error is dated for 17 cycles ago.\n\nThere are only 2 \"recent\" news articles. ",
+                "response": "Interesting, I wonder if I can find that back-up.",
+                "inputs": {
+                    "Prepping for Triennial Opposition.": {
+                        "initiate": [
+                            "The same error continues to scroll across the top.\n\nAfter an agonisingly slow loading time\na small article appears.\n\nGETTING READY FOR TRIENNIAL OPPOSITION.\nthe author is Arthur Coldheim,\nManaging Director of the\nMelclex Industries Institute of Advanced Sciences.",
+                            "Hello Everyone! M.D Arthur here. Its that time again.\nThere will be a 4 day holiday\nas the suns begin their opposition.\nSo don't get caught slacking or you'll miss out!\nRemember that QUANTA-net will be down for all 13\nmonths. We have a 960 Terabyte back-up so there\nshouldn't be any pages missing. Slowdowns,\nhowever, are expected.",
+                            "Have a good opposition.\nI'll see you all at work again next week."
+                        ],
+                        "response": "That means the distress signal was relayed\nthe day their holiday started.\nWorrying.",
+                        "inputs": {"Back to News": "News"}
+                    },
+                    "Issued Warning for housing sector 19.": {
+                        "initiate": [
+                            "The same error continues to scroll across the top.\n\nAfter loading for worryingly long the article loads.\n\nISSUED WARNING FOR HOUSING SECTOR 19.\nThe author is IAR admin Max Caplin.\nIt was written 2 days into the opposition.",
+                            "An electromagnetic anomaly has been detected\nin Housing Sector 9. Security engineers are on\nscene. All those who live in Sector 9 must stay in\nTemporary Housing in sector 32.\n\nThere is no need for alarm, and it should not stop\nyour work. Continue everything as normal.\n\nIf you have been moved follow the security engineers\nthey will show you where to go.",
+                            "Your family, and your necessary personal\nbelongings have been moved.\n\nUNDER NO CIRCUMSTANCE MAY YOU\nRETURN TO YOUR HOUSING EARLY.\n\nDoing so can have dire consequences on your career,\nand can result in confinement."
+                        ],
+                        "response": "There was no way to access Sector 9.\nI need to see if there\nare other notes on this.",
+                        "inputs": {"Back to News": "News"}
+                    },
+                    "Return": ""
+                }
+            },
+            "Visitor Rules": {
+                "initiate": [
+                    "Welcome to the Institute of Advanced Robotics.\nyour security is our top priority. NEVER leave your\nguide. By ignoring these rules you are putting \neveryone in unnecessary risk. \n\nNo matter what job you have within the Institute of\nAdvanced Research if you are not an IAR employee\nyou are a GUEST, and must act accordingly.",
+                    "RULES:\n1. Only follow your guide, do not try access doors\nyou do not have access to. Doing so is an offence.\n\n2. All technology shown within is confidential.\nDO NOT share, even within the Melclex Industries.\n\n3. At all times keep your devices in our lockers or\nset to minimal. This is for YOUR SAFETY."
+                ],
+                "response": "yes sir. Not that I have a guide.\nI wonder why the rule about devices.",
+                "inputs": {"": "Login as a guest._Exit System", "Return": ""}
+            }
+        }
     },
-    "robot_room_control": {
-        "initiate": "Opening door to robot chamber",
-        "response": "Cool.",
+    "lobby_terminal_2": {
+        "initiate": "Welcome u382heuyREH42. SECURITY LEVEL 1.\n\nERROR 21160, Physical alteration to this terminal\nhas occurred within 76 hours. Security officers have\nbeen dispatched.\n\nERROR 13991, Occurred During Debugging Error 21160,\nStable communications cannot be made, Reattempting\n\nERROR -233, recursion depth exceeded 9998 attempts.",
+        "response": "Uhm. That's an interesting greeting message.\nWho is u382heuyREH42?\nthe scans showed no life signatures.",
         "speakers": [
             "terminal",
             "player"
         ],
-        "target": 5,
-        "inputs": {}
+        "inputs": {
+            "Rolling Week Logs": {
+                "initiate": [
+                    "Thursday 6th 2.14.\nNo Employees have arrived. Sending 293 IAR members\ntheir 511th unjustified missed day notification.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\n\nit was Adrian Commers from the articulation\noffices birthday today.\nThere is currently 33200 pending robotics orders.",
+                    "Friday 7th 2.14\nNo Employees have arrived. Sending 293 IAR members\ntheir 512th unjustified missed day notification.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\n\n\n\nThere is currently 33203 pending robotics orders.",
+                    "Monday 10th 2.14\nToday is a public holiday. 293 Employees do not\nmeet acceptable attendance to miss work today.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\nguest $$#!$!#%%AEF#$$@% is expected tommorrow.\n\n\nThere is currently 33204 pending robotics orders.",
+                    "Tuesday 11th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 513th unjustified missed day notification.\nWARNING THERE HAS BEEN ILLEGAL TAMPERING OF \nLOBBY TERMINAL. OFFENDER WILL BE PROSECUTED.\nguest $$#!$!#%%AEF#$$@% is expected today.\nNo Employee Alerts were sent today.\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33209 pending robotics orders.",
+                    "Tuesday 11th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 514th unjustified missed day notification.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\n\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33210 pending robotics orders.",
+                    "Today 13th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 515th unjustified missed day notification.\nWARNING UNWARRENTED DOCKING IS AN OFFENCE. \nYOU WILL BE PROSECTUED.\nNo Employee Alerts were sent today.There were \nno scheduled meetings.\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33212 pending robotics orders."
+                ],
+                "response": "I am not alone.\nSomeone has been here recently.",
+                "inputs": {
+                    "Return": "",
+                    "Exit": {
+                        "initiate": "EXITING SYSTEM. GOODBYE u382heuyREH42",
+                        "response": [],
+                        "inputs": {}
+                    }
+                }
+            },
+            "Employee Notices": {
+                "initiate": [
+                    "CURRENT OVERBEARING ALERTS:\nALERT : Arthur Coldheim : date - 7.8.12.\n\nDue to major secruity breaches there will be\na total lockdown of all confidential facilities.\n\nALERT : !#@$^4526&&@232AAAd : data - !3$.%$#.12.\n\n:AUTOMATED: RELEASE ALL SECURITY LEVEL 1."
+                ],
+                "response": [],
+                "inputs": {
+                    "Return": "",
+                    "Exit": "Rolling Week Logs_Exit"
+                }
+            },
+            "AUTOMATED EMERGENCY SECURITY LEVEL 1": {
+                "initiate": [
+                    ":AUTOMATED: RELEASE ALL SECURITY LEVEL 1.\n\nSERCURE PASSWORD FOR SERVER CHAMBER:\n:4SCyPHerS:.\n\nLOBBY ENTRANCE OPENED.\n"
+                ],
+                "response": ["How convenient, but that does not bode well."],
+                "inputs": {
+                    "Return": "",
+                    "Exit": "Rolling Week Logs_Exit"
+                }
+            }
+        }
     },
-    "server_room_notes": {
-        "initiate": "",
-        "response": "",
+    "lobby_board": {
+        "initiate": "A tired looking cork board leans on the wall.\n\nA small photo is stuck above an ancient looking\nnews paper.\n\nA big, and bright poster stamped with the rules of\nthe IAR.",
+        "response": "What an exciting looking board. So welcoming.",
         "speakers": [
-            "player",
-            "computer"
+            "note",
+            "player"
         ],
-        "target": -1,
-        "inputs": {}
+        "inputs": {
+            "Look at the photo": {
+                "initiate": ["A small printed image of a group standing around a\n21st century style robot. In the background there\nis a tall building with original Melclex symbol on\nit.\n\nBelow it is a small news paper clipping dated for\n13th july 2086. Talking of the creation of the IAR\nbranch."],
+                "response": ["How sweet. Machines have really improved."],
+                "inputs": {
+                    "Leave": {
+                        "speakers": [
+                            "player", "player"
+                        ],
+                        "initiate": ["What a greeeat entrance to the lab.\nMakes me sooooo excited to be here."],
+                        "response": [],
+                        "inputs": {}
+                    },
+                    "Back": ""
+                }
+            },
+            "Read the rules.": {
+                "initiate": [
+                    "Welcome to the Institute of Advanced Robotics.\nyour security is our top priority. NEVER leave your\nguide. By ignoring these rules you are putting \neveryone in unnecessary risk. \n\nNo matter what job you have within the Institute of\nAdvanced Research if you are not an IAR employee\nyou are a GUEST, and must act accordingly.",
+                    "RULES:\n1. Only follow your guide, do not try access doors\nyou do not have access to. Doing so is an offence.\n\n2. All technology shown within is confidential.\nDO NOT share, even within the Melclex Industries.\n\n3. At all times keep your devices in our lockers or\nset to minimal. This is for YOUR SAFETY."
+                ],
+                "response": "yes sir. Not that I have a guide.\nI wonder why the rule about devices.",
+                "inputs": {
+                    "Back": "",
+                    "_": "Look at the photo_Leave"
+                }
+            }
+        }
     },
-    "robot_room_notes": {
-        "initiate": "",
-        "response": "",
-        "speakers": [
-            "player",
-            "computer"
-        ],
-        "target": -1,
-        "inputs": {}
-    },
-    "server_room_control": {
-        "initiate": "Opening Server Room",
+    "server_door_terminal": {
+        "initiate": "THE SERVER ROOM IS A SECURED AREA.\nONlY PERSONNEL WITH LEVEL 1 SECURITY\nMAY ENTER\nENTERING THIS ROOM WITHOUT PROPER CLEARANCE\nIS A CRIME.\n\n:AUTOMATED: RELEASE ALL SECURITY LEVEL 1.\nAll personnel with the correct password may now\nenter.",
         "response": [],
         "speakers": [
             "terminal",
             "player"
         ],
-        "target": 6,
-        "inputs": {}
+        "inputs": {
+            "Enter Password": {
+                "initiate": "puzzle_4SCyPHerS",
+                "response": "PASSWORD ENTERED.\nACCESS TO HIGHER LEVEL CONTROLS GRANTED.",
+                "speakers": [
+                    "terminal",
+                    "terminal"
+                ],
+                "inputs": {
+                    "OPEN SERVER ROOM DOOR": {
+                        "initiate": "OPENING DOOR",
+                        "response": "Easy Peasy.\n17 months really makes Security lax.",
+                        "target": 2,
+                        "inputs": {}
+                    },
+                    "RETURN": ""
+                }
+            },
+            "EXIT": {
+                "initiate": "CLOSING TERMINAL",
+                "response": [],
+                "inputs": {}
+            }
+        }
     },
-    "safety_lock_gate": {
+    "server_room_terminal": {
+        "initiate": "MELCLEX INTEGRATED SERVER TERMINAL.\nID 183.232.23\nLOW LEVEL SERVER ACCESS NOW GRANTED.\n\nCURRENT ACTIVE EMPLOYEES WITH DRIVE ACCESS:\nu382heuyREH42:\nACCESS LOGS: 76 hours ago, Now.\nSECURITY CLEARANCE 1.\n\nWELCOME: u382heuyREH42.",
+        "response": "Who ever came through here before me\nknows what they are doing.",
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "inputs": {
+            "SECURITY LEVEL 1 RELEASE DATA": {
+                "initiate": ":AUTOMATED: RELEASE ALL SECURITY LEVEL 1.\n\nSECURITY LEVEL 1 PASSWORDS:\nserver room: 4SCyPHerS.\n\nSECURITY LEVEL 1 remote release: R6rt&#P4ss\n\nSECURITY LEVEL 4 PASSWORDS:\n:AUTOMATED: DISTRESS EMERGENCY RELEASE.\nAdmin Office Password: CordonShift",
+                "response": "That security release is quite helpful.\nI'm getting the feeling that I'm\nin for a lot more than I bargained.",
+                "inputs": {
+                    "EXIT TERMINAL": {
+                        "initiate": "Closing terminal.\nGoodbye u382heuyREH42",
+                        "response": [],
+                        "inputs": {}
+                    },
+                    "RETURN": ""
+                }
+            },
+            "12 MONTH ERROR REPORTS": {
+                "initiate": "",
+                "response": "",
+                "inputs": {
+                    "RETURN": "",
+                    "EXIT TERMINAL": "SECURITY LEVEL 1 RELEASE DATA_EXIT TERMINAL"
+                }
+            },
+            "CHAMBER UNLOCKS": {
+                "initiate": "puzzle_R6rt&#P4ss",
+                "response": "SECURITY LEVEL 1 ACCESS GRANTED",
+                "speakers": [
+                    "terminal",
+                    "terminal"
+                ],
+                "inputs": {
+                    "UNLOCK CAESAR-4 MEMORY CHAMBER":
+                    {
+                        "initiate": "Unlocking chamber.\nEnsure only trained personnel interact with\nCaesar-4",
+                        "response": "what is Caesar-4?",
+                        "target": 3,
+                        "inputs": {
+                            "RETURN": "",
+                            "EXIT TERMINAL": "SECURITY LEVEL 1 RELEASE DATA_EXIT TERMINAL"
+                        }
+                    },
+                    "UNLOCK BOARDROOM AND EXIT HALLWAY":
+                    {
+                        "initiate": "Unlocking Boardroom Alpha.",
+                        "response": [],
+                        "target": 7,
+                        "inputs": {
+                            "RETURN": "",
+                            "EXIT TERMINAL": "SECURITY LEVEL 1 RELEASE DATA_EXIT TERMINAL"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "server_room_board": {
+    "initiate": "",
+    "response": "",
+    "speakers": [
+        "player",
+        "computer"
+    ],
+    "inputs": {}
+    },
+    "caesar-4_interface_terminal": {
         "initiate": "",
         "response": "",
         "speakers": [
-            "computer",
-            "player"
+            "player",
+            "computer"
         ],
-        "target": 1,
+        "target": -1,
+        "inputs": {}
+    },
+    "admin_door_terminal": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
+        "inputs": {}
+    },
+    "admin_terminal": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
+        "inputs": {}
+    },
+    "hallway_door_terminal": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
+        "inputs": {}
+    },
+    "caesar-4_gate_terminal": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
+        "inputs": {}
+    },
+    "boardroom_board": {
+        "initiate": "",
+        "response": "",
+        "speakers": [
+            "player",
+            "computer"
+        ],
+        "target": -1,
         "inputs": {}
     },
     "default": {

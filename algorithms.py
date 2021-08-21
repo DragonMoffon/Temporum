@@ -2,7 +2,10 @@ import heapq
 import math
 import random
 
+from typing import List, Tuple
+
 import constants as c
+from map_tile import Tile
 
 
 def find_cost(tile, algorithm):
@@ -14,7 +17,7 @@ def find_cost(tile, algorithm):
 
 class PriorityQueue:
     def __init__(self):
-        self.elements: list[tuple[float, object]] = []
+        self.elements: List[Tuple[float, Tile]] = []
 
     def empty(self) -> bool:
         return not self.elements
@@ -60,6 +63,7 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
     :return: The came_from and cost_so_far dictionaries, costs_loaded and edges.
     """
     start = grid_2d[start_xy]
+
     frontier = PriorityQueue()
     frontier.put(0, start)
     # came_from uses a GridNode as a key and gives another grid node which it came from. This Dict is used to create
@@ -227,15 +231,17 @@ def create_bot(x, y, grid_2d):
     import isometric
     import turn
 
-    bot_text = isometric.generate_iso_data_other('bot')[0]
+    bot_text = isometric.generate_iso_data_other('bot')
 
     class SimpleMoveBot(isometric.IsoActor):
 
         def __init__(self):
-            super().__init__(x, y, bot_text, 6)
+            super().__init__(x, y, bot_text[0], 6)
+            self.textures = bot_text
             self.set_grid(grid_2d)
             self.algorithm = 'target_player'
             self.last_known_player_location = None
+            self.shock_timer = 0
 
         def new_pos(self, e_x, e_y):
             super().new_pos(e_x, e_y)
@@ -246,8 +252,18 @@ def create_bot(x, y, grid_2d):
 
         def update(self):
             if self.action_handler.current_action is None and self.action_handler.initiative > 0:
-                move_node = c.PLAYER.game_view.map_handler.full_map[c.PLAYER.e_x, c.PLAYER.e_y]
-                self.action_handler.current_action = turn.ACTIONS['move_enemy'](move_node.available_actions['move'],
-                                                                                self.action_handler)
+                if self.shock_timer:
+                    self.set_iso_texture(self.textures[1])
+                    self.shock_timer -= 1
+                    self.action_handler.pass_turn()
+                else:
+                    self.set_iso_texture(self.textures[0])
+                    move_node = c.PLAYER.game_view.map_handler.full_map[c.PLAYER.e_x, c.PLAYER.e_y]
+                    self.action_handler.current_action = turn.ACTIONS['move_enemy'](move_node.available_actions['move'],
+                                                                                    self.action_handler)
+
+        def hit(self, shooter):
+            self.shock_timer = 4
+            self.set_iso_texture(self.textures[1])
 
     return SimpleMoveBot()

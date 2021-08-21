@@ -1,11 +1,12 @@
 {
     "files": [
-        {"file": "assets/characters/player.png", "width": 160, "height": 320},
+        {"file": "assets/characters/Iso_Idle.png", "width": 320, "height": 320},
         {"file": "assets/characters/robot.png", "width": 160, "height": 320},
         {"file": "assets/tiles/select_tiles.png", "width": 160, "height": 320},
         {"file": "assets/tiles/player_movement_edge.png", "width": 160, "height": 320},
         {"file": "assets/characters/dummy.png", "width": 160, "height": 320},
-        {"file": "assets/tiles/enemy_gate_highlights.png", "width": 160, "height": 320}],
+        {"file": "assets/tiles/enemy_gate_highlights.png", "width": 160, "height": 320},
+        {"file": "assets/POI/poi_highlight.png", "width": 160, "height": 320}],
     "tiles": [
         {
             "id": "player",
@@ -28,6 +29,10 @@
             "pieces" : [
                 {
                     "start_x": 0,
+                    "start_y": 0
+                },
+                {
+                    "start_x": 160,
                     "start_y": 0
                 }
             ],
@@ -170,6 +175,35 @@
                 }
             ],
             "actions": ["leave"]
+        },
+        {
+            "id": "poi_highlight",
+            "texture": 6,
+            "hidden": 6,
+            "mods": [0, 0, 0],
+            "direction": [0, 0, 0, 0],
+            "pieces" : [
+                    {
+                    "mod_w": 0.24,
+                    "start_x": 0,
+                    "start_y": 0
+                },
+                {
+                    "mod_w": 0.24,
+                    "start_x": 160,
+                    "start_y": 0
+                },
+                {
+                    "mod_w":0,
+                    "start_x": 320,
+                    "start_y": 0
+                },
+                {
+                    "mod_w": 0,
+                    "start_x": 480,
+                    "start_y": 0
+                }
+            ]
         },
         {
             "texture": 0,

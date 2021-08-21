@@ -8,7 +8,7 @@ import constants
 
 class VisionCalculator:
 
-    def __init__(self, context: arcade.Window, caster):
+    def __init__(self, context: arcade.Window, caster, lit=False):
         self.ctx = context
         self.caster = caster
         self.map_size = (0, 0)
@@ -27,10 +27,12 @@ class VisionCalculator:
             vertex_shader="shaders/arcade_vertex.glsl",
             fragment_shader="shaders/vision_frag.glsl"
         )
+        self.vision_program['lit'] = lit
         self.draw_tiles_program = context.ctx.load_program(
             vertex_shader="shaders/arcade_vertex.glsl",
             fragment_shader="shaders/vision_to_isometric.glsl"
         )
+        self.draw_tiles_program['lit'] = lit
 
     def setup(self, map_size):
         self.map_size = map_size
