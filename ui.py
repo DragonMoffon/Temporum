@@ -301,6 +301,9 @@ ACTION_WORDS = {'move': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
                 None: arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
                                     image_width=320, image_height=60, image_x=1600)}
 ACTION_PRIORITY = {'move': 0, 'leave': 1, 'interact': 2, 'shoot': 3, 'end': 6}
+NUMBER_TEXT = {str(i): arcade.load_texture("assets/ui/ui_pieces.png",
+                                           690+20*(i % 5), 90+(i//5)*35,
+                                           15, 30) for i in range(10)}
 
 
 class ActionTab(arcade.Sprite):
@@ -315,10 +318,18 @@ class ActionTab(arcade.Sprite):
         self.defaults = {'end': None}
         self.actions_ordered = []
         self.current_set = 0
+
         self.first_action: arcade.Sprite = None
         self.first_pending: turn.Action = None
         self.second_action: arcade.Sprite = None
         self.second_pending: turn.Action = None
+
+        self.initiative_box = arcade.Sprite("assets/ui/ui_pieces.png", c.SPRITE_SCALE, 845, 90, 75, 90)
+        self.last_initiative = str("0")
+        self.initiative_text_1 = arcade.Sprite(scale=c.SPRITE_SCALE)
+        self.initiative_text_2 = arcade.Sprite(scale=c.SPRITE_SCALE)
+        self.initiative_list = arcade.SpriteList()
+        self.initiative_list.extend((self.initiative_box, self.initiative_text_1, self.initiative_text_2))
 
     def draw(self):
         if self.game_view.player.action_handler != self.game_view.turn_handler.current_handler:
@@ -348,6 +359,24 @@ class ActionTab(arcade.Sprite):
                 self.second_action.center_x = self.center_x + 51
                 self.second_action.center_y = self.center_y - 36
                 self.second_action.draw()
+
+            # Show the Player's Initiative.
+            self.initiative_box.center_x, self.initiative_box.center_y = self.center_x-139.5, self.center_y+51
+            self.initiative_text_1.center_x = self.initiative_box.center_x
+            self.initiative_text_1.center_y = self.initiative_box.center_y
+            self.initiative_text_2.center_x = self.initiative_box.center_x + 20*c.SPRITE_SCALE
+            self.initiative_text_2.center_y = self.initiative_box.center_y
+
+            check = str(c.PLAYER.action_handler.initiative)[::-1]
+            if check != self.last_initiative:
+                self.last_initiative = str(c.PLAYER.action_handler.initiative)[::-1]
+                self.initiative_text_2.texture = NUMBER_TEXT[self.last_initiative[0]]
+                if len(self.last_initiative) > 1:
+                    self.initiative_text_1.texture = NUMBER_TEXT[self.last_initiative[1]]
+                else:
+                    self.initiative_text_1.texture = NUMBER_TEXT["0"]
+
+            self.initiative_list.draw()
 
             return
         self.handle = False

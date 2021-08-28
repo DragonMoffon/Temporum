@@ -68,7 +68,7 @@ class Player(isometric.IsoActor):
         c.iso_strip(self.walls)
         self.walls = []
 
-        for node in self.path_finding_data[-1]:
+        for node in self.path_finding_data[-2]:
             if (self.game_view.map_handler.map.vision_handler.vision_image is not None and
                     self.game_view.map_handler.map.vision_handler.vision_image.getpixel(node.location)[0]):
                 if self.path_finding_data[1][node] <= self.action_handler.initiative:
@@ -77,7 +77,7 @@ class Player(isometric.IsoActor):
                         if neighbor is None:
                             self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
                         elif not node.directions[index] or not neighbor.directions[neighbor_to_node] or \
-                                neighbor not in self.path_finding_data[1]:
+                                neighbor not in self.path_finding_data[0]:
                             self.walls.append(isometric.IsoSprite(*node.location, EDGES[index]))
                 else:
                     break

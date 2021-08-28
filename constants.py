@@ -2,6 +2,7 @@ import math
 
 import arcade
 
+import isometric
 from isometric import IsoList
 
 
@@ -36,12 +37,22 @@ PLAYER = None
 # Map Information
 CURRENT_MAP_SIZE = 0, 0
 
-# Experimental
-HOLOGRAPHIC = True
-
 """
 FUNCTIONS
 """
+
+
+def restart():
+    """
+    Resets all the constants.
+    """
+    global ISO_LIST
+    ISO_LIST = isometric.IsoList()
+    global GROUND_LIST
+    GROUND_LIST = isometric.IsoList()
+    set_player(None)
+    set_map_size([0, 0])
+    stop_music()
 
 
 def set_player(player):

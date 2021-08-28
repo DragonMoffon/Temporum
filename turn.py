@@ -36,8 +36,8 @@ class Action:
 
     def on_update(self, delta_time: float = 1/60):
         self.turn_timer += delta_time
-        if self.turn_timer > 1/6:
-            self.turn_timer -= 1/6
+        if self.turn_timer > 1/8:
+            self.turn_timer -= 1/8
             return self.update()
         return False
 
@@ -107,10 +107,21 @@ class MoveEAction(Action):
     def setup(self):
         target = (c.clamp(c.PLAYER.e_x + random.choice((-2, -1, 1, 2)), 0, c.CURRENT_MAP_SIZE[0]-1),
                   c.clamp(c.PLAYER.e_y + random.choice((-2, -1, 1, -2)), 0, c.CURRENT_MAP_SIZE[1]-1))
-        path = algorithms.path_to_target(self.actor.path_finding_grid,
-                                         (self.actor.e_x, self.actor.e_y),
-                                         target,
-                                         self.handler.initiative)[:self.handler.initiative]
+        self.actor.load_paths()
+        came_from = self.actor.path_finding_data[0]
+
+        if target in self.actor.path_finding_grid and self.actor.path_finding_grid[target] in came_from:
+            end = target
+        else:
+            goal = self.actor.path_finding_data[-1].get()
+            end = goal.location
+
+        if end == (self.actor.e_x, self.actor.e_y):
+            path = []
+        else:
+            path = algorithms.reconstruct_path(self.actor.path_finding_grid, came_from,
+                                               (self.actor.e_x, self.actor.e_y), end)
+
         self.data['path'] = path
         self.find_cost()
 
@@ -121,6 +132,8 @@ class MoveEAction(Action):
             x, y, z = isometric.cast_to_iso(avg_x/len(self.data['path']), avg_y/len(self.data['path']))
             self.handler.turn_handler.game_view.pending_motion.append((x-c.SCREEN_WIDTH//2,
                                                                        y-c.SCREEN_HEIGHT//2))
+        elif not len(self.data['path']):
+            self.actor.end_turn = True
 
     def find_cost(self):
         self.cost = len(self.data['path'])
@@ -226,7 +239,9 @@ class ShootAction(Action):
 
     def can_complete(self):
         if (self.actor not in self.inputs and self.cost <= self.handler.initiative and
-               (self.actor.e_x != self.inputs[0].e_x or self.actor.e_y != self.inputs[0].e_y)):
+               (self.actor.e_x != self.inputs[0].e_x or self.actor.e_y != self.inputs[0].e_y) and
+                self.handler.turn_handler.game_view.map_handler.map.vision_handler.
+                        vision_image.getpixel((self.actor.e_x, self.actor.e_y))[0]):
             return True
         return False
 
@@ -434,7 +449,3 @@ class TurnHandler:
     def on_draw(self):
         if self.current_handler is not None and self.current_handler.actor in c.ISO_LIST:
             self.current_handler.draw()
-            arcade.draw_text(f"actor: {self.current_handler.actor},\n"
-                             f"initiative: {self.current_handler.initiative},\n"
-                             f"pending initiative: {self.current_handler.pending_initiative}",
-                             0, 0, arcade.color.RADICAL_RED)

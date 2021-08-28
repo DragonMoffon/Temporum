@@ -1,6 +1,5 @@
 import heapq
 import math
-import random
 
 from typing import List, Tuple
 
@@ -12,7 +11,12 @@ def find_cost(tile, algorithm):
     if algorithm == "base":
         return 1
     elif algorithm == "target_player":
-        return int(math.sqrt(astar_heuristic(tile.location, (c.PLAYER.e_x, c.PLAYER.e_y))))
+        if tile in c.PLAYER.path_finding_data[1]:
+            closeness = c.PLAYER.path_finding_data[1][tile]
+        else:
+            closeness = int(math.sqrt(astar_heuristic(tile.location, (c.PLAYER.e_x, c.PLAYER.e_y))))
+        seen = tile.map.vision_handler.vision_image.getpixel(tile.location)[0]
+        return closeness + seen + 1
 
 
 class PriorityQueue:
@@ -64,13 +68,23 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
     """
     start = grid_2d[start_xy]
 
+    # frontier uses the maths behind Queues to quickly sort the next possible tiles to search by whichever has the
+    # lowest priority.
     frontier = PriorityQueue()
     frontier.put(0, start)
+
+    # tile_costs this uses the same Queue math but this time to sorts by just the cost of the tiles.
+    # this is so the ai algorithms can find the best tile to go to.
+    tile_costs = PriorityQueue()
+    tile_costs.put(find_cost(start, algorithm), start)
+
     # came_from uses a GridNode as a key and gives another grid node which it came from. This Dict is used to create
     # paths that go from the end to the start.
     came_from = dict()
     # cost_so_far uses a Tile as a key and gives how much this node costs in initiative.
     cost_so_far = dict()
+    # priority_so_far is the same as cost_so_far but uses the priority stacked on top of itself.
+    priority_so_far = dict()
     # costs_loaded uses a float as a key and gives a list of all the nodes that have this cost. So all nodes with a cost
     # of 1 are stored in a list, all nodes with a cost of 2 are in a list etc.
     costs_loaded = dict()
@@ -83,6 +97,7 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
     # Sets up the start node in all of the lists.
     came_from[start] = None
     cost_so_far[start] = 0
+    priority_so_far[start] = 0
     priority_loaded[start] = find_cost(start, algorithm)
     costs_loaded[0] = [start]
     if None in start.directions:
@@ -95,107 +110,48 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
 
         # Looks at each direction in the GridNode for the next in the path.
         for index, dirs in enumerate(current.neighbours):
-            # If there is a connection in this direction
-            # check if these two nodes can connect.
-            dir_to_current = (index + 2) % 4
-            # find the cost for this node.
-            new_cost = cost_so_far[current] + 1
-            # If the dir is new or the cost is lower than the previous cost add it to the queue
-            if (dirs is not None
-                    and dirs.directions[dir_to_current] and current.directions[index]
-                    and 'move' in dirs.available_actions and new_cost <= max_dist
-                    and (dirs not in cost_so_far or new_cost < cost_so_far[dirs])):
+            if dirs is not None:
+                # If there is a neighbor in this direction
+                # check if these two nodes can connect.
+                dir_to_current = (index + 2) % 4
 
+                # find the cost for this node.
+                new_cost = cost_so_far[current] + 1
                 priority = find_cost(dirs, algorithm)
-                cost_so_far[dirs] = new_cost
-                frontier.put(priority, dirs)
-                came_from[dirs] = current
-                if new_cost not in costs_loaded:
-                    costs_loaded[new_cost] = [dirs]
-                else:
-                    costs_loaded[new_cost].append(dirs)
+                new_priority = priority_so_far[current] + priority
+                # If the dir is new or the cost is lower than the previous cost add it to the queue
+                if (dirs.directions[dir_to_current] and current.directions[index]
+                        and 'move' in dirs.available_actions and new_cost <= max_dist
+                        and (dirs not in priority_so_far or new_priority < priority_so_far[dirs])
+                        and dirs is not came_from[current]):
 
-                if priority not in priority_loaded:
-                    priority_loaded[priority] = [dirs]
-                elif dirs not in priority_loaded[priority]:
-                    priority_loaded[priority].append(dirs)
-            else:
-                # If the current tile has a neighbour that is past the max dist it is an edge
-                # If there is a neighbor node but they do not connect it is an edge
-                # If the node has a none in a direction then it is an edge.
-                if current not in edges:
-                    edges.append(current)
+                    tile_costs.put(priority, dirs)
+
+                    cost_so_far[dirs] = new_cost
+                    came_from[dirs] = current
+
+                    priority_so_far[dirs] = new_priority
+                    frontier.put(new_priority, dirs)
+
+                    if new_cost not in costs_loaded:
+                        costs_loaded[new_cost] = [dirs]
+                    else:
+                        costs_loaded[new_cost].append(dirs)
+
+                    if priority not in priority_loaded:
+                        priority_loaded[priority] = [dirs]
+                    elif dirs not in priority_loaded[priority]:
+                        priority_loaded[priority].append(dirs)
+
+                    continue
+            # If the current tile has a neighbour that is past the max dist it is an edge
+            # If there is a neighbor node but they do not connect it is an edge
+            # If the node has a none in a direction then it is an edge.
+            if current not in edges:
+                edges.append(current)
 
     edges = sorted(edges, key=lambda edge: cost_so_far[edge])
-    return came_from, cost_so_far, costs_loaded, edges
-
-
-def path_to_target(grid_2d, start_xy, target_xy, max_dist):
-    start = grid_2d[start_xy]
-    end = grid_2d[target_xy]
-    dirs = (0, 1), (0, -1), (1, 0), (-1, 0)
-    best = float('inf')
-    best_pos = target_xy
-    while end is None:
-        for direction in dirs:
-            pos = c.clamp(best_pos[0] + direction[0], 0, len(grid_2d) - 1), \
-                  c.clamp(best_pos[1] + direction[1], 0, len(grid_2d[0]) - 1)
-            distance = astar_heuristic(pos, start_xy)
-            if distance < best:
-                best_pos = pos
-                best = distance
-                end = grid_2d[pos]
-
-    frontier = PriorityQueue()
-    frontier.put(0, start)
-
-    came_from = dict()
-    cost_so_far = dict()
-    priority_loaded = dict()
-
-    came_from[start] = None
-    cost_so_far[start] = 0
-
-    found = False
-
-    while not frontier.empty():
-        current = frontier.get()
-        if current == end:
-            found = True
-            break
-        for index, dirs in enumerate(current.neighbours):
-            if dirs is not None:
-                dir_to_current = (index + 2) % 4
-                if dirs.directions[dir_to_current] and current.directions[index] and 'move' in dirs.available_actions:
-                    new_cost = cost_so_far[current] + 1
-                    if new_cost <= max_dist + 10:
-                        if dirs not in cost_so_far or new_cost < cost_so_far[dirs]:
-                            cost_so_far[dirs] = new_cost
-                            came_from[dirs] = current
-
-                            priority = astar_heuristic(dirs.location, end.location) + new_cost
-                            frontier.put(priority, dirs)
-
-                            if priority not in priority_loaded:
-                                priority_loaded[priority] = [dirs]
-                            elif dirs not in priority_loaded[priority]:
-                                priority_loaded[priority].append(dirs)
-
-    if not found:
-        end = random.choice(list(cost_so_far.keys()))
-
-    if end is not None and end in came_from:
-        current = end
-        path: list = []
-        while current != start:
-            path.append(current)
-            if current in came_from:
-                current = came_from[current]
-            else:
-                return []
-        path.reverse()
-        return path
-    return []
+    return came_from, cost_so_far, costs_loaded, edges, tile_costs
 
 
 def reconstruct_path(grid_2d, came_from: dict, start_xy: tuple, end_xy: tuple):
@@ -242,6 +198,7 @@ def create_bot(x, y, grid_2d):
             self.algorithm = 'target_player'
             self.last_known_player_location = None
             self.shock_timer = 0
+            self.end_turn = False
 
         def new_pos(self, e_x, e_y):
             super().new_pos(e_x, e_y)
@@ -256,6 +213,9 @@ def create_bot(x, y, grid_2d):
                     self.set_iso_texture(self.textures[1])
                     self.shock_timer -= 1
                     self.action_handler.pass_turn()
+                elif self.end_turn:
+                    self.action_handler.current_action = turn.ACTIONS['end']([None], self.action_handler)
+                    self.end_turn = False
                 else:
                     self.set_iso_texture(self.textures[0])
                     move_node = c.PLAYER.game_view.map_handler.full_map[c.PLAYER.e_x, c.PLAYER.e_y]

@@ -73,7 +73,6 @@ class TemporumWindow(arcade.Window):
         arcade.set_background_color(arcade.color.BLACK)
 
         # View data
-        self.zoom = 1
         self._view_x = c.round_to_x(-c.SCREEN_WIDTH / 2, 5 * c.SPRITE_SCALE)
         self._view_y = c.round_to_x(-c.SCREEN_HEIGHT / 2, 5 * c.SPRITE_SCALE)
 
@@ -86,6 +85,13 @@ class TemporumWindow(arcade.Window):
         self.title = TitleView()
         self.end = EndView()
         # Always start with the title
+        self.show_view(self.title)
+
+    def restart(self):
+        self.game = GameView()
+        self.title = TitleView()
+        self.end = EndView()
+
         self.show_view(self.title)
 
     def show_end(self):
@@ -171,14 +177,14 @@ class EndView(arcade.View):
         if self.current_slide < len(self.slides):
             self.current_image = self.slide_images[self.current_slide]
         else:
-            self.window.show_view(self.window.title)
+            self.window.restart()
 
     def on_key_press(self, symbol: int, modifiers: int):
         self.current_slide += 1
         if self.current_slide < len(self.slides):
             self.current_image = self.slide_images[self.current_slide]
         else:
-            self.window.show_view(self.window.title)
+            self.window.restart()
 
     def on_draw(self):
         arcade.start_render()
