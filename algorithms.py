@@ -203,7 +203,7 @@ def reconstruct_path(grid_2d, came_from: dict, start_xy: tuple, end_xy: tuple):
     end = grid_2d[end_xy]
     dirs = (0, 1), (0, -1), (1, 0), (-1, 0)
     while end is None:
-        best = int('inf')
+        best = float('inf')
         for direction in dirs:
             pos = c.clamp(end_xy[0]+direction[0], 0, len(grid_2d)-1),\
                   c.clamp(end_xy[1]+direction[1], 0, len(grid_2d[0])-1)

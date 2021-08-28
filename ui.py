@@ -33,6 +33,7 @@ class ShowTabAction(Action):
     def act(self):
         if self.data[0] not in self.data[1]:
             self.data[1].append(self.data[0])
+            self.data[0].go_rel_pos()
 
 
 class ToggleTabAction(Action):
@@ -206,21 +207,23 @@ class Tab(arcade.Sprite):
         if self.movable and self.pressed_button is None:
             self.center_x = c.round_to_x(self.center_x + dx, 5 * c.SPRITE_SCALE)
             self.center_y = c.round_to_x(self.center_y + dy, 5 * c.SPRITE_SCALE)
+            self.rel_x = self.rel_x + dx
+            self.rel_y = self.rel_y + dy
 
     def on_scroll(self, value):
         hover = arcade.check_for_collision_with_list(self.game_view.window.mouse, self.buttons)
         if len(hover):
             hover[-1].on_scroll(value)
 
-    def reset_pos(self):
-        self.center_x = self.game_view.window.view_x + self.rel_x
-        self.center_y = self.game_view.window.view_y + self.rel_y
-
     def draw(self):
         super().draw()
         self.buttons.draw()
         self.buttons.draw_hit_boxes()
         self.displays.draw()
+
+    def go_rel_pos(self):
+        self.center_x = c.round_to_x(self.game_view.window.view_x + self.rel_x, 5*c.SPRITE_SCALE)
+        self.center_y = c.round_to_x(self.game_view.window.view_y + self.rel_y, 5*c.SPRITE_SCALE)
 
     def _get_center_x(self) -> float:
         """ Get the center y coordinate of the sprite. """
@@ -408,8 +411,8 @@ class TalkTab(Tab):
 
     def __init__(self, game_view):
         button_data = ({"x": 440, "y": 140,
-                        "action": ToggleTabAction((self, game_view.ui_elements)),
-                        'secondary': TriggerSimpleEventAction((self.reset_pos,)),
+                        "action": TriggerSimpleEventAction((self.end_convo,)),
+                        'secondary': TriggerSimpleEventAction((self.go_rel_pos,)),
                         'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=0, width=230, height=90)},
                        {"x": -390, "y": -140,
                         "action": TriggerSimpleEventAction((self.back,)),
@@ -419,7 +422,8 @@ class TalkTab(Tab):
                         'texture': arcade.load_texture("assets/ui/ui_pieces.png", x=230, y=270, width=230, height=90)},
                        )
         super().__init__(arcade.load_texture("assets/ui/ui_split.png", x=2060, width=1030, height=650),
-                         c.SCREEN_WIDTH - 567, 123, game_view, button_data=button_data)
+                         c.round_to_x(c.SCREEN_WIDTH // 2, 5 * c.SPRITE_SCALE),
+                         c.round_to_x(c.SCREEN_HEIGHT // 2, 5 * c.SPRITE_SCALE), game_view, button_data=button_data)
 
         self.convo: interaction.Node = game_view.convo_handler
         self.current_node: interaction.Node = None
@@ -446,6 +450,16 @@ class TalkTab(Tab):
         ShowTabAction((self, self.game_view.ui_elements)).act()
 
         self.find_node_buttons()
+
+    def end_convo(self):
+        if self.current_node is not None:
+            self.current_node.reset()
+
+        self.strip_buttons(self.node_buttons)
+        self.node_buttons = []
+        self.node_button_text = []
+
+        self.convo_done = True
 
     def next_node(self, node):
         if self.current_node is not None:
@@ -506,12 +520,3 @@ class TalkTab(Tab):
     def on_key_press(self, key, modifier):
         self.current_node.on_key_press(key, modifier)
 
-
-class MasterTab(Tab):
-
-    def __init__(self, game_view):
-        button_data = ({"x": -220, "y": -65, "text": "TALK",
-                        "action": ToggleTabAction((game_view.tabs[0], game_view.ui_elements))},)
-
-        super().__init__(arcade.load_texture("assets/ui/ui_split.png", width=1030, height=650),
-                         204, 195, game_view, False, button_data, game_view.tabs)

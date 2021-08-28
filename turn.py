@@ -20,6 +20,8 @@ class Action:
         self.cost = 0
         self.setup()
 
+        self.turn_timer = 0
+
     def setup(self):
         self.find_cost()
 
@@ -31,6 +33,13 @@ class Action:
 
     def update(self):
         return True
+
+    def on_update(self, delta_time: float = 1/60):
+        self.turn_timer += delta_time
+        if self.turn_timer > 1/6:
+            self.turn_timer -= 1/6
+            return self.update()
+        return False
 
     def final(self):
         pass
@@ -224,6 +233,9 @@ class ShootAction(Action):
     def begin(self):
         self.actor.add_animation('fire', self, self.data['facing'])
 
+    def on_update(self, delta_time: float = 1/60):
+        return self.update()
+
     def update(self):
         def lerp(normal):
             lerp_x = self.actor.e_x + (self.inputs[0].e_x-self.actor.e_x) * normal
@@ -300,7 +312,7 @@ class ActionHandler:
         self.next_initiative = self.base_initiative
 
     def on_update(self, delta_time: float = 1/60):
-        if self.current_action is not None and self.current_action.update():
+        if self.current_action is not None and self.current_action.on_update(delta_time):
             self.current_action.final()
             self.current_action = None
         elif self.initiative <= 0 and self.current_action is None:
@@ -416,10 +428,8 @@ class TurnHandler:
     def on_update(self, delta_time: float = 1/60):
         if self.current_handler is None:
             self.cycle()
-        elif time.time() > self.update_timer + 0:
-            self.update_timer = time.time()
-            if self.current_handler.on_update(delta_time):
-                self.cycle()
+        elif self.current_handler.on_update(delta_time):
+            self.cycle()
 
     def on_draw(self):
         if self.current_handler is not None and self.current_handler.actor in c.ISO_LIST:

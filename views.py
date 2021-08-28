@@ -84,9 +84,12 @@ class TemporumWindow(arcade.Window):
         # The Views
         self.game = GameView()
         self.title = TitleView()
-
+        self.end = EndView()
         # Always start with the title
         self.show_view(self.title)
+
+    def show_end(self):
+        self.show_view(self.end)
 
     def on_key_press(self, symbol: int, modifiers: int):
         # At all times the ESCAPE key will close the game.
@@ -136,6 +139,58 @@ class PauseMenu(arcade.View):
         self.window.show_view(self.window.game)
 
 
+class EndView(arcade.View):
+
+    def __init__(self):
+        super().__init__()
+
+        self.slides = ["You walk Through the Door into a dusty and dark hallway\n"
+                       "Something moves in the dark in front of you.\n"
+                       "A dark skinned man in his late 20's looks up at you\n"
+                       "You couldn't see him due to his black clothing\n"
+                       "'Who the Hell Are you?!' he shouts.\n"
+                       "Press Any key To Continue.",
+                       "Press Any key To Continue"]
+        self.current_slide = 0
+
+        self.slide_images = [arcade.Sprite("assets/final_scene_hooded_figure.png", c.SPRITE_SCALE,
+                                           center_x=c.SCREEN_WIDTH//2, center_y=c.SCREEN_HEIGHT//2-50*c.SPRITE_SCALE),
+                             arcade.Sprite("assets/final_scene_demo_end.png", c.SPRITE_SCALE,
+                                           center_x=c.SCREEN_WIDTH//2, center_y=c.SCREEN_HEIGHT//2-50*c.SPRITE_SCALE),
+                             None, None]
+        self.current_image = self.slide_images[self.current_slide]
+
+    def on_show(self):
+        c.stop_music()
+        self.window.set_viewport(0, c.SCREEN_WIDTH, 0, c.SCREEN_HEIGHT)
+        self.current_slide = 0
+        self.current_image = self.slide_images[self.current_slide]
+
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        self.current_slide += 1
+        if self.current_slide < len(self.slides):
+            self.current_image = self.slide_images[self.current_slide]
+        else:
+            self.window.show_view(self.window.title)
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        self.current_slide += 1
+        if self.current_slide < len(self.slides):
+            self.current_image = self.slide_images[self.current_slide]
+        else:
+            self.window.show_view(self.window.title)
+
+    def on_draw(self):
+        arcade.start_render()
+
+        if self.current_image is not None:
+            self.current_image.draw()
+
+        current_text = self.slides[self.current_slide]
+        arcade.draw_text(current_text, c.SCREEN_WIDTH//2, c.SCREEN_HEIGHT-75*c.SPRITE_SCALE, arcade.color.WHITE,
+                         anchor_y='top', anchor_x='center', align='center', font_size=24)
+
+
 class GameView(arcade.View):
     """
     The GameView is the real game, it is where the gameplay will take place.
@@ -181,7 +236,6 @@ class GameView(arcade.View):
 
         self.tabs[0].center_x = c.round_to_x(self.window.view_x + c.SCREEN_WIDTH // 2, 5 * c.SPRITE_SCALE)
         self.tabs[0].center_y = c.round_to_x(self.window.view_y + c.SCREEN_HEIGHT // 2, 5 * c.SPRITE_SCALE)
-        self.master_tab = ui.MasterTab(self)
         self.pressed = None
         self.ui_tabs_over = []
 
@@ -313,6 +367,7 @@ class GameView(arcade.View):
 
     def on_show(self):
         self.set_view(self.player.center_x - c.SCREEN_WIDTH / 2, self.player.center_y - c.SCREEN_HEIGHT / 2)
+        c.start_music()
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int):
         direction = scroll_y/abs(scroll_y)
@@ -422,7 +477,7 @@ class TitleView(arcade.View):
             if self.text is None:
                 text = ("This Game is an Investigative Narrative.\n"
                         "\n"
-                        "It is recommended that you have a set 15 to 30 minutes to play.\n"
+                        "It is recommended that you have a set 10 to 15 minutes to play.\n"
                         "There is no saving. A pen and note pad is suggested.\n"
                         "\n"
                         "The Aim is to understand the story and to survive.\n"
@@ -459,5 +514,4 @@ class TitleView(arcade.View):
 
 def main():
     window = TemporumWindow()
-    # c.start_music()
     arcade.run()

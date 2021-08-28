@@ -4,7 +4,7 @@
         {"file": "assets/characters/robot.png", "width": 160, "height": 320},
         {"file": "assets/tiles/select_tiles.png", "width": 160, "height": 320},
         {"file": "assets/tiles/player_movement_edge.png", "width": 160, "height": 320},
-        {"file": "assets/characters/dummy.png", "width": 160, "height": 320},
+        {"file": "assets/characters/iso_dummy.png", "width": 160, "height": 320},
         {"file": "assets/tiles/enemy_gate_highlights.png", "width": 160, "height": 320},
         {"file": "assets/POI/poi_highlight.png", "width": 160, "height": 320}],
     "tiles": [

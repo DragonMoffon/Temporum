@@ -107,7 +107,7 @@ class TextPuzzle:
             sprite = arcade.Sprite("assets/ui/ui_pieces.png", c.SPRITE_SCALE, 460, 90, 230, 90)
             self.text_boxes.append(sprite)
             self.letters.append(TextBox((c.round_to_x(start + (50 * c.SPRITE_SCALE * x), 5 * c.SPRITE_SCALE),
-                                         c.round_to_x(130 * c.SPRITE_SCALE, 5*c.SPRITE_SCALE)), sprite))
+                                         c.round_to_x(60 * c.SPRITE_SCALE, 5*c.SPRITE_SCALE)), sprite))
 
         self.shake_start = 0
 

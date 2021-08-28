@@ -12,6 +12,10 @@ out vec4 frag_color;
 
 float point_cast(ivec2 start_point, ivec2 cast_point)
 {
+    if (start_point == cast_point)
+    {
+        return 1.0;
+    }
     vec4 walls;
 
     int dx = cast_point.x-start_point.x, dy = cast_point.y-start_point.y;

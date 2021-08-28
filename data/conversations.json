@@ -1,168 +1,111 @@
 {
     "tutorial_start": {
-        "initiate": "Hey you Player! The person\ncontrolling me! This is a\nsimple text tutorial! If you need \nto know the basics here is the info!\n\nIf you want to find\nout more press \"NEXT\"",
-        "response": "Hello! I am you onboard computer \nfor this game! I will answer any of your \nquestions that I have\ndecided you can ask me!\n\nTo ask questions press NEXT,\nthen click any of the 3\noptions available.",
-        "speakers": [
+        "initiate": [
+            "Hello Captain! Welcome to the tech demo for \nTemporum: The Melclex Incident.\n\nIf you don't want to read through the tutorial\nsimply press the X button in the top right corner,\nand exit the shuttle by going to the terminal\nby the door.\n\nIf you would like to learn more press \"Next\".",
+            "In this demo you will only have a single room to\nexplore and understand the mystery of the\nMelclex Incident. If this ever becomes a full game.\nYou will have a full \"open world\" to explore.\n\nThe demo is turn based. Each turn you will have a\nset amount of \"initiative\" that you can use to take\ndifferent actions. \nPress \"next\" and then select an question you'd like\nto ask."
+        ],
+        "response": [],
+        "speakers":
+        [
+            "computer",
+            "player"
+        ],
+        "default":
+        [
             "player",
             "computer"
         ],
         "inputs": {
             "How does the turn system work?": {
-                "initiate": "How does the turn system work? \nAlso what are actions?",
+                "initiate": [
+                    "How does the turn system in the demo work?\n\nWhat does \"initiative\" mean, and how do I take\nactions?"
+                ],
                 "response": [
-                    "The turn system allows the player to take\nactions based on their\ninitiative. The higher your\ninitiative the more actions\nyou can take but the lower in the turn\norder you go.",
-                    "Every round every actor in the\ngame \"You, and the enemies\"\nare ordered from lowest to\nhighest based on your\ninitiative.",
-                    "actions are certain things you can do\nwith your initiative."
+                    "I'm glad you asked! The turn system rotates between\nall the current actors. An actor is anyone who can\ntake actions.\n\nYou are an actor and so are any enemies, or\nfriends. \nEach round the actors are sorted by the amount of\ninitiative they have. From lowest to highest.\nWhen every actor has finished their turn the round\nrestarts, and everyone is reordered.",
+                    "On your turn you can take a variety of actions.\nThe actions you can take depend on what you are\nhovering over. When you hover over a valid tile\na small tab will appear next to your mouse. This\ntab shows you all the actions you can possibly take.\nIf any of the actions are grayed out and slightly\ntransparent then you don't fit the criteria to take\nthat action. The tab only shows two actions at a\ntime. Use the scroll wheel to see if there are\nmore actions you could take.",
+                    "There are 5 actions that you can take in the demo:\nMove: This moves you to a valid tile. Each tile you\ntravel across counts as one initiative. There is a\nwhite outline which shows you how far you can travel\n\nEnd: This ends your turn. On your next turn you gain\nhalf the initiative you had last round. e.g. If you\nended your turn with 8 initiative left. You would\nstart the next round with 14 initiative.",
+                    "Interact: This allows you to interact with Points\nof Interest(POI). You will know it is a POI because\nit will have a blue glow around it. To learn more \nabout POI there is a terminal and board infront of\nthe exit. They are the two kinds of POI you will\nencounter in this Demo\n\nShoot: This allows you to shoot valid targets. Such\nas enemies. To learn more there is a pair of\nterminals at the top of the room.",
+                    "The final actions is Leave. Leave allows you to\ntravel between rooms. To use leave you have to\nstand on the glowing orange Warp tiles. When you\nstand on a warp tile you may hover over yourself,\nand press \"Leave\".\n\nThose are the only actions in the demo. "
                 ],
                 "inputs": {
-                    "How do I take an actions?": {
-                        "initiate": "What are actions? and how do I take them?",
-                        "response": [
-                            "An action is something your character\nor an enemy can\ndo. they all cost some\namount of initiative.",
-                            "To take an action you must hover \nover a valid tile. When you do a small\ntab will show up. This shows you \neverything that you can do \nwith this tile. Using the\nScroll wheel you can look at all the\npossible actions.",
-                            "when you have\ndecided on an action simply\nfollow the prompt and click\neither LMB or RMB."
-                        ],
-                        "inputs": {
-                            "What actions are there?": {
-                                "initiate": "What actions can I take?",
-                                "response": [
-                                    "Currently you can take 4 actions.",
-                                    "Move. This moves\nyou to the tile of your\nchoice or the closest tile\nyou can reach. Each tile\ncosts 1 initiative.",
-                                    "Use. This\nallows you to interact with\nPOI. It opens the conversation\ntab so you can find\ninfo. It costs nothing but\nyou can't move until you\nfinish in the tab.",
-                                    "Dash and Hold. are different\nmethods of ending your turn\nearly. Dash decreases your initiative allowing\n you to act sooner. Hold increases your initiative\nallowing you to do more but act later."
-                                ],
-                                "inputs": {
-                                    "": "What is with the other robot?",
-                                    "_": "What is all this UI for?"
-                                }
-                            },
-                            "": "What is with the other robot?",
-                            "_": "What is all this UI for?"
-                        }
-                    }
-                }
-            },
-            "What is with the other robot?": {
-                "initiate": "What is with the robot?",
-                "response": "He is a enemy, however he is \ncurrently harmless and\njust randomly walks around.\nHe ensures your game\ndoesn't crash through you\nbreaking the turn system",
-                "inputs": {
-                    "": "How does the turn system work?",
-                    "_": "What is all this UI for?",
-                    "That's everything thanks": {
-                        "initiate": "That's everything thanks.",
-                        "response": "Awesome goodbye. There is no way to \nGo back through the\nconversation so have fun!!",
+                    "That's all thanks": {
+                        "initiate": "That's everything I need to know.",
+                        "response": "Great! If you need a refresher.\nInteract with the terminals in front of you\nAlso you may press TAB to minimise the game.\nTo close the game fully you may press\nESCAPE or X.",
                         "inputs": {}
-                    }
+                    },
+                    "How do I interact with things?": "How do I interact with things?",
+                    "How do I finish the game?": "How do I finish the game?"
                 }
             },
-            "What is all this UI for?": {
-                "initiate": "What is all this UI?",
+            "How do I interact with things?": {
+                "initiate": [
+                    "How do I interact with things, and what do I\ninteract with?"
+                ],
                 "response": [
-                    "There are 5 pieces of ui. This tab is the \nconversation tab. If you\ninteract with a POI or talk\nto someone this will\nappear. The large piece in\nthe bottom corner is the\nmain ui. it allows you to\nopen the inventory and the\nconversation tab.",
-                    "In the bottom right\nis the display tab it\ncontrols what you see on\nscreen.\n\nthe top left piece\nis the inventory tab. It is\nuseless currently."
+                    "Smart question! In the demo you can only interact\nwith Points of Interest (POI). These hold valuable\ninformation regarding the incident, and can be used\nto open doors.\n\nTo interact with POI you must be standing within 1\ntile (diagonal counts) of the POI. Then if you hover\nover the tile and scroll until you find the \"Use\"\naction you may interact with the item. If it is\ngreyed out then you are not close enough.",
+                    "When you interact with a POI. This interaction tab\nwill appear. The game will pause until you are\nfinished with the conversation, or you press the\nX button in the corner. Pressing the X button will\npreemptively finish the conversation. you will have\nto interact with the POI again to continue the \ninteraction.\n\nThe \"Use\" action costs one initiative.\n"
                 ],
                 "inputs": {
-                    "": "How does the turn system work?",
-                    "_": "What is with the other robot?_That's everything thanks"
-                }
-            }
-        }
-    },
-    "tutorial_start_terminal": {
-        "initiate": "Hey you Player! The person\ncontrolling me! This is a\nsimple text tutorial! If you need \nto know the basics here is the info!\n\nIf you want to find\nout more press \"NEXT\"",
-        "response": "Hello! I am you onboard computer \nfor this game! I will answer any of your \nquestions that I have\ndecided you can ask me!\n\nTo ask questions press NEXT,\nthen click any of the 3\noptions available.",
-        "speakers": [
-            "player",
-            "computer"
-        ],
-        "inputs": {
-            "How does the turn system work?": {
-                "initiate": "How does the turn system work? \nAlso what are actions?",
-                "response": [
-                    "The turn system allows the player to take\nactions based on their\ninitiative. The higher your\ninitiative the more actions\nyou can take but the lower in the turn\norder you go.",
-                    "Every round every actor in the\ngame \"You, and the enemies\"\nare ordered from lowest to\nhighest based on your\ninitiative.",
-                    "actions are certain things you can do\nwith your initiative."
-                ],
-                "inputs": {
-                    "How do I take an actions?": {
-                        "initiate": "What are actions? and how do I take them?",
-                        "response": [
-                            "An action is something your character\nor an enemy can\ndo. they all cost some\namount of initiative.",
-                            "To take an action you must hover \nover a valid tile. When you do a small\ntab will show up. This shows you \neverything that you can do \nwith this tile. Using the\nScroll wheel you can look at all the\npossible actions.",
-                            "when you have\ndecided on an action simply\nfollow the prompt and click\neither LMB or RMB."
-                        ],
-                        "inputs": {
-                            "What actions are there?": {
-                                "initiate": "What actions can I take?",
-                                "response": [
-                                    "Currently you can take 4 actions.",
-                                    "Move. This moves\nyou to the tile of your\nchoice or the closest tile\nyou can reach. Each tile\ncosts 1 initiative.",
-                                    "Use. This\nallows you to interact with\nPOI. It opens the conversation\ntab so you can find\ninfo. It costs nothing but\nyou can't move until you\nfinish in the tab.",
-                                    "Dash and Hold. are different\nmethods of ending your turn\nearly. Dash decreases your initiative allowing\n you to act sooner. Hold increases your initiative\nallowing you to do more but act later."
-                                ],
-                                "inputs": {
-                                    "0": "What is with the other robot?",
-                                    "1": "What is all this UI for?"
-                                }
-                            },
-                            "1": "What is with the other robot?",
-                            "2": "What is all this UI for?"
-                        }
-                    }
+                    "That's all thanks": "How does the turn system work?_That's all thanks",
+                    "How does the turn system work?": "How does the turn system work?",
+                    "How do I finish the game?": "How do I finish the game?"
                 }
             },
-            "What is with the other robot?": {
-                "initiate": "What is with the robot?",
-                "response": "He is a enemy, however he is \ncurrently harmless and\njust randomly walks around.\nHe ensures your game\ndoesn't crash through you\nbreaking the turn system",
-                "inputs": {
-                    "0": "How does the turn system work?",
-                    "1": "What is all this UI for?",
-                    "That's everything thanks": {
-                        "initiate": "That's everything thanks.",
-                        "response": "Awesome goodbye. There is no way to \nGo back through the\nconversation so have fun!!",
-                        "inputs": {}
-                    }
-                }
-            },
-            "What is all this UI for?": {
-                "initiate": "What is all this UI?",
+            "How do I finish the game?": {
+                "initiate": [
+                    "How do I finish the game?"
+                ],
                 "response": [
-                    "There are 5 pieces of ui. This tab is the \nconversation tab. If you\ninteract with a POI or talk\nto someone this will\nappear. The large piece in\nthe bottom corner is the\nmain ui. it allows you to\nopen the inventory and the\nconversation tab.",
-                    "In the bottom right\nis the display tab it\ncontrols what you see on\nscreen.\n\nthe top left piece\nis the inventory tab. It is\nuseless currently."
+                    "You ask great questions! To finish the Demo you\nmust open the final door and leave through the final\nwarp gate. You will then be taking to the finish\nscreen.\n\nThe demo only takes 5 minutes to play, and there is\nlots that isn't finished. I hope you enjoy the\nlittle bit of story you do see."
                 ],
                 "inputs": {
-                    "0": "How does the turn system work?",
-                    "1": "What is with the other robot?_That's everything thanks"
+                    "That's all thanks": "How does the turn system work?_That's all thanks",
+                    "How does the turn system work?": "How does the turn system work?",
+                    "How do I interact with things?": "How do I interact with things?"
                 }
             }
         }
     },
     "tutorial_final": {
         "initiate": "I have come to the final terminal",
-        "response": "Yes! this is it.\nYou can always come back here,\nbut as long as the door is open you are not safe!",
+        "response": "Yes! This is it. The final terminal. Once you leave\nthis training area you will not be able to come back\n\nInside here you are safe, so if you don't feel ready\nstay awhile.\n\nWhen you are ready I have one lase thing to teach\nyou.",
         "speakers": [
             "player",
             "computer"
         ],
         "inputs": {
-            "Never Mind": {
-                "initiate": "I won't be safe? I'd rather stay here thanks.\nLet me read the instructions again.",
+            "I'm not Ready": {
+                "initiate": "I don't think I'm quite ready. Let me go through all\nthe tutorials again.",
                 "response": "Very well. If you wish to leave just\ninteract with this terminal",
                 "inputs": {}
             },
-            "Open The Door!": {
-                "initiate": "Okay, open the door! I am ready for this.\nLet me Leave please",
+            "I'm Ready.": {
+                "initiate": "I'm ready to start my mission. What do you want to\nteach me?",
                 "response": [
-                    "Opening Bay Doors",
-                    "....",
-                    "Ready for departure."
+                    "The last thing you will need to learn is how to use\npasswords. Many of the terminals you will meet\ninside the facility will have passwords.\n\nOften the passwords on higher security doors are \nencrypted and you will have to look for clues into\nhow to decrypt the passwords.\n\nWhen you are ready you can enter the password.\nIn this case the password is: PASSWORD.",
+                    "You will know you must enter a password because\nthe text will change to a row of squares. \n\nTo input a character into the password press any key\non your keyboard. To get special characters or\nCapital letters, hold Shift.\n\nWhen you think you have the password correct press\nenter. If it goes red and disappears you got it wrong\nIf it goes green you are correct and can press next."
                 ],
-                "speakers": [
-                    "player",
-                    "terminal"
-                ],
-                "target": 0,
-                "inputs": {}
+                "inputs": {
+                    "ENTER PASSWORD": {
+                        "initiate": "puzzle_PASSWORD",
+                        "response": "Password entered! You may now open the door and\nleave. The orange glowing tiles are warp gates.\n\nWhen you stand on a Warp gate you may hover over\nthe tile you stand on and press the \"LEAVE\" action.\n\nThis will take you into the \nMelclex Institute of Advanced Robotics!\n\nGood luck captain. Be safe!",
+                        "inputs":
+                        {
+                            "OPEN DOOR": {
+                                "initiate": "Opening Door.",
+                                "response": [],
+                                "speakers": [
+                                    "terminal",
+                                    "terminal"
+                                ],
+                                "inputs": {},
+                                "target": 0
+                            },
+                            "RETURN": ""
+                        }
+                    },
+                    "RETURN": ""
+                }
             }
         }
     },
@@ -178,7 +121,14 @@
             "player",
             "terminal"
         ],
-        "inputs": {}
+        "inputs": {
+            "EXIT": {
+                "initiate": "EXITING TERMINAL",
+                "response": [],
+                "inputs": {},
+                "speakers": ["terminal", "terminal"]
+            }
+        }
     },
     "tutorial_board": {
         "initiate": "I just see a board with a note on in.",
@@ -187,26 +137,37 @@
             "player",
             "note"
         ],
-        "inputs": {}
+        "inputs": {
+            "Leave": {
+                "initiate": "You walk away from the board",
+                "response": [],
+                "inputs": {},
+                "speakers": ["note", "note"]
+            }
+        }
     },
     "tutorial_gun": {
-        "initiate": "So what do I do here?",
-        "response": [
-            "Booting T.E.R.M.I.N.A.L systems....",
-            "...",
-            "DONE.",
-            "This is a standard Melclex terminal\n\nThis machine often has lots of useful data on it.\nthough often it will not have the personal touch\na note might have\n\nTerminals can also open doors or turn off laser gates"
-        ],
+        "initiate": "Welcome to the firing range. \n\nTo practice shooting hover over the dummy. \nIf you are hovering over the dummy it will say \n\"SHOOT\"\n\nIf the \"SHOOT\" is grayed out that means you are too\nfar away from the target.",
+        "response": "I haven't shot a gun in years.\nWhat am I getting myself into.",
         "speakers": [
-            "player",
-            "terminal"
+            "terminal",
+            "player"
         ],
         "inputs": {
-            "Enter Password": {
-                "initiate": "puzzle_password",
-                "response": "password entered",
-                "inputs": {}
-            }
+            "What Does Shooting Something Do?": {
+                "initiate": "Your gun is not high enough power to \ndestroy the machines found within the \nInstitute of Advanced Robotics.\n\nAs such your bullets have been equipped with an\nEMP system. This will disable the droids for\na short while [4 Turns]",
+                "response": [],
+                "inputs": {
+                    "RETURN": "",
+                    "EXIT Terminal": {
+                        "initiate": "EXITING TERMINAL",
+                        "response": [],
+                        "inputs": {}
+                    }
+                }
+            },
+            "EXIT Terminal": "What Does Shooting Something Do?_Exit Terminal"
+
         }
     },
     "lobby_terminal_1": {
@@ -279,8 +240,8 @@
                     "Friday 7th 2.14\nNo Employees have arrived. Sending 293 IAR members\ntheir 512th unjustified missed day notification.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\n\n\n\nThere is currently 33203 pending robotics orders.",
                     "Monday 10th 2.14\nToday is a public holiday. 293 Employees do not\nmeet acceptable attendance to miss work today.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\nguest $$#!$!#%%AEF#$$@% is expected tommorrow.\n\n\nThere is currently 33204 pending robotics orders.",
                     "Tuesday 11th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 513th unjustified missed day notification.\nWARNING THERE HAS BEEN ILLEGAL TAMPERING OF \nLOBBY TERMINAL. OFFENDER WILL BE PROSECUTED.\nguest $$#!$!#%%AEF#$$@% is expected today.\nNo Employee Alerts were sent today.\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33209 pending robotics orders.",
-                    "Tuesday 11th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 514th unjustified missed day notification.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\n\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33210 pending robotics orders.",
-                    "Today 13th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 515th unjustified missed day notification.\nWARNING UNWARRENTED DOCKING IS AN OFFENCE. \nYOU WILL BE PROSECTUED.\nNo Employee Alerts were sent today.There were \nno scheduled meetings.\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33212 pending robotics orders."
+                    "Wednesday 12th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 514th unjustified missed day notification.\n\nNo Employee Alerts were sent today. There were \nno scheduled meetings.\n\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33210 pending robotics orders.",
+                    "Today 13th 2.14\nOne Employee arrived. Sending 292 IAR members\ntheir 515th unjustified missed day notification.\nWARNING UNWARRANTED DOCKING IS AN OFFENCE. \nYOU WILL BE PROSECUTED.\nNo Employee Alerts were sent today.There were \nno scheduled meetings.\nCongratulations Employee u382heuyREH42. You have \nthe best 12 month attendance average.\nThere is currently 33212 pending robotics orders."
                 ],
                 "response": "I am not alone.\nSomeone has been here recently.",
                 "inputs": {
@@ -403,14 +364,304 @@
                 }
             },
             "12 MONTH ERROR REPORTS": {
-                "initiate": "",
-                "response": "",
+                "initiate": [
+                    "2.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected\n3.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected\n4.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected",
+                    "5.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected\n6.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected\n7.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected",
+                    "8.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected\n9.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected\n10.13: 1 ERROR:\n9133 - Disruptive entanglement of QUANTANET.\n:STATUS: Resolved - Expected",
+                    "11.13: 2 ERRORS:\n9130.1 - Failed QUANTANET reconnection. \n:STATUS: Unresolved - Debug attempt made. [FAILED]\n\n13991  - Stable Communcations cannot be made.\n:STATUS: Unresolved. - Debug attempt made.\n[RECURSIVE FAILURE - ATTEMPTS EXCEEDED 9998]",
+                    "12.13: 1 ERROR.\n21331.9 - Failure to Shutdown Caesar-4 system.\n:STATUS: Unresolved - Debug attempt made [STOPPED]\n\n1.14: 1 ERROR.\n21331.2 - Caesar-4 Containment system failure.\n:STATUS: Resolved - Rerouted.",
+                    "2.14: 9 ERRORS.\n21160 - Physical alteration to a terminal.\n:STATUS: Unresolved - Debug attempt made [FAILED]\n\n13991  - Stable Communcations cannot be made.\n:STATUS: Unresolved. - Debug attempt made.\n[RECURSIVE FAILURE - ATTEMPTS EXCEEDED 9998]\n\n21161.1 - Physical alteration to a door.\n:STATUS: Resolved - ANTI-PERSONAL SYSTEM ACTIVE",
+                    "2.14: 9 ERRORS.\n21161.3 - Physical alteration to an ANTI-PERSONAL\nSYSTEM.\n:STATUS: Unresolved - Debug attempt made [FAILED]\n\n13991  - Stable Communcations cannot be made.\n:STATUS: Unresolved - Debug attempt made.\n[RECURSIVE FAILURE - ATTEMPTS EXCEEDED 9998]",
+                    "2.14: 9 ERRORS.\n21160.4 - Physical alteration to an ADMIN terminal.\n:STATUS: Unresolved - Debug attempt made. [FAILED]\n\n13991  - Stable Communcations cannot be made.\n:STATUS: Unresolved - Debug attempt made.\n[RECURSIVE FAILURE - ATTEMPTS EXCEEDED 9998]\n\n10033 - MAJOR SECURITY BREACH DETECTED.\n:STATUS: Resolved - Rerouted.",
+                    "2.14: 9 ERRORS.\n843 - Illegal docking at improper station.\n:STATUS: Resolved - Rerouted."
+                ],
+                "response": "What is Caesar-4? Should I be concerned?\nWho came here before me,\nand why do they know how to do all of this?",
                 "inputs": {
                     "RETURN": "",
                     "EXIT TERMINAL": "SECURITY LEVEL 1 RELEASE DATA_EXIT TERMINAL"
                 }
+            }
+        }
+    },
+    "server_room_board": {
+    "initiate": "A well used cork board sit on the wall. A dozen or\nmore notes and leaflets litter it's face. \nA few stand out:\nA set of notes all with SECURITY NOTICE stamped on\nthe top edge.\nAn aging printed image, and a hand written note. \n\nThe rest is full of incomprehensible jargon and\nterrible handwriting.",
+    "response": "A the IT man's cork board.\nClassic.",
+    "speakers": [
+        "note",
+        "player"
+    ],
+    "inputs": {
+        "Look at Security Notices":
+        {
+            "initiate": [
+                "You unpin one of the security notices.\nIt looks tattered and well used.\n\"In an emergency, or when a high security item is\ntampered with, the anti-personnel laser system will\nactivate. Only one with security level 6 may reset\nthe laser system\".\nOn the back side it reads in a much less formal way.\n\"Ajon has figured out how to rewire the laser gate\nto work along side the display room laser system.\nI suggested that was a bad idea\"",
+                "You look at the next security note.\n\"As an aditional safety measure none of the security\nlevel 4 or above passwords are stored unencrypted.\"\nLike the last one there is a small piece of writing\non the back.\n\"For the password to Max's room remember\napples to wllhao. The actual code is harder to\nremember than the stored password.\"",
+                "You look at the final note.\n\"Each sector of the Melclex Industries Institute of\nAdvanced Science and Technology has it's own set of\nSecurity levels. A person can only have a security\nlevel above 0 in one sector. So an admin in the\nIAR is nothing anywhere else within the institute.\"\n\nThe rest of the notes are illegable or useless."
+            ],
+            "response": "what does apples to wllhao even mean?",
+            "inputs": {"BACK": ""}
+        },
+        "Look at the Image":
+        {
+            "initiate": [
+                "You look at the image. It depicts a young looking\nman half in a large set of server blocks. Next to\nhim sits a brightly lit terminal.\nBarely lit, at the back of the room stands a dark\ntowering figure.\n\nIt's titled: Ajon and Des finish up Caesar-1.\nit's dated for 4 and half years ago.\n",
+                "The note attached to the image looks like a hand\nwritten excerpt from a scientific paper.\n\nIt makes no sense, but you can understand the final\nfew sentences.",
+                "\"Named after our favorite type of cypher, Caesar-1\nis our first attempt at a fully autonomous abstract\nable computer simulated consciousness.\n\nWith funding from Melclex industries this P.H.D\nhopes to highlight the key issues with such a\nsystem as Caesar-1. In particular the issues of \nmorality that become harder to implement as the\nintelligence of the system increases.\"\nThe note is signed Ajon, and Des."
+            ],
+            "response": ["Some bloody smart people worked here.\nShame their naming scheme is so confusing.","...","Don't understand half of it."],
+            "inputs": {"BACK": ""}
+        },
+        "Leave":
+        {
+            "initiate": "You take one last glace over everything\nbefore walking off.",
+            "response": [],
+            "inputs": {}
+        }
+    }
+    },
+    "caesar-4_interface_terminal": {
+        "initiate": [
+            "CAESAR-4 INTERFACE SYSTEM.\nTHIS TERMINAL IS FOR TRAINED\nPERSONAL ONLY.\n\nINTERACTING WITH CAESAR-4 IS NOT ADVISED."
+        ],
+        "response": [
+            "I wonder why they don't want me talking to caesar-4."
+        ],
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "inputs": {
+            "BEGIN INTERACTION SYSTEM": {
+                "initiate": [
+                    "CAESAR-4 HAS BREACHED SECURITY PROTOCOLS. \n\nEMERGENCY SYSTEMS ARE NOW INPLACE. NO INTERACTION\nWITH CAESAR-4 IS PERMITTED AT ANY POINT UNTIL THE\nFIRE WALL BREACH HAS BEEN RESOLVED.\n\nCAESAR-4 HAS NOW BEEN IDENTIFIED AS A THREAT. \n\nDO NOT ALLOW THE CAESAR-4 SYSTEM EXTERNAL ACCESS\nTO QUANTANET SERVICES OR SECURITY PERMISSIONS."
+                ],
+                "response": [
+                    "Oh... Oh no.\nWhat the hell does that mean?\nAm I even safe anymore?"
+                ],
+                "speakers": [
+                    "terminal",
+                    "player"
+                ],
+                "inputs": {
+                    "RETURN": "",
+                    "CAESAR-4 DEFINITIONS": "CAESAR-4 DEFINITIONS",
+                    "LEAVE": {
+                        "initiate": [
+                            "EXITING INTERACTION TERMINAL."
+                        ],
+                        "response": [],
+                        "speakers": [
+                            "terminal",
+                            "player"
+                        ],
+                        "inputs": {}
+                    }
+                }
             },
-            "CHAMBER UNLOCKS": {
+            "CAESAR-4 DEFINITIONS": {
+                "initiate": [
+                    "CAESAR-4 is a fully autonomous abstract-able\ncomputer simulated consciousness.\n\ncomputer simulated consciousness are more advanced\nthan artificial intellegence. This is due to their\nability to understand more abstract concepts and\ncan mimic human emotions to a greater degree than\nAI. \ncomputer simulated consciousnesses have a unique\nclassification system.",
+                    "CLASS A: class A CSCs are true intelligences. This\nmeans they are fully sapient. No CSC has ever\nreached Class A. Some have been created but they all\nfailed the Secuter Morality test. That ensures no\nCSC system puts organic life at risk due to it's own\nmorality.",
+                    "CLASS B: class B CSCs are almost true intellegences.\nThey are limited however in their reliance on\nemotion algorithms that similuate more advanced\nfeelings. No CSCs of Class B has every succeded the\nSecuter Morality Test. Caesar-4 is attempting to be\nthe first.",
+                    "CLASS C: Class C are abstract-able, however they do\nnot constiture true intellegences due to their\nreliance on fully emulated emotions. They also do\nnot have true abstract understanding, and some \nlearning must still come from basic learning\nalgoritms. \n\nClass C is the lowest abstract-able CSC level.\nThere are some Class C CSCs on the market today.\nIncluding the Melclex Computer Assistant.",
+                    "CLASS D: class D CSCs are the same as the most\nadvanced AI algorimths. This levl of CSC is found\nthroughout most of modern computing systems and are\nused in many Melclex products.",
+                    "CAESAR-4 is the latest in a chain of the most\nadvanced CSCs Melclex has ever developed. It is\nattempting to be the first Morally Correct Class B\nCSC.\n\nCAESAR-3 was also supposed to be Class B, however\nit could not pass the morality test.\n\nCaesar-1 and 2 were both Class C and were both a\nsuccess."
+                ],
+                "response": [
+                    "Wow.\nReally glad this place makes weapons of mass\ndestruction. Really great when I have\n\"morally incorrect\" robots chasing me around.\n\nGood to know understand why my computer assistant\nwas called a Class C assistant. Makes me trust them\na lot more."
+                ],
+                "speakers": [
+                    "terminal",
+                    "player"
+                ],
+                "inputs": {
+                    "RETURN": "",
+                    "BEGIN INTERACTION": "BEGIN INTERACTION SYSTEM",
+                    "LEAVE": "BEGIN INTERACTION SYSTEM_LEAVE"
+                }
+            },
+            "LEAVE": "BEGIN INTERACTION SYSTEM_LEAVE"
+        }
+    },
+    "admin_door_terminal": {
+        "initiate": [
+            "ADMIN Access Terminal. Max Caplin Office. \n\nERROR 21160.4, Physical alteration to this terminal\nhas occurred within 76 hours. Security officers have\nbeen dispatched.\n\nERROR 13991, Occurred During Debugging Error 21160,\nStable communications cannot be made, Reattempting\n\nERROR -233, recursion depth exceeded 9998 attempts.",
+            "Please Input Admin Password to unlock this door."
+        ],
+        "response": [],
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "inputs": {
+            "Enter Password": {
+                "initiate": "puzzle_YknzkjOdebp",
+                "response": "SECURITY LEVEL 4\nAUTHORISATION ACTIVE",
+                "speakers": [
+                    "terminal",
+                    "terminal"
+                ],
+                "inputs": {
+                    "Open Admin Door": {
+                        "initiate": "OPENING DOOR TO\nMAX CAPLIN's OFFICE",
+                        "response": [],
+                        "target": 4,
+                        "inputs": {}
+                    },
+                    "RETURN": ""
+                }
+            },
+            "Exit Terminal": {
+                "initiate": "EXITING TERMINAL.",
+                "response": "",
+                "inputs": {}
+            }
+        }
+    },
+    "admin_terminal": {
+        "initiate": [
+            "This terminal is for Max Caplin only.\nLooking through this terminal without\nexpress permission is a crime."
+        ],
+        "response": [
+            "Look I committed another crime\nI wonder if any of them will matter."
+        ],
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "inputs": {
+            "Personal Logs": {
+                "initiate": [
+                    "Warning All Logs Before 8.12 Are Corrupted.\nTalk to IT to have the issue resolved.\n\nLoading all uncorrupted files.\n\nOne File loaded.",
+                    "Written 31.8.12.\n\"Ajon is a brilliant scientist, but his fascination\nworries me. Both Caesar-3 and Caesar-4 cannot pass\nthe Morality Test. Caesar-4 is far better but.\n\nSomething about that machine worries me. \nAjon promises it isn't Class A, and therefore can't\nlie but I don't know. I feel like it is lying\nthough it's metallic teeth\"\nContinues onto next Page ->",
+                    "\"What worries me is that based on our predictions\nit should barely get anything on the morality test\nwe just haven't built the right emotion emulators.\n\nBut yet it keeps getting better grades than expected\nNot only that. It is getting better. It's learning\nwhat we want it to say. That is not a good sign.\nLying automatically means that machine fails the\nMorality test. But we really can't tell.\""
+                ],
+                "response": [
+                    "Terrifying."
+                ],
+                "speakers": [
+                    "terminal",
+                    "player"
+                ],
+                "inputs": {
+                    "Return": "",
+                    "Exit System": {
+                        "initiate": [
+                            "Exiting system. Goodbye Max Caplin."
+                        ],
+                        "response": [
+
+                        ],
+                        "speakers": [
+                            "terminal",
+                            "player"
+                        ],
+                        "inputs": {}
+                    }
+                }
+            },
+            "Administrative controls": {
+                "initiate": [
+                    "Remote Door Controls Active."
+                ],
+                "response": [
+
+                ],
+                "speakers": [
+                    "terminal",
+                    "player"
+                ],
+                "inputs": {
+                    "SECURITY LEVEL 1 DOORS": {
+                        "initiate": [
+                            "All Remote Security Level 1 Doors."
+                        ],
+                        "response": [
+                            "Now this is useful."
+                        ],
+                        "speakers": [
+                            "terminal",
+                            "player"
+                        ],
+                        "inputs": {
+                            "Server Room Door": {
+                                "initiate": "Server Room Door Remotely Triggered",
+                                "response": [],
+                                "target": 2,
+                                "inputs": {
+                                    "Return": "",
+                                    "Other Doors": "Administrative controls"
+                                }
+                            },
+                            "Boardroom and Exit Door": {
+                                "initiate": "Boardroom and Exit Door Remotely Triggered",
+                                "response": [],
+                                "target": 7,
+                                "inputs": {
+                                    "Return": "",
+                                    "Other Doors": "Administrative controls"
+                                }
+                            },
+                            "Caesar-4 Interface Door": {
+                                "initiate": "Caesar-4 Interface Door Remotely Triggered",
+                                "response": [],
+                                "target": 3,
+                                "inputs": {
+                                    "Return": "",
+                                    "Other Doors": "Administrative controls"
+                                }
+                            }
+                        }
+                    },
+                    "SECURITY LEVEL 4 DOORS": {
+                        "initiate": [
+                            "All Remote Security Level 4 Doors."
+                        ],
+                        "response": [
+                            "Wow, no password, no nothing."
+                        ],
+                        "speakers": [
+                            "terminal",
+                            "player"
+                        ],
+                        "inputs": {
+                            "Caesar-4 Display Room Door": {
+                                "initiate": "Caesar-4 Display Room Door Remotely Triggered",
+                                "response": [],
+                                "target": 5,
+                                "inputs": {
+                                    "Return": "",
+                                    "Other Doors": "Administrative controls"
+                                }
+                            },
+                            "Office Door": {
+                                "initiate": "Office Door Remotely Triggered",
+                                "response": [],
+                                "target": 4,
+                                "inputs": {
+                                    "Return": "",
+                                    "Other Doors": "Administrative controls"
+                                }
+                            },
+                            "Return": ""
+                        }
+                    },
+                    "Return": ""
+                }
+            },
+            "Exit System": "Personal Logs_Exit System"
+        }
+    },
+    "hallway_door_terminal": {
+        "initiate": "Hallway terminal A234.992\n\nTHIS TERMINAL IS FOR EMPLOYEE USE ONLY\nACCESSING THIS TERMINAL WITHOUT\nPROPER PERMISSIONS, IS A CRIME.",
+        "response": "I wonder how many crimes I've committed already.",
+        "speakers": [
+            "terminal",
+            "player"
+        ],
+        "inputs": {
+            "SECURITY LEVEL 1 DOOR CONTROLS":
+            {
                 "initiate": "puzzle_R6rt&#P4ss",
                 "response": "SECURITY LEVEL 1 ACCESS GRANTED",
                 "speakers": [
@@ -437,79 +688,139 @@
                             "RETURN": "",
                             "EXIT TERMINAL": "SECURITY LEVEL 1 RELEASE DATA_EXIT TERMINAL"
                         }
-                    }
+                    },
+                    "RETURN": ""
                 }
+            },
+            "SECURITY LEVEL 4 CONTROLS":
+            {
+                "initiate": "puzzle_YknzkjOdebp",
+                "response": "SECURITY LEVEL 4 ACCESS GRANTED.",
+                "speakers": [
+                    "terminal",
+                    "terminal"
+                ],
+                "inputs": {
+                    "UNLOCK CAESAR-4 DISPLAY CHAMBER":
+                    {
+                        "initiate": "UNLOCKING CAESAR-4 CHAMBER.\nONLY TRAINED PERSONAL MAY INTERACT WITH\nCAESAR-4.\nDO NOT UNDER ANY CIRCUMSTANCE RELEASE THE\nANTI PERSONAL LASER BARRIER.",
+                        "response": [],
+                        "target": 5,
+                        "inputs":
+                        {
+                            "RETURN": "",
+                            "TRIGGER CAESAR-4 DISPLAY CHAMBER": "SECURITY LEVEL 4 CONTROLS_UNLOCK CAESAR-4 DISPLAY CHAMBER"
+                        }
+                    },
+                    "RETURN": ""
+                }
+            },
+            "EXIT TERMINAL":
+            {
+                "initiate": "Shutting down terminal",
+                "response": [],
+                "inputs": {}
             }
         }
     },
-    "server_room_board": {
-    "initiate": "",
-    "response": "",
-    "speakers": [
-        "player",
-        "computer"
-    ],
-    "inputs": {}
-    },
-    "caesar-4_interface_terminal": {
-        "initiate": "",
-        "response": "",
+    "caesar-4_gate_terminal":       {
+        "initiate": "WELCOME TO THE IAR DISPLAY ROOM.\n\nCurrently we have a running Caesar-4 droid.\nThey have no weapons, or voice synthesiser.\n\nThis model was developed by head scientist\nAjon Kent.\n\nThere are currently no scheduled conferences in\nthe display room.",
+        "response": [],
         "speakers": [
-            "player",
-            "computer"
+            "terminal",
+            "player"
         ],
-        "target": -1,
-        "inputs": {}
-    },
-    "admin_door_terminal": {
-        "initiate": "",
-        "response": "",
-        "speakers": [
-            "player",
-            "computer"
-        ],
-        "target": -1,
-        "inputs": {}
-    },
-    "admin_terminal": {
-        "initiate": "",
-        "response": "",
-        "speakers": [
-            "player",
-            "computer"
-        ],
-        "target": -1,
-        "inputs": {}
-    },
-    "hallway_door_terminal": {
-        "initiate": "",
-        "response": "",
-        "speakers": [
-            "player",
-            "computer"
-        ],
-        "target": -1,
-        "inputs": {}
-    },
-    "caesar-4_gate_terminal": {
-        "initiate": "",
-        "response": "",
-        "speakers": [
-            "player",
-            "computer"
-        ],
-        "target": -1,
-        "inputs": {}
+        "inputs": {
+            "UNLOCK ADMINISTRATIVE ACCESS": {
+                "initiate": "puzzle_YknzkjOdebp",
+                "response": [
+                    "ADMINISTRATIVE ACCESS UNLOCKED."
+                ],
+                "speakers": ["terminal", "terminal"],
+                "inputs": {
+                    "LEAVE": {
+                        "initiate": [
+                            "EXITING TERMINAL. ENJOY YOUR STAY AT THE IAR!"
+                        ],
+                        "response": [
+
+                        ],
+                        "inputs": {
+
+                        }
+                    },
+                    "Unlock Anti-personal barrier":
+                    {
+                        "target": [6, 8],
+                        "initiate": [
+                            "UNLOCKING BARRIER.\nENSURE ONLY FULLY TRAINED PERSONAL\nUNDERTAKE THE REMOVAL OF A DROID"
+                        ],
+                        "response": [
+                            "I'm 'super' trained don't worry"
+                        ],
+                        "inputs": {
+                            "RETURN": "",
+                            "LEAVE": "UNLOCK ADMINISTRATIVE ACCESS_LEAVE"
+                        }
+                    }
+                }
+            },
+            "Read note stuck to side of terminal": {
+                "initiate": [
+                    "You notice a small note attached to the side of the\nterminal. You peel it off the metal.\nThe note is very fresh.\nIt reads:",
+                    "If anyone comes through here. heed my warning.\nCAESAR-4 CANNOT BE TRUSTED. I don't know what\nhappened over the last few months, but the whole\nplace has fallen apart and here is no better.\n\nThey've gained some higher level of intelegence.\nI don't know how, I don't know why.\n\nI accidentally set of the emergency security system\nSo I've rigged the two laser gates together."
+                ],
+                "response": [
+                    "Great. That's the kind of news I wanted to get.\n\nright as I'm staring at the hunk of metal."
+                ],
+                "speakers": ["note", "player"],
+                "inputs": {
+                    "LEAVE": "UNLOCK ADMINISTRATIVE ACCESS_LEAVE",
+                    "return": ""
+                }
+            },
+            "LEAVE": "UNLOCK ADMINISTRATIVE ACCESS_LEAVE"
+        }
     },
     "boardroom_board": {
-        "initiate": "",
-        "response": "",
+        "initiate": "A finely polished and well kept whiteboard.\nOn one side is a set of robot schematics.\nthe other has a small list of names.\n\nIn the middle sits the blackened and melted remains\nof a large bullet hole. Looking through you can see\nthe cracked and chipped concrete. The bullet still\nsits inside. There doesn't seem to be any blood.",
+        "response": "friendly, and safe.",
         "speakers": [
-            "player",
-            "computer"
+            "note",
+            "player"
         ],
-        "target": -1,
-        "inputs": {}
+        "inputs": {
+            "Look at Schematics": {
+                "initiate": [
+                    "You lift up the first of the two schematics.\n\nIts a detailed and fully annotated drawing of a \nrobotic arm. Fitted into the arm is a powerful\n50 caliber rifle. It uses Melclex's signature \ngraviton acceleration system. Incredibly deadly.\n\nA small note is stuck to it's side:\n\"As a safety precaution the current display model\ndoes NOT have it's armament systems installed\"",
+                    "You look at the second schematic.\n\nIt shows a interanl view into a robotic head.\nMost of the systems inside keep the MELCLEX QUANTA\nsystem cooled. It uses an external processing unit\nto do all of it's calculations and sends the\nresults to the robotic body.\n\nIf the external system is destroyed so is the robot."
+                ],
+                "response": [
+                    "Charming. Makes me feel so safe."
+                ],
+                "inputs": {
+                    "Return": "",
+                    "Leave": {
+                        "initiate": "You warily watch the bullet hole\nbefore walking away",
+                        "response": [],
+                        "inputs": {}
+                    }
+                }
+            },
+            "Look at List": {
+                "initiate": [
+                    "You study the list of names. It is a ledger of all\nthe guests at the \n\"IAR impromtue development meeting\"\nIt is dated for 18 months ago.\nIt lists a series of names including\nIAR Admin Max Caplin.\nManaging Director Arthur Coldheim.\nHead Researcher Ajon Kent.\nCo-Head Researcher Des Maxwell.\nC.E.O of Argon Militaries Fleur lucien."
+                ],
+                "response": [
+                    "Argon Militaries? Fleur must have paid a pretty\npenny to get his grubby hands on Melclex Tech.\n\nThe low life runs the largest Mercenary Core in the\nquadrant. If he wants this tech then I'm in a lot\nmore danger than I realised."
+                ],
+                "inputs": {
+                    "Return": "",
+                    "Leave": "Look at Schematics_Leave"
+                },
+                "Leave": "Look at Schematics_Leave"
+            }
+        }
     },
     "default": {
         "initiate": "",

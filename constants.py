@@ -36,6 +36,8 @@ PLAYER = None
 # Map Information
 CURRENT_MAP_SIZE = 0, 0
 
+# Experimental
+HOLOGRAPHIC = True
 
 """
 FUNCTIONS
@@ -123,7 +125,17 @@ AUDIO FUNCTIONS
 """
 
 BASE_MUSIC = arcade.load_sound("audio/The Workshop 44100Hz Mono 16 bit.wav")
+MUSIC_PLAYER = None
 
 
 def start_music():
-    BASE_MUSIC.play(volume=0.3, pan=0.0, loop=True)
+    global MUSIC_PLAYER
+    if MUSIC_PLAYER is None:
+        MUSIC_PLAYER = BASE_MUSIC.play(volume=0.15, pan=0.0, loop=True)
+
+
+def stop_music():
+    global MUSIC_PLAYER
+    if MUSIC_PLAYER is not None:
+        BASE_MUSIC.stop(MUSIC_PLAYER)
+        MUSIC_PLAYER = None

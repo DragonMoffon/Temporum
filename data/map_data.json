@@ -94,7 +94,7 @@
                 "interaction": "server_door_terminal"
             },
         "27": {
-            "tile": "terminal_west",
+            "tile": "terminal_north",
             "interaction": "hallway_door_terminal"
         }
     },
@@ -137,7 +137,7 @@
     },
     "gates": {
         "16": {
-            "target": "demo_2",
+            "target": "GameFinish",
             "position": [
                 14,
                 3
@@ -148,53 +148,5 @@
             ]
         }
     }
-},
-    "demo_2": {
-        "interact": {},
-        "door": {},
-        "character": {},
-        "gates": {
-            "16": {
-                "target": "demo_1",
-                "position": [
-                    0,
-                    3
-                ],
-                "start": [
-                    14,
-                    3
-                ]
-            }
-        }
-    },
-    "demo_3": {
-        "interact": {},
-        "door": {},
-        "character": {}
-    },
-    "demo_4": {
-        "interact": {},
-        "door": {},
-        "character": {}
-    },
-    "demo_5": {
-        "interact": {},
-        "door": {},
-        "character": {}
-    },
-    "demo_6": {
-        "interact": {},
-        "door": {},
-        "character": {}
-    },
-    "demo_7": {
-        "interact": {},
-        "door": {},
-        "character": {}
-    },
-    "demo_8": {
-        "interact": {},
-        "door": {},
-        "character": {}
-    }
+}
 }

@@ -5,7 +5,6 @@ import math
 import time
 
 import arcade
-from typing import List, Tuple, Dict
 
 import algorithms
 import isometric
@@ -18,6 +17,7 @@ from map_tile import Tile
 # direction in order: south, east, north, west
 GATES = {index: data for index, data in enumerate(isometric.generate_iso_data_other("gate_highlight"))}
 POI_LIGHTS = {index: data for index, data in enumerate(isometric.generate_iso_data_other("poi_highlight"))}
+
 
 class Map:
     """
@@ -280,7 +280,7 @@ class Map:
                             if y.seen:
                                 for piece in y.pieces:
                                     piece.alpha = 150
-                                    piece.color = (155, 155, 155)
+                                    piece.color = (95, 205, 228)
                             else:
                                 for piece in y.pieces:
                                     piece.alpha = 0
@@ -294,7 +294,8 @@ class Map:
                             else:
                                 # the distance is the value normalised and the map size relative to 15.
                                 # so dist/255 * map/15 or (map*dist)/(255*15) or (map*dist)/3825
-                                distance = self.vision_handler.vision_image.getpixel(y.location)[1]*self.map_size[0]/3825
+                                distance = (self.vision_handler.vision_image.getpixel(y.location)[1] *
+                                            self.map_size[0]/3825)
 
                                 color = max(int(255 - 255*distance), 0)
                             piece.color = (color, color, color)
@@ -338,26 +339,29 @@ class MapHandler:
         self.maps['tutorial'] = self.map
 
     def use_gate(self, gate_data):
-        self.map.strip_map()
-        next_map = self.maps.get(gate_data['target'])
-        if next_map is None:
-            next_map = Map(self.game_view, self.map_data, gate_data['target'])
-            self.maps[gate_data['target']] = next_map
-            self.map = next_map
-            self.load_map()
+        if gate_data['target'] == "GameFinish":
+            self.game_view.window.show_end()
         else:
-            self.map = next_map
-            self.map.set_map()
+            self.map.strip_map()
+            next_map = self.maps.get(gate_data['target'])
+            if next_map is None:
+                next_map = Map(self.game_view, self.map_data, gate_data['target'])
+                self.maps[gate_data['target']] = next_map
+                self.map = next_map
+                self.load_map()
+            else:
+                self.map = next_map
+                self.map.set_map()
 
-        self.game_view.player.set_grid(self.map.tile_map)
-        self.game_view.player.new_map_pos(*gate_data['land_pos'])
-        self.game_view.selected_tile.new_pos(self.game_view.player.e_x, self.game_view.player.e_y)
-        self.game_view.set_view(self.game_view.player.center_x-c.SCREEN_WIDTH//2,
-                                self.game_view.player.center_y-c.SCREEN_HEIGHT//2)
-        self.game_view.pending_motion = []
-        self.game_view.current_motion = None
-        self.game_view.motion = False
-        c.iso_append(self.game_view.player)
+            self.game_view.player.set_grid(self.map.tile_map)
+            self.game_view.player.new_map_pos(*gate_data['land_pos'])
+            self.game_view.selected_tile.new_pos(self.game_view.player.e_x, self.game_view.player.e_y)
+            self.game_view.set_view(self.game_view.player.center_x-c.SCREEN_WIDTH//2,
+                                    self.game_view.player.center_y-c.SCREEN_HEIGHT//2)
+            self.game_view.pending_motion = []
+            self.game_view.current_motion = None
+            self.game_view.motion = False
+            c.iso_append(self.game_view.player)
 
     def load_map(self):
         """
