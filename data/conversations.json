@@ -351,8 +351,8 @@
             "player"
         ],
         "inputs": {
-            "SECURITY LEVEL 1 RELEASE DATA": {
-                "initiate": ":AUTOMATED: RELEASE ALL SECURITY LEVEL 1.\n\nSECURITY LEVEL 1 PASSWORDS:\nserver room: 4SCyPHerS.\n\nSECURITY LEVEL 1 remote release: R6rt&#P4ss\n\nSECURITY LEVEL 4 PASSWORDS:\n:AUTOMATED: DISTRESS EMERGENCY RELEASE.\nAdmin Office Password: CordonShift",
+            ":AUTOMATED: SECURITY RELEASE DATA": {
+                "initiate": ":AUTOMATED: RELEASE ALL SECURITY LEVEL 1.\n\nSECURITY LEVEL 1 PASSWORDS:\nserver room: 4SCyPHerS.\n\nSECURITY LEVEL 2 remote release: R6rt&#P4ss\n\nSECURITY LEVEL 4 PASSWORDS:\n:AUTOMATED: DISTRESS EMERGENCY RELEASE.\nLEVEL 4 Password Encryption: CordonShift",
                 "response": "That security release is quite helpful.\nI'm getting the feeling that I'm\nin for a lot more than I bargained.",
                 "inputs": {
                     "EXIT TERMINAL": {
@@ -395,10 +395,10 @@
         {
             "initiate": [
                 "You unpin one of the security notices.\nIt looks tattered and well used.\n\"In an emergency, or when a high security item is\ntampered with, the anti-personnel laser system will\nactivate. Only one with security level 6 may reset\nthe laser system\".\nOn the back side it reads in a much less formal way.\n\"Ajon has figured out how to rewire the laser gate\nto work along side the display room laser system.\nI suggested that was a bad idea\"",
-                "You look at the next security note.\n\"As an aditional safety measure none of the security\nlevel 4 or above passwords are stored unencrypted.\"\nLike the last one there is a small piece of writing\non the back.\n\"For the password to Max's room remember\napples to wllhao. The actual code is harder to\nremember than the stored password.\"",
+                "You look at the next security note.\n\"As an aditional safety measure none of the security\nlevel 4 or above passwords are stored encrypted.\"\nLike the last one there is a small piece of writing\non the back.\n\"For the password to Max's room remember\nAPPLES to WLLHAO. The actual code is harder to\nremember than the stored password.\"",
                 "You look at the final note.\n\"Each sector of the Melclex Industries Institute of\nAdvanced Science and Technology has it's own set of\nSecurity levels. A person can only have a security\nlevel above 0 in one sector. So an admin in the\nIAR is nothing anywhere else within the institute.\"\n\nThe rest of the notes are illegable or useless."
             ],
-            "response": "what does apples to wllhao even mean?",
+            "response": "what does APPLES to WLLHAO even mean?",
             "inputs": {"BACK": ""}
         },
         "Look at the Image":
@@ -572,9 +572,9 @@
                     "player"
                 ],
                 "inputs": {
-                    "SECURITY LEVEL 1 DOORS": {
+                    "SECURITY LEVEL 1 and 2 DOORS": {
                         "initiate": [
-                            "All Remote Security Level 1 Doors."
+                            "All Remote Security Level 1 and 2 Doors."
                         ],
                         "response": [
                             "Now this is useful."
@@ -660,10 +660,10 @@
             "player"
         ],
         "inputs": {
-            "SECURITY LEVEL 1 DOOR CONTROLS":
+            "SECURITY LEVEL 2 DOOR CONTROLS":
             {
                 "initiate": "puzzle_R6rt&#P4ss",
-                "response": "SECURITY LEVEL 1 ACCESS GRANTED",
+                "response": "SECURITY LEVEL 2 ACCESS GRANTED",
                 "speakers": [
                     "terminal",
                     "terminal"
@@ -676,7 +676,7 @@
                         "target": 3,
                         "inputs": {
                             "RETURN": "",
-                            "EXIT TERMINAL": "SECURITY LEVEL 1 RELEASE DATA_EXIT TERMINAL"
+                            "EXIT TERMINAL": "SECURITY LEVEL 2 RELEASE DATA_EXIT TERMINAL"
                         }
                     },
                     "UNLOCK BOARDROOM AND EXIT HALLWAY":
@@ -686,7 +686,7 @@
                         "target": 7,
                         "inputs": {
                             "RETURN": "",
-                            "EXIT TERMINAL": "SECURITY LEVEL 1 RELEASE DATA_EXIT TERMINAL"
+                            "EXIT TERMINAL": "SECURITY LEVEL 2 RELEASE DATA_EXIT TERMINAL"
                         }
                     },
                     "RETURN": ""

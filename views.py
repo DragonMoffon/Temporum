@@ -88,6 +88,8 @@ class TemporumWindow(arcade.Window):
         self.show_view(self.title)
 
     def restart(self):
+        c.restart()
+
         self.game = GameView()
         self.title = TitleView()
         self.end = EndView()
@@ -99,7 +101,7 @@ class TemporumWindow(arcade.Window):
 
     def on_key_press(self, symbol: int, modifiers: int):
         # At all times the ESCAPE key will close the game.
-        if symbol == arcade.key.X or symbol == arcade.key.ESCAPE:
+        if symbol == arcade.key.ESCAPE:
             self.close()
         elif symbol == arcade.key.TAB:
             self.show_view(PauseMenu())
@@ -514,8 +516,9 @@ class TitleView(arcade.View):
         self.timer = time.time()
 
     def on_key_press(self, symbol: int, modifiers: int):
-        self.state += 1
-        self.timer = time.time()
+        if symbol == arcade.key.ENTER:
+            self.state += 1
+            self.timer = time.time()
 
 
 def main():
