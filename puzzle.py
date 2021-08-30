@@ -93,6 +93,11 @@ class TextBox:
 class TextPuzzle:
 
     def __init__(self, puzzle_answer, speaker):
+        """
+        The TextPuzzle is a very rudimentary password system. That's it really.
+        :param puzzle_answer: the answer to the password.
+        :param speaker: the "speaker" even though it will always be terminal and doesn't work.
+        """
         self.answer = puzzle_answer
         self.input = ""
         self.complete = False
@@ -102,6 +107,7 @@ class TextPuzzle:
         self.shake = False
         self.text_boxes = arcade.SpriteList()
         self.letters = []
+        # create the tiles.
         start = c.round_to_x(- 450 * c.SPRITE_SCALE, 5 * c.SPRITE_SCALE)
         for x, char in enumerate(self.answer):
             sprite = arcade.Sprite("assets/ui/ui_pieces.png", c.SPRITE_SCALE, 460, 90, 230, 90)
@@ -112,6 +118,7 @@ class TextPuzzle:
         self.shake_start = 0
 
     def key_input(self, key, modifier):
+        # Take the key input from the player and add it to the password.
         if key == arcade.key.ENTER:
             if self.input == self.answer:
                 self.complete = True
@@ -133,12 +140,14 @@ class TextPuzzle:
                 self.letters[len(self.input)-1].letter = new_key
 
     def reset(self):
+        # reset password
         if not self.complete:
             self.input = ""
             for letter in self.letters:
                 letter.letter = ""
 
     def cycle_step(self):
+        # cycle step. If the puzzle is complete let it cycle if not, don't
         if self.complete:
             return True
         return False

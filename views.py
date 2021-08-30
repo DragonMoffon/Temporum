@@ -10,7 +10,7 @@ import isometric
 import ui
 import turn
 import interaction
-import algorithms
+from bot import create_bot
 
 
 class Mouse(arcade.Sprite):
@@ -437,7 +437,7 @@ class GameView(arcade.View):
                 self.selected_tile.new_pos(self.select_tile.e_x, self.select_tile.e_y)
 
     def new_bot(self, bot):
-        new_bot = algorithms.create_bot(bot.x, bot.y, self.map_handler.full_map)
+        new_bot = create_bot(bot.x, bot.y, self.map_handler.full_map)
         self.current_ai.append(new_bot)
         if len(new_bot.animations):
             self.map_handler.map.animated_sprites.append(new_bot)

@@ -1,5 +1,3 @@
-import math
-
 import arcade
 
 import isometric
@@ -56,45 +54,96 @@ def restart():
 
 
 def set_player(player):
+    """
+    Set the player
+    :param player: the player object
+    """
     global PLAYER
     PLAYER = player
 
 
 def set_map_size(size):
+    """
+    set map size
+    :param size: a tuple/list of type (int, int)
+    """
     global CURRENT_MAP_SIZE
     CURRENT_MAP_SIZE = tuple(size)
 
 
 def clamp(value, low=0, high=1):
+    """
+    clamp value
+    :param value: value
+    :param low: lowest possible value
+    :param high: highest possible value
+    :return: the clamped value
+    """
     return min(max(value, low), high)
 
 
 def round_to_x(value, x):
-    return round(value/x)*x
+    """
+    round value to the nearest multiple of x
+
+    if you have 16 and round to 5 it will return 15.
+
+    :param value: the value to round
+    :param x: the number to round to.
+    :return: the rounded value
+    """
+    return int(round(value/x)*x)
 
 
 def floor_to_x(value, x):
-    return math.floor(value/x)*x
+    """
+    round value to the next lowest multiple of x.
+
+    if you have 19 and floor to 5 it will return 15
+
+    :param value: value to round
+    :param x: the number to floor to
+    :return: the floored value
+    """
+    return int(value/x)*x
 
 
 def iso_append(item):
+    """
+    Add an iso sprite to the iso list.
+
+    Will not add an item more than once, and will not add an item that is in the ground list.
+    :param item: an iso sprite.
+    """
     if item not in GROUND_LIST and item not in ISO_LIST:
         ISO_LIST.append(item)
 
 
 def iso_extend(iterable: iter):
+    """
+    appends all items in the inputted iterable to the iso list.
+    :param iterable: a iterable of iso sprites.
+    """
     for item in iterable:
-        if item not in ISO_LIST:
-            iso_append(item)
+        iso_append(item)
 
 
 def iso_strip(iterable: iter):
+    """
+    removes all items in inputted iterable from iso list
+    :param iterable: an iterable of iso sprites
+    """
     for item in iterable:
-        if item in ISO_LIST:
-            ISO_LIST.remove(item)
+        ISO_LIST.remove(item)
 
 
 def iso_remove(item):
+    """
+    removes the inputted iso sprite from the iso list
+
+    only works if the item is in the iso list.
+    :param item: an iso sprite
+    """
     if item in ISO_LIST:
         ISO_LIST.remove(item)
 
@@ -110,21 +159,14 @@ def iso_hide(iterable: iter):
     iso_strip(strips)
 
 
-def iso_show(iterable: iter):
-    show = []
-    for item in iterable:
-        item.texture = item.base
-        item.hide = False
-        if item not in ISO_LIST:
-            show.append(item)
-    iso_extend(show)
-
-
 def iso_changed():
+    # If the iso list has changed or an item in the list has changed it's W value. then tell the program to resort
+    # the iso list when the draw function is called.
     ISO_LIST.changed = True
 
 
 def set_floor(items):
+    # set the floor tiles.
     global GROUND_LIST
     GROUND_LIST = IsoList()
     GROUND_LIST.extend(items)
@@ -135,17 +177,20 @@ def set_floor(items):
 AUDIO FUNCTIONS
 """
 
+# The base music and music player.
 BASE_MUSIC = arcade.load_sound("audio/The Workshop 44100Hz Mono 16 bit.wav")
 MUSIC_PLAYER = None
 
 
 def start_music():
+    # starts the music.
     global MUSIC_PLAYER
     if MUSIC_PLAYER is None:
         MUSIC_PLAYER = BASE_MUSIC.play(volume=0.15, pan=0.0, loop=True)
 
 
 def stop_music():
+    # stops the music
     global MUSIC_PLAYER
     if MUSIC_PLAYER is not None:
         BASE_MUSIC.stop(MUSIC_PLAYER)

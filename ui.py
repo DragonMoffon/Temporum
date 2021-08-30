@@ -1,4 +1,3 @@
-
 import arcade
 
 
@@ -17,9 +16,16 @@ class Action:
         self.data = data
 
     def act(self):
+        """
+        called on click.
+        """
         print(self.data[0])
 
     def input_act(self, inputs: tuple = ("default", "default")):
+        """
+        same as act but has an input.
+        :param inputs: the inputs given on click.
+        """
         print(self.data[0], inputs)
 
 
@@ -80,6 +86,15 @@ class Button(arcade.Sprite):
 
     def __init__(self, texture: arcade.Texture, pressed_texture: arcade.Texture = None,
                  pos=(0, 0), action: Action = Action(), secondary_action: Action = None, text: str = ""):
+        """
+        A button is a sprite that holds an action, and secondary action that are called when the button is clicked.
+        :param texture: the texture of the button
+        :param pressed_texture: the pressed texture of the button
+        :param pos: it's x y screen pos
+        :param action: it's action to be called on click
+        :param secondary_action: the secondary action called on click
+        :param text: the text drawn above the button sprite.
+        """
         super().__init__()
         self.center_x = c.round_to_x(pos[0], 5 * c.SPRITE_SCALE)
         self.center_y = c.round_to_x(pos[1], 5 * c.SPRITE_SCALE)
@@ -117,6 +132,17 @@ class Tab(arcade.Sprite):
 
     def __init__(self, texture, rel_x, rel_y, game_view, movable: bool = True,
                  button_data: tuple = (), tab_data: tuple = (), display_data: tuple = ()):
+        """
+        A tab holds children tabs and buttons.
+        :param texture: a sprite of it's base.
+        :param rel_x: it's rel x to the screen view x
+        :param rel_y: it's rel y to the screen view y
+        :param game_view: the game view
+        :param movable: if the ui piece can be dragged around
+        :param button_data: the button data. so buttons can be generated
+        :param tab_data: the tab data. so tabs can be generated
+        :param display_data: the display data. so displays can be generated.
+        """
         super().__init__(scale=c.SPRITE_SCALE)
         # Parent Element List
         self.parent_list = game_view.ui_elements
@@ -149,6 +175,9 @@ class Tab(arcade.Sprite):
         game_view.ui_elements.append(self)
 
     def process_buttons(self):
+        """
+        generate the buttons based on the input data.
+        """
         buttons = arcade.SpriteList()
         if self.button_data is not None:
             texture = arcade.load_texture("assets/ui/ui_pieces.png", x=230, width=230, height=90)
@@ -161,6 +190,9 @@ class Tab(arcade.Sprite):
         return buttons
 
     def process_displays(self):
+        """
+        generate the displays based on the input data.
+        """
         displays = arcade.SpriteList()
         for data in self.display_data:
             textures = []
@@ -173,6 +205,10 @@ class Tab(arcade.Sprite):
         return displays
 
     def load_buttons(self, button_data):
+        """
+        Add pre created buttons.
+        :param button_data: a list of pre-created buttons.
+        """
         buttons = list(self.button_data)
         for button in button_data:
             if button not in self.button_data:
@@ -182,6 +218,10 @@ class Tab(arcade.Sprite):
         self.buttons = self.process_buttons()
 
     def strip_buttons(self, button_data):
+        """
+        remove all the buttons that are in the inputed data.
+        :param button_data: the buttons to remove.
+        """
         buttons = list(self.button_data)
         for button in button_data:
             if button in self.button_data:
@@ -548,4 +588,3 @@ class TalkTab(Tab):
 
     def on_key_press(self, key, modifier):
         self.current_node.on_key_press(key, modifier)
-

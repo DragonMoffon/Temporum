@@ -7,7 +7,14 @@ import constants as c
 from map_tile import Tile
 
 
-def find_cost(tile, algorithm):
+def find_cost(tile, algorithm) -> int:
+    """
+    using the input algorithm find the cost of a tile. This is so the Ai can sneak around the player. It avoids being
+    seen by the player, and avoids it when possible. While still staying as close to the player as possible.
+    :param tile: The Current Tile To find cost.
+    :param algorithm: What style to find the cost for.
+    :return: the cost.
+    """
     if algorithm == "base":
         return 1
     elif algorithm == "target_player":
@@ -16,10 +23,13 @@ def find_cost(tile, algorithm):
         else:
             closeness = int(math.sqrt(astar_heuristic(tile.location, (c.PLAYER.e_x, c.PLAYER.e_y))))
         seen = tile.map.vision_handler.vision_image.getpixel(tile.location)[0]
-        return closeness + seen + 1
+        return closeness + seen
 
 
 class PriorityQueue:
+    """
+    This uses the fast sorting path of a Priority Que to find the the best tile to pick based on priority.
+    """
     def __init__(self):
         self.elements: List[Tuple[float, Tile]] = []
 
@@ -34,25 +44,43 @@ class PriorityQueue:
 
 
 def find_neighbours(tile_map):
+    """
+    This is run to link all the tiles together. But only where there actually are tiles.
+
+    :param tile_map: The 2d array of tiles to go through.
+    """
+    # It only looks backwards so that it doesn't ever do the same operation twice while still finding the neighbors for
+    # every tile.
     dirs = (0, -1), (-1, 0)
+
+    # Iterate through tile map.
     for x_dex, column in enumerate(tile_map):
         for y_dex, current_tile in enumerate(column):
+
+            # If the tile isn't none check each direction.
             if current_tile is not None:
                 current_tile.location = (x_dex, y_dex)
                 for direction in dirs:
+
+                    # Find the x and y pos of the neighbor tile.
                     n_x = x_dex + direction[0]
                     n_y = y_dex + direction[1]
+
+                    # If the check pos is inside the map.
                     if 0 <= n_y < len(column) and 0 <= n_x < len(tile_map):
+                        # find the neighbor and the direction index to the tile and from the tile.
                         neighbor_tile = tile_map[n_x, n_y]
                         cur_neigh_dir = c.DIRECTIONS[direction]
                         neigh_cur_dir = (cur_neigh_dir + 2) % 4
 
+                        # if both tiles aren't none set the tiles to be neighbors.
                         if current_tile is not None and neighbor_tile is not None:
                             neighbor_tile.neighbours[neigh_cur_dir] = current_tile
                             current_tile.neighbours[cur_neigh_dir] = neighbor_tile
 
 
 def astar_heuristic(a: tuple = (int, int), b: tuple = (int, int)):
+    # Find the non sqrt distance between two tiles. C^2 = A^2 + B^2
     x1, y1 = a
     x2, y2 = b
     return (x1-x2)**2 + (y1-y2)**2
@@ -85,12 +113,6 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
     cost_so_far = dict()
     # priority_so_far is the same as cost_so_far but uses the priority stacked on top of itself.
     priority_so_far = dict()
-    # costs_loaded uses a float as a key and gives a list of all the nodes that have this cost. So all nodes with a cost
-    # of 1 are stored in a list, all nodes with a cost of 2 are in a list etc.
-    costs_loaded = dict()
-    # priority_loaded uses a float as a key and gives a list of all the nodes that had this priority. This is so a path
-    # can be found even if the target is unreachable.
-    priority_loaded = dict()
     # edges is a list of all nodes that have and edge.
     edges = []
 
@@ -98,8 +120,6 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
     came_from[start] = None
     cost_so_far[start] = 0
     priority_so_far[start] = 0
-    priority_loaded[start] = find_cost(start, algorithm)
-    costs_loaded[0] = [start]
     if None in start.directions:
         edges.append(start)
 
@@ -125,25 +145,21 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
                         and (dirs not in priority_so_far or new_priority < priority_so_far[dirs])
                         and dirs is not came_from[current]):
 
+                    # This adds the tiles priority (no matter how they got to the tile. Just how much this tile costs)
                     tile_costs.put(priority, dirs)
 
+                    # take the new cost and set the new tiles cost so far. This is so the player can find the edges.
                     cost_so_far[dirs] = new_cost
+
+                    # Add the dir to came from with the last tile as how it travelled. For reconstructing paths.
                     came_from[dirs] = current
 
+                    # add the priority to the que.
                     priority_so_far[dirs] = new_priority
                     frontier.put(new_priority, dirs)
 
-                    if new_cost not in costs_loaded:
-                        costs_loaded[new_cost] = [dirs]
-                    else:
-                        costs_loaded[new_cost].append(dirs)
-
-                    if priority not in priority_loaded:
-                        priority_loaded[priority] = [dirs]
-                    elif dirs not in priority_loaded[priority]:
-                        priority_loaded[priority].append(dirs)
-
                     continue
+
             # If the current tile has a neighbour that is past the max dist it is an edge
             # If there is a neighbor node but they do not connect it is an edge
             # If the node has a none in a direction then it is an edge.
@@ -151,24 +167,27 @@ def path_2d(grid_2d, start_xy, max_dist: int = 20, algorithm="base"):
                 edges.append(current)
 
     edges = sorted(edges, key=lambda edge: cost_so_far[edge])
-    return came_from, cost_so_far, costs_loaded, edges, tile_costs
+    return came_from, cost_so_far, edges, tile_costs
 
 
 def reconstruct_path(grid_2d, came_from: dict, start_xy: tuple, end_xy: tuple):
+    """
+    Taking the start and end pos it reconstructs the path. This is split from generating the Path_2d because multiple
+    paths may be calculated from the same path_2d map.
+
+    :param grid_2d: The 2d grid of tiles to retrieve from.
+    :param came_from: the dict of every reachable tile and what tile that tile came from.
+    :param start_xy: the start x and y pos
+    :param end_xy: the end x and y pos.
+    :return:
+    """
+
+    # find the start and end tiles.
     start = grid_2d[start_xy]
     end = grid_2d[end_xy]
-    dirs = (0, 1), (0, -1), (1, 0), (-1, 0)
-    while end is None:
-        best = float('inf')
-        for direction in dirs:
-            pos = c.clamp(end_xy[0]+direction[0], 0, len(grid_2d)-1),\
-                  c.clamp(end_xy[1]+direction[1], 0, len(grid_2d[0])-1)
-            distance = astar_heuristic(pos, start_xy)
-            if distance < best:
-                new_end = grid_2d[pos]
-                best = distance
-                end = new_end
 
+    # If the tile is accessible then the set the current to end. Then loop through the came from dict until the start is
+    # found.
     if end is not None and end in came_from:
         current = end
         path: list = []
@@ -181,49 +200,3 @@ def reconstruct_path(grid_2d, came_from: dict, start_xy: tuple, end_xy: tuple):
         path.reverse()
         return path
     return []
-
-
-def create_bot(x, y, grid_2d):
-    import isometric
-    import turn
-
-    bot_text = isometric.generate_iso_data_other('bot')
-
-    class SimpleMoveBot(isometric.IsoActor):
-
-        def __init__(self):
-            super().__init__(x, y, bot_text[0], 6)
-            self.textures = bot_text
-            self.set_grid(grid_2d)
-            self.algorithm = 'target_player'
-            self.last_known_player_location = None
-            self.shock_timer = 0
-            self.end_turn = False
-
-        def new_pos(self, e_x, e_y):
-            super().new_pos(e_x, e_y)
-            if not c.PLAYER.game_view.map_handler.map.check_seen((e_x, e_y)):
-                c.iso_remove(self)
-            else:
-                c.iso_append(self)
-
-        def update(self):
-            if self.action_handler.current_action is None and self.action_handler.initiative > 0:
-                if self.shock_timer:
-                    self.set_iso_texture(self.textures[1])
-                    self.shock_timer -= 1
-                    self.action_handler.pass_turn()
-                elif self.end_turn:
-                    self.action_handler.current_action = turn.ACTIONS['end']([None], self.action_handler)
-                    self.end_turn = False
-                else:
-                    self.set_iso_texture(self.textures[0])
-                    move_node = c.PLAYER.game_view.map_handler.full_map[c.PLAYER.e_x, c.PLAYER.e_y]
-                    self.action_handler.current_action = turn.ACTIONS['move_enemy'](move_node.available_actions['move'],
-                                                                                    self.action_handler)
-
-        def hit(self, shooter):
-            self.shock_timer = 4
-            self.set_iso_texture(self.textures[1])
-
-    return SimpleMoveBot()

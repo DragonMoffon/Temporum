@@ -58,6 +58,15 @@ class IsoData:
 class IsoAnimation:
 
     def __init__(self, location, size, start_xy, frames, speed):
+        """
+        An iso animation is just a class that holds the sprites and data for an aniamtion. By having it in it's own
+        class it can be used to store pending animations.
+        :param location: the image location
+        :param size: a tuple of the images width and height
+        :param start_xy: a tuple of the animations start x and y in the input image
+        :param frames: the number of frames
+        :param speed: the frames per second
+        """
         self.current_frame = 0
         self.frame_timer = 0
         self.animation_speed = speed
@@ -67,14 +76,19 @@ class IsoAnimation:
         self.facing = 0
         y = start_xy[1]
         x = start_xy[0]
+
+        # load the frames
         while frames > self.frames:
             try:
+                # try and load a texture. If an error is generated that means we have moved too far on the x or y
                 texture = arcade.load_texture(location, x, y, *size)
                 flip_texture = arcade.load_texture(location, x, y, *size, flipped_horizontally=True)
                 self.textures.append((texture, flip_texture))
                 self.frames += 1
                 x += size[0]
             except ValueError:
+                # Since the x is to high lets reset and move down on the y.
+                # if it complains multiple times then it's going to far on the y.
                 x = 0
                 y += size[1]
 
@@ -83,9 +97,12 @@ class IsoAnimation:
                     break
 
     def start_animation(self):
+        # start the animation by returning the first texture. SO there isn't a pause before the animation starts.
         return self.textures[self.frame][self.facing]
 
     def update_animation(self, delta_time):
+        # increase the frame timer. If the timer goes above the FPS value then go to next frame.
+        # if we go past our number of frames then return none to tell the animating sprite the animation is done
         self.frame_timer += delta_time
         if self.frame_timer > self.animation_speed:
             self.frame_timer -= self.animation_speed
@@ -102,10 +119,21 @@ class IsoSprite(arcade.Sprite):
     The base isometric tile class, basically just the arcade.Sprite with methods and variables for isometric casting.
     """
     def __init__(self, e_x, e_y, tile_data: IsoData, animations=None):
+        """
+        the base of all isometric sprites. It stores alot more information than the standard sprite including a W
+        values and more.
+        :param e_x: the euclidean x pos
+        :param e_y: the euclidean y pos
+        :param tile_data: the tile data
+        :param animations: any iso animations this sprite may have.
+        """
         if animations is None:
             animations = {}
+        # If the sprite is a piece of a larger item. then we need to find the relative position and mods.
         self.relative_pos = tile_data.relative_pos
         self.position_mods = tile_data.position_mods
+
+        # Find the iso x, iso t and W value based on the e_x and e_y.
         x, y, w = cast_to_iso(e_x + self.relative_pos[0], e_y + self.relative_pos[1])
         super().__init__(scale=c.SPRITE_SCALE)
         # The center positions of the tile.
@@ -139,12 +167,14 @@ class IsoSprite(arcade.Sprite):
         self.current_trigger = None
 
     def new_pos(self, e_x, e_y):
+        # given a euclidean x and y find the new iso positions.
         self.center_x, self.center_y, self.center_w = cast_to_iso(e_x, e_y, self.position_mods)
         self.e_x = e_x + self.relative_pos[0]
         self.e_y = e_y + self.relative_pos[1]
         c.iso_changed()
 
     def set_iso_texture(self, tile_data: IsoData):
+        # set the iso texture based on new tile data.
         self.relative_pos = tile_data.relative_pos
         self.position_mods = tile_data.position_mods
         x, y, w = cast_to_iso(self.e_x, self.e_y)
@@ -171,12 +201,14 @@ class IsoSprite(arcade.Sprite):
             self.tile.update(self)
 
     def add_animation(self, animation, trigger, facing=0):
+        # add a pending animation to the end of the list.
         if animation in self.animations:
             self.pending_animations.append((animation, trigger, facing))
         elif trigger is not None:
             trigger.done_animating()
 
     def push_animation(self, animation, trigger, facing=0):
+        # add a pending animation to the front of the list.
         if animation in self.animations:
             self.pending_animations.insert(0, (animation, trigger, facing))
         elif trigger is not None:
@@ -237,6 +269,13 @@ class IsoSprite(arcade.Sprite):
 class IsoActor(IsoSprite):
 
     def __init__(self, e_x, e_y, tile_data: IsoData, initiative=10):
+        """
+        Same as an iso sprite but it also stores information needed about turn handling as this sprite is a turn actor.
+        :param e_x: euclidean x pos
+        :param e_y: euclidean y pos
+        :param tile_data: tile data
+        :param initiative: the base initative of the sprite
+        """
         super().__init__(e_x, e_y, tile_data)
         self.action_handler = ActionHandler(self, initiative)
         self.algorithm = "base"
@@ -244,9 +283,19 @@ class IsoActor(IsoSprite):
         self.path_finding_data = None
 
     def set_grid(self, path_grid_2d):
+        """
+        Set the 2d grid array of tiles for pathfinding/
+        :param path_grid_2d: the 2d array of tiles
+        """
         self.path_finding_grid = path_grid_2d
 
     def new_pos(self, e_x, e_y):
+        """
+        Set the pos of the sprite based on the euclidean input pos, and change which tile the character can be found in.
+        :param e_x:
+        :param e_y:
+        :return:
+        """
         if self.path_finding_grid is not None:
             old = self.path_finding_grid[self.e_x, self.e_y]
             if old is not None:
@@ -259,12 +308,20 @@ class IsoActor(IsoSprite):
             super().new_pos(e_x, e_y)
 
     def new_map_pos(self, e_x, e_y):
+        """
+        this is the same as new pos but is for when a new map in being generated.
+        :param e_x: euclidean x pos
+        :param e_y: euclidean y pos
+        """
         super().new_pos(e_x, e_y)
         new = self.path_finding_grid[e_x, e_y]
         if new is not None:
             new.light_add(self)
 
     def load_paths(self):
+        """
+        using the path finding grid. generate all the data needed for pathfinding.
+        """
         if self.path_finding_grid is not None:
             from algorithms import path_2d
             self.path_finding_data = path_2d(self.path_finding_grid, (self.e_x, self.e_y),
@@ -272,20 +329,37 @@ class IsoActor(IsoSprite):
                                              algorithm=self.algorithm)
 
     def hit(self, shooter):
+        """
+        If an iso actor is hit by anything.
+        :param shooter: another iso actor.
+        """
         print(self, "hit by", shooter)
 
 
 class IsoInteractor(IsoSprite):
 
     def __init__(self, e_x, e_y, tile_data, interaction_data):
+        """
+        an Iso Sprite used for POI
+        :param e_x: euclidean x pos
+        :param e_y: euclidean y pos
+        :param tile_data: the tile data
+        :param interaction_data: the conversation node
+        """
         super().__init__(e_x, e_y, tile_data)
-        # The Node based conversation tree the IsoSprite needs
         self.interaction_data = interaction_data
 
 
 class IsoStateSprite(IsoSprite):
 
     def __init__(self, e_x, e_y, tile_states, target_id):
+        """
+        An Iso Sprite that has a bunch of different states that it can toggle through. used for doors.
+        :param e_x: euclidean x pos
+        :param e_y: euclidean y pos
+        :param tile_states: the different states
+        :param target_id: the id of the tile.
+        """
         super().__init__(e_x, e_y, tile_states[0])
         self.states = tile_states
         self.current_state = 0
@@ -297,7 +371,9 @@ class IsoStateSprite(IsoSprite):
 
 
 class IsoGateSprite(IsoSprite):
-
+    """
+    an iso sprite that also has data for going to another room
+    """
     def __init__(self, e_x, e_y, iso_data, gate_data):
         super().__init__(e_x, e_y, iso_data)
         self.gate_data = gate_data
@@ -345,6 +421,14 @@ class IsoList(arcade.SpriteList):
 class IsoLayer:
 
     def __init__(self, layer_data, map_data, sprite_data, tile_map, shown=True):
+        """
+        nigh pointless class that's here for backwards compatability.
+        :param layer_data: the layer tmx
+        :param map_data: a 2d array of numbers pointing to different spirtes.
+        :param sprite_data: all the iso sprites
+        :param tile_map: a 2d array of sprites
+        :param shown: whether to show the layer or not.
+        """
         self.layer_data = layer_data
         self.map_data = map_data
         self.tiles = sprite_data
@@ -352,13 +436,14 @@ class IsoLayer:
         self.shown = shown
 
 
-@dataclass()
-class IsoRoom:
-    room_walls: arcade.SpriteList
-    shown: bool = True
-
-
 def find_poi_sprites(tile_id, node, pos_data):
+    """
+    generate the Isodata for a POI iso sprite.
+    :param tile_id: the target id to find the iso data.
+    :param node: the node of the conversation tree
+    :param pos_data: the position data
+    :return: the iso interactor.
+    """
     tile_data = tiles.find_iso_data(tile_id)
     pieces = []
     for piece in tile_data.pieces:
@@ -371,6 +456,13 @@ def find_poi_sprites(tile_id, node, pos_data):
 
 
 def find_toggle_sprites(tile_ids, target_id, pos_data):
+    """
+    find the iso data for toggle sprite.
+    :param tile_ids: the ids of all the sprites
+    :param target_id: the target id of the toggle sprite
+    :param pos_data: the pos data
+    :return: the IsoStateSprite
+    """
     tile_data = [tiles.find_iso_data(i) for i in tile_ids]
     pieces = []
     for tile in tile_data:
@@ -383,6 +475,12 @@ def find_toggle_sprites(tile_ids, target_id, pos_data):
 
 
 def find_iso_sprites(tile_id, pos_data):
+    """
+    Create Iso sprites from inputed tile id.
+    :param tile_id: tile id.
+    :param pos_data: position data
+    :return: all the sprites that make up the tile id.
+    """
     tile_data = tiles.find_iso_data(tile_id)
     pieces = []
     for piece in tile_data.pieces:
@@ -395,6 +493,11 @@ def find_iso_sprites(tile_id, pos_data):
 
 
 def generate_iso_data_other(key):
+    """
+    Finds the iso data but for special tiles not found in the normal data.
+    :param key: the key for this data
+    :return: the iso data.
+    """
     tile_data = tiles.OTHER_TEXTURES[key]
     pieces = []
     for piece in tile_data.pieces:

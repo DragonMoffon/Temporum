@@ -9,6 +9,13 @@ import constants
 class VisionCalculator:
 
     def __init__(self, context: arcade.Window, caster, lit=False):
+        """
+        The vision calculator uses shaders to rapidly do a ray cast to every tile within a certain radius.
+        this is then used to show the player what they can see.
+        :param context: the game window
+        :param caster: the caster. in this case the player.
+        :param lit: whether the map is lit up or not. If it isn't lit up then there is a drop of in the light.
+        """
         self.ctx = context
         self.caster = caster
         self.map_size = (0, 0)
@@ -22,11 +29,13 @@ class VisionCalculator:
         self.vision_image: Image.Image = None
         self.buffer = None
 
+        # The shader that calculates the vision
         self.geometry = gl.geometry.screen_rectangle(-1, -1, 2, 2)
         self.vision_program = context.ctx.load_program(
             vertex_shader="shaders/arcade_vertex.glsl",
             fragment_shader="shaders/vision_frag.glsl"
         )
+        # the program that draws what is visible.
         self.vision_program['lit'] = lit
         self.draw_tiles_program = context.ctx.load_program(
             vertex_shader="shaders/arcade_vertex.glsl",

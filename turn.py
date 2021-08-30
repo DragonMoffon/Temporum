@@ -12,6 +12,11 @@ import constants as c
 
 class Action:
     def __init__(self, inputs, handler):
+        """
+        Base action class. has all the external functions that any child will use to do things.
+        :param inputs: any inputs the action needs
+        :param handler: the handler doing the action.
+        """
         self.end = False
         self.inputs = inputs
         self.handler = handler
@@ -23,18 +28,37 @@ class Action:
         self.turn_timer = 0
 
     def setup(self):
+        """
+        called when the action is created.
+        :return:
+        """
         self.find_cost()
 
     def begin(self):
+        """
+        called when this action becomes the turn handlers current action.
+        :return:
+        """
         pass
 
     def find_cost(self):
+        """
+        calculate the initiative cost of the action.
+        """
         self.cost = 1
 
     def update(self):
+        """
+        what happens every update.
+        """
         return True
 
     def on_update(self, delta_time: float = 1/60):
+        """
+        happens every update with delta-time. Used to make a timer, as certain actions only update every so often.
+        :param delta_time: time since last draw call.
+        :return: bool if the update is finished.
+        """
         self.turn_timer += delta_time
         if self.turn_timer > 1/8:
             self.turn_timer -= 1/8
@@ -42,23 +66,38 @@ class Action:
         return False
 
     def final(self):
+        """
+        last thing called.
+        """
         pass
 
     def draw(self):
+        """
+        draw the action.
+        """
         pass
 
     def can_complete(self):
-        if self.cost <= self.handler.initiative:
-            return True
-        return False
+        """
+        checks to see if the action can be completed. generally just checks to see if the cost is less than the
+        current handlers remaining initiative.
+        :return: if the action can be completed.
+        """
+        return self.cost <= self.handler.initiative
 
     def done_animating(self):
+        """
+        called if the action caused something to animate, and that animation is done.
+        """
         pass
 
 
 class MoveAction(Action):
 
     def setup(self):
+        """
+        Finds the shortest path based on the input location.
+        """
         self.handler.actor.load_paths()
         path = algorithms.reconstruct_path(self.actor.path_finding_grid,
                                            self.actor.path_finding_data[0],
@@ -68,6 +107,10 @@ class MoveAction(Action):
         self.find_cost()
 
     def can_complete(self):
+        """
+        if the path is there then yes it can be completed.
+        :return: bool of whether the action can be completed.
+        """
         if len(self.data['path']):
             return True
         return False
@@ -307,6 +350,11 @@ ACTIONS = {"move": MoveAction, "end": HoldAction, "dash": DashAction,
 
 class ActionHandler:
     def __init__(self, actor, base=10):
+        """
+        Manages the actions of one actor.
+        :param actor: the iso actor that holds the action handler.
+        :param base: the base initiative of the actor
+        """
         self._pending_action: Action = None
         self._current_action: Action = None
         self.actor = actor
@@ -317,9 +365,15 @@ class ActionHandler:
         self.turn_handler = None
 
     def pass_turn(self):
+        """
+        make the turn handler go to the next actor.
+        """
         self.turn_handler.cycle()
 
     def complete(self):
+        """
+        called when the action handler is done with it's turn
+        """
         self.current_action = None
         self._pending_action = None
         self.initiative = self.next_initiative
@@ -327,6 +381,13 @@ class ActionHandler:
         self.next_initiative = self.base_initiative
 
     def on_update(self, delta_time: float = 1/60):
+        """
+        Update the action handler. If it has a current action. then update the action handler.
+        If the action is done and the action handlers initiative is below or equal to 0 then the action handler is
+        done for turn.
+        :param delta_time:
+        :return: bool if the action handler is done for turn.
+        """
         if self.current_action is not None and self.current_action.on_update(delta_time):
             self.current_action.final()
             self.current_action = None
@@ -335,6 +396,7 @@ class ActionHandler:
         return False
 
     def draw(self):
+        # self explanitory
         if self.pending_action is not None:
             self.pending_action.draw()
 
@@ -385,6 +447,11 @@ class ActionHandler:
 
 class TurnHandler:
     def __init__(self, action_handlers: list, game_view):
+        """
+        THe turn handler manages the turns of all the iso actors.
+        :param action_handlers: all of the iso actors.
+        :param game_view: the game view.
+        """
         self.action_handlers: List[ActionHandler] = sorted(action_handlers, key=lambda handlers: handlers.initiative)
         self.complete: List[ActionHandler] = []
         self.current_handler: ActionHandler = None
@@ -392,15 +459,14 @@ class TurnHandler:
         self.update_timer = 0
 
     def new_action_handlers(self, new_handlers):
+        # add a new action handler.
         self.complete.extend(new_handlers)
 
-    def reset_action_handlers(self, new_handlers):
-        self.action_handlers: List[ActionHandler] = sorted(new_handlers, key=lambda handlers: handlers.initiative)
-        self.current_handler: List[ActionHandler] = []
-        self.current_handler = None
-        self.update_timer = 0
-
     def remove_action_handlers(self, removed_handlers):
+        """
+        remove a list of action handlers
+        :param removed_handlers: the action handlers to remove.
+        """
         for handler in removed_handlers:
             if handler in self.action_handlers:
                 self.action_handlers.remove(handler)
@@ -413,6 +479,9 @@ class TurnHandler:
             self.complete.remove(handler)
 
     def next_actor(self):
+        """
+        find the next action handler.
+        """
         self.current_handler = self.action_handlers.pop(0)
         if self.current_handler.turn_handler is None:
             self.current_handler.turn_handler = self
@@ -425,6 +494,9 @@ class TurnHandler:
                                                   self.current_handler.actor.center_y - c.SCREEN_HEIGHT//2))
 
     def cycle(self):
+        """
+        cycle through the action handlers.
+        """
         self.update_timer = time.time()
         last = None
         if self.current_handler is not None:
@@ -441,6 +513,10 @@ class TurnHandler:
             last.complete()
 
     def on_update(self, delta_time: float = 1/60):
+        """
+        update the curent action handler
+        :param delta_time: time since last draw call.
+        """
         if self.current_handler is None:
             self.cycle()
         elif self.current_handler.on_update(delta_time):
