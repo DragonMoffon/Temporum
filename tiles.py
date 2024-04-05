@@ -82,14 +82,14 @@ def load_textures(location: str = 'tiles.json'):
                 file = files[piece.get('other_texture', tile['texture'])]
 
                 # Create the two textures and create the piece data.
-                texture = arcade.load_texture(file['file'], piece['start_x'], piece['start_y'],
-                                              file['width'], file['height'])
+                texture = arcade.load_texture(file['file'], x=piece['start_x'], y=piece['start_y'],
+                                              width=file['width'], height=file['height'])
 
                 if hidden_data == texture_data:
                     hidden = None
                 else:
-                    hidden = arcade.load_texture(hidden_data['file'], piece['start_x'], piece['start_y'],
-                                                 hidden_data['width'], hidden_data['height'])
+                    hidden = arcade.load_texture(hidden_data['file'], x=piece['start_x'], y=piece['start_y'],
+                                                 width=hidden_data['width'], height=hidden_data['height'])
                 pieces.append(PieceData(texture, hidden, relative_pos, mod_w, ))
 
             # Create the TileData and add to the dict.

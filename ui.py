@@ -124,7 +124,7 @@ class Button(arcade.Sprite):
         if self.secondary_action is not None:
             self.secondary_action.input_act((value,))
 
-    def draw_hit_box(self, color: arcade.Color = arcade.color.WHITE, line_thickness: float = 1):
+    def draw_hit_box(self, color=arcade.color.WHITE, line_thickness: float = 1):
         arcade.draw_text(self.text, self.center_x, self.center_y, color, anchor_x='center', anchor_y='center')
 
 
@@ -169,8 +169,8 @@ class Tab(arcade.Sprite):
         self.displays = self.process_displays()
 
         # The tab pos based on the relative x and y important for scaling screen sizes.
-        self.center_x = c.round_to_x(game_view.window.view_x + rel_x, 5 * c.SPRITE_SCALE)
-        self.center_y = c.round_to_x(game_view.window.view_y + rel_y, 5 * c.SPRITE_SCALE)
+        self.center_x = c.round_to_x(rel_x, 5 * c.SPRITE_SCALE)
+        self.center_y = c.round_to_x(rel_y, 5 * c.SPRITE_SCALE)
 
         game_view.ui_elements.append(self)
 
@@ -265,19 +265,20 @@ class Tab(arcade.Sprite):
         self.center_x = c.round_to_x(self.game_view.window.view_x + self.rel_x, 5*c.SPRITE_SCALE)
         self.center_y = c.round_to_x(self.game_view.window.view_y + self.rel_y, 5*c.SPRITE_SCALE)
 
-    def _get_center_x(self) -> float:
+    @property
+    def center_x(self) -> float:
         """ Get the center y coordinate of the sprite. """
         return self._position[0]
 
-    def _set_center_x(self, new_value: float):
+    @center_x.setter
+    def center_x(self, new_value: float):
         if new_value != self._position[0]:
-            self.clear_spatial_hashes()
-            self._point_list_cache = None
-            self._position = (new_value, self._position[1])
-            self.add_spatial_hashes()
+            self._position = new_value, self._position[1]
+
+            self.update_spatial_hash()
 
             for sprite_list in self.sprite_lists:
-                sprite_list.update_location(self)
+                sprite_list._update_position_x(self)
 
             for index, button in enumerate(self.buttons):
                 button.center_x = new_value + self.button_data[index]['x'] * c.SPRITE_SCALE
@@ -289,21 +290,21 @@ class Tab(arcade.Sprite):
                 if tab not in self.parent_list:
                     tab.center_x = self.game_view.window.view_x + tab.rel_x
 
-    center_x = property(_get_center_x, _set_center_x)
 
-    def _get_center_y(self) -> float:
+    @property
+    def center_y(self) -> float:
         """ Get the center y coordinate of the sprite. """
         return self._position[1]
 
-    def _set_center_y(self, new_value: float):
+    @center_y.setter
+    def center_y(self, new_value: float):
         if new_value != self._position[1]:
-            self.clear_spatial_hashes()
-            self._point_list_cache = None
-            self._position = (self._position[0], new_value)
-            self.add_spatial_hashes()
+            self._position = self._position[0], new_value
+
+            self.update_spatial_hash()
 
             for sprite_list in self.sprite_lists:
-                sprite_list.update_location(self)
+                sprite_list._update_position_y(self)
 
             for index, button in enumerate(self.buttons):
                 button.center_y = new_value + self.button_data[index]['y'] * c.SPRITE_SCALE
@@ -314,8 +315,6 @@ class Tab(arcade.Sprite):
             for tab in self.tabs:
                 if tab not in self.parent_list:
                     tab.center_y = self.game_view.window.view_y + tab.rel_y
-
-    center_y = property(_get_center_y, _set_center_y)
 
 
 class Display(arcade.Sprite):
@@ -328,29 +327,27 @@ class Display(arcade.Sprite):
         self.center_x, self.center_y = pos
 
 
-ACTION_WORDS = {'move': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
-                                      image_width=320, image_height=60, image_x=0),
-                'end': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
-                                      image_width=320, image_height=60, image_x=320),
-                'shoot': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
-                                       image_width=320, image_height=60, image_x=640),
-                'interact': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
-                                          image_width=320, image_height=60, image_x=960),
-                'leave': arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
-                                       image_width=320, image_height=60, image_x=1280),
-                None: arcade.Sprite("assets/ui/ui_text.png", c.SPRITE_SCALE,
-                                    image_width=320, image_height=60, image_x=1600)}
+def _load_word_text(x):
+    return arcade.load_texture("assets/ui/ui_text.png", width=320, height=60, x=x)
+
+
+ACTION_WORDS = {'move': arcade.Sprite(_load_word_text(0), c.SPRITE_SCALE),
+                'end': arcade.Sprite(_load_word_text(320), c.SPRITE_SCALE),
+                'shoot': arcade.Sprite(_load_word_text(640), c.SPRITE_SCALE),
+                'interact': arcade.Sprite(_load_word_text(960), c.SPRITE_SCALE),
+                'leave': arcade.Sprite(_load_word_text(1280), c.SPRITE_SCALE),
+                None: arcade.Sprite(_load_word_text(1600), c.SPRITE_SCALE)}
 ACTION_PRIORITY = {'move': 0, 'leave': 1, 'interact': 2, 'shoot': 3, 'end': 6}
 NUMBER_TEXT = {str(i): arcade.load_texture("assets/ui/ui_pieces.png",
-                                           690+20*(i % 5), 90+(i//5)*35,
-                                           15, 30) for i in range(10)}
+                                           x=690+20*(i % 5), y=90+(i//5)*35,
+                                           width=15, height=30) for i in range(10)}
 
 
 class ActionTab(arcade.Sprite):
 
     def __init__(self, game_view):
-        super().__init__("assets/ui/ui_split.png", c.SPRITE_SCALE, image_height=650, image_width=1030,
-                         image_x=3090)
+        _texture = arcade.load_texture("assets/ui/ui_split.png", height=650, width=1030, x=3090)
+        super().__init__(_texture, c.SPRITE_SCALE)
         self.game_view = game_view
         self.handle = False
         self.recheck = True
@@ -364,14 +361,15 @@ class ActionTab(arcade.Sprite):
         self.second_action: arcade.Sprite = None
         self.second_pending: turn.Action = None
 
-        self.initiative_box = arcade.Sprite("assets/ui/ui_pieces.png", c.SPRITE_SCALE, 845, 90, 75, 90)
+        _texture = arcade.load_texture("assets/ui/ui_pieces.png", x=845, y=90, width=75, height=90)
+        self.initiative_box = arcade.Sprite(_texture, c.SPRITE_SCALE)
         self.last_initiative = str("0")
         self.initiative_text_1 = arcade.Sprite(scale=c.SPRITE_SCALE)
         self.initiative_text_2 = arcade.Sprite(scale=c.SPRITE_SCALE)
         self.initiative_list = arcade.SpriteList()
         self.initiative_list.extend((self.initiative_box, self.initiative_text_1, self.initiative_text_2))
 
-    def draw(self):
+    def draw(self, *, filter=None, pixelated=None, blend_function=None):
         if self.game_view.player.action_handler != self.game_view.turn_handler.current_handler:
             self.recheck = True
 
@@ -390,7 +388,7 @@ class ActionTab(arcade.Sprite):
             if self.second_pending is not None:
                 self.second_pending.draw()
 
-            super().draw()
+            super().draw(filter=filter, pixelated=pixelated, blend_function=blend_function)
             if self.first_action is not None:
                 self.first_action.center_x = self.center_x + 51
                 self.first_action.center_y = self.center_y + 39

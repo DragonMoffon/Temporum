@@ -3,8 +3,10 @@ import json
 from dataclasses import dataclass
 import math
 import time
+from pathlib import Path
 
 import arcade
+from pytiled_parser import TiledMap, parse_map
 
 import algorithms
 import isometric
@@ -28,7 +30,7 @@ class Map:
 
         # The str location of the tmx data and the json data.
         self.location = location
-        self.tmx_map = arcade.read_tmx(f"tiled/tilemaps/{self.location}.tmx")
+        self.tmx_map = parse_map(Path(f"tiled/tilemaps/{self.location}.tmx"))
         self.item_data = data[location]
 
         # the maps unique vision handler.
@@ -81,7 +83,8 @@ class Map:
 
         self.toggle_sprites = {}
 
-        for layer_num, layer_data in enumerate(self.tmx_map.layers):
+        for layer_num, layer_data in enumerate(self.tmx_map.layers):#
+            print(layer_num, layer_data)
             location = layer_data.name
 
             if layer_data.properties is not None:
@@ -92,7 +95,7 @@ class Map:
             # Create the IsoList for the tiles, renames the layer's raw tile 2D array for better readability,
             # and create the 2D numpy array
             tile_list = []
-            map_data = layer_data.layer_data
+            map_data = layer_data.data
             tile_map = np.empty(self.map_size, list)
 
             def generate_poi(data):

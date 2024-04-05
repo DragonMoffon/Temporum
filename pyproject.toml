@@ -18,7 +18,3 @@ maintainers = [
 [tool.setuptools]
 packages = ["temporum"]
 
-# There are multiple things called lux that are CLI
-# applications, so we name the cli run script luxgame.
-[project.scripts]
-temporumgame = "temporum.temporum:main"

@@ -81,8 +81,8 @@ class IsoAnimation:
         while frames > self.frames:
             try:
                 # try and load a texture. If an error is generated that means we have moved too far on the x or y
-                texture = arcade.load_texture(location, x, y, *size)
-                flip_texture = arcade.load_texture(location, x, y, *size, flipped_horizontally=True)
+                texture = arcade.load_texture(location, x=x, y=y, width=size[0], height=size[1])
+                flip_texture = texture.flip_left_right()
                 self.textures.append((texture, flip_texture))
                 self.frames += 1
                 x += size[0]
@@ -410,12 +410,7 @@ class IsoList(arcade.SpriteList):
 
         This does slow down the one draw frame it happens however, This is hopefully unnoticeable.
         """
-        self.sprite_list = sorted(self.sprite_list, key=lambda tile: tile.center_w)
-
-        for idx, sprite in enumerate(self.sprite_list):
-            self.sprite_idx[sprite] = idx
-
-        self._vao1 = None
+        self.sort(key=lambda tile: tile.center_w)
 
 
 class IsoLayer:

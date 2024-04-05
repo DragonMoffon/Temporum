@@ -29,6 +29,8 @@ class VisionCalculator:
         self.vision_image: Image.Image = None
         self.buffer = None
 
+        self.buffer_camera: arcade.camera.Camera2D = None
+
         # The shader that calculates the vision
         self.geometry = gl.geometry.screen_rectangle(-1, -1, 2, 2)
         self.vision_program = context.ctx.load_program(
@@ -51,6 +53,10 @@ class VisionCalculator:
                                                    wrap_y=gl.CLAMP_TO_BORDER)
 
         self.buffer = self.ctx.ctx.framebuffer(color_attachments=self.vision_texture)
+        self.buffer_camera = arcade.camera.Camera2D.from_raw_data(
+            viewport=(0, self.map_size[0], 0, self.map_size[1]),
+            render_target=self.buffer
+        )
 
     def modify_map(self, pos, data):
         self.regenerate = True
@@ -62,15 +68,12 @@ class VisionCalculator:
                                                     filter=(gl.NEAREST, gl.NEAREST))
             self.regenerate = False
 
-        self.buffer.use()
-        self.buffer.clear()
-        arcade.set_viewport(0, self.map_size[0], 0, self.map_size[1])
-        self.map_texture.use(0)
-        self.vision_program['cast_pos_resolution'] = self.caster.e_x, self.caster.e_y, *self.map_size
-        self.geometry.render(self.vision_program)
-        self.ctx.use()
-        arcade.set_viewport(self.ctx.view_x, self.ctx.view_x+constants.SCREEN_WIDTH,
-                            self.ctx.view_y, self.ctx.view_y+constants.SCREEN_HEIGHT)
+        with self.buffer_camera.activate():
+            self.buffer.clear()
+            self.map_texture.use(0)
+            self.vision_program['cast_pos_resolution'] = self.caster.e_x, self.caster.e_y, *self.map_size
+            self.geometry.render(self.vision_program)
+
         self.vision_image = Image.frombytes("RGBA", self.map_size, bytes(self.vision_texture.read()))
 
     def draw_prep(self):
@@ -81,5 +84,5 @@ class VisionCalculator:
     def draw(self):
         if self.map_texture is not None:
             self.vision_texture.use()
-            self.draw_tiles_program['screen_pos_resolution'] = [self.ctx.view_x, self.ctx.view_y, *self.map_size]
+            self.draw_tiles_program['screen_pos_resolution'] = [0.0, 0.0, *self.map_size]
             self.geometry.render(self.draw_tiles_program)

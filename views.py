@@ -24,43 +24,41 @@ class Mouse(arcade.Sprite):
         self.e_x = 0
         self.e_y = 0
 
-    def _get_center_x(self) -> float:
+    @property
+    def center_x(self) -> float:
         """ Get the center x coordinate of the sprite. """
         return self._position[0]
 
-    def _set_center_x(self, new_value: float):
+    @center_x.setter
+    def center_x(self, new_value: float):
         """ Set the center x coordinate of the sprite. """
         if new_value != self._position[0]:
             self.rel_x = new_value - self.window.view_x
 
-            self.clear_spatial_hashes()
-            self._point_list_cache = None
-            self._position = (new_value, self._position[1])
-            self.add_spatial_hashes()
+            self._position = new_value, self._position[1]
+
+            self.update_spatial_hash()
 
             for sprite_list in self.sprite_lists:
-                sprite_list.update_location(self)
+                sprite_list._update_position_x(self)
 
-    center_x = property(_get_center_x, _set_center_x)
-
-    def _get_center_y(self) -> float:
+    @property
+    def center_y(self) -> float:
         """ Get the center y coordinate of the sprite. """
         return self._position[1]
 
-    def _set_center_y(self, new_value: float):
+    @center_y.setter
+    def center_y(self, new_value: float):
         """ Set the center y coordinate of the sprite. """
         if new_value != self._position[1]:
             self.rel_y = new_value - self.window.view_y
 
-            self.clear_spatial_hashes()
-            self._point_list_cache = None
-            self._position = (self._position[0], new_value)
-            self.add_spatial_hashes()
+            self._position = self._position[0], new_value
+
+            self.update_spatial_hash()
 
             for sprite_list in self.sprite_lists:
-                sprite_list.update_location(self)
-
-    center_y = property(_get_center_y, _set_center_y)
+                sprite_list._update_position_y(self)
 
 
 class TemporumWindow(arcade.Window):
@@ -71,10 +69,6 @@ class TemporumWindow(arcade.Window):
     def __init__(self):
         super().__init__(c.SCREEN_WIDTH, c.SCREEN_HEIGHT, c.WINDOW_NAME, fullscreen=c.FULL_SCREEN)
         arcade.set_background_color(arcade.color.BLACK)
-
-        # View data
-        self._view_x = c.round_to_x(-c.SCREEN_WIDTH / 2, 5 * c.SPRITE_SCALE)
-        self._view_y = c.round_to_x(-c.SCREEN_HEIGHT / 2, 5 * c.SPRITE_SCALE)
 
         # Mouse
         self.set_mouse_visible(False)
@@ -108,29 +102,11 @@ class TemporumWindow(arcade.Window):
             self.minimize()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
-        self.mouse.center_x = c.round_to_x(self.view_x + x + self.mouse.width / 2, 3)
-        self.mouse.center_y = c.round_to_x(self.view_y + y - self.mouse.height / 2, 3)
+        self.mouse.center_x = c.round_to_x(x, 3)
+        self.mouse.center_y = c.round_to_x(y, 3)
 
         y_mod = ((160 - c.FLOOR_TILE_THICKNESS) * c.SPRITE_SCALE)
-        self.mouse.e_x, self.mouse.e_y = isometric.cast_from_iso(self.view_x + x, self.view_y + y + y_mod)
-
-    @property
-    def view_x(self):
-        return self._view_x
-
-    @view_x.setter
-    def view_x(self, value):
-        self._view_x = value
-        self.mouse.center_x = value + self.mouse.rel_x
-
-    @property
-    def view_y(self):
-        return self._view_y
-
-    @view_y.setter
-    def view_y(self, value):
-        self._view_y = value
-        self.mouse.center_y = value + self.mouse.rel_y
+        self.mouse.e_x, self.mouse.e_y = isometric.cast_from_iso(x, y + y_mod)
 
 
 class PauseMenu(arcade.View):
@@ -214,6 +190,10 @@ class GameView(arcade.View):
         # The Current Ai info
         self.current_ai = []
 
+        # Camera
+        self.gui_camera = arcade.camera.Camera2D()
+        self.game_camera = arcade.camera.Camera2D()
+
         # The player info
         self.player = player.Player(25, 25, self)
         self.turn_handler.new_action_handlers([self.player.action_handler])
@@ -242,8 +222,8 @@ class GameView(arcade.View):
         self.ui_elements = arcade.SpriteList()
         self.tabs = (ui.TalkTab(self),)
 
-        self.tabs[0].center_x = c.round_to_x(self.window.view_x + c.SCREEN_WIDTH // 2, 5 * c.SPRITE_SCALE)
-        self.tabs[0].center_y = c.round_to_x(self.window.view_y + c.SCREEN_HEIGHT // 2, 5 * c.SPRITE_SCALE)
+        self.tabs[0].center_x = c.round_to_x(0.0, 5 * c.SPRITE_SCALE)
+        self.tabs[0].center_y = c.round_to_x(0.0, 5 * c.SPRITE_SCALE)
         self.pressed = None
         self.ui_tabs_over = []
 
@@ -264,7 +244,7 @@ class GameView(arcade.View):
         self.motion_length = 1.10
         self.pending_motion: List[Tuple[float, float]] = []
         self.current_motion = None
-        self.current_motion_start: Tuple[float, float] = (self.window.view_x, self.window.view_y)
+        self.current_motion_start: Tuple[float, float] = (0, 0)
 
         # Last action: reorder the shown isometric sprites
         c.iso_changed()
@@ -273,61 +253,59 @@ class GameView(arcade.View):
 
     def move_view(self, dx, dy):
         # Round to fit the pixels of sprites
-        rx = c.round_to_x(dx, 5 * c.SPRITE_SCALE)
-        ry = c.round_to_x(dy, 5 * c.SPRITE_SCALE)
+        camera_pos = self.game_camera.position
 
-        # move the view by this amount
-        self.window.view_x -= rx
-        self.window.view_y -= ry
+        rx = camera_pos[0] + c.round_to_x(dx, 5 * c.SPRITE_SCALE)
+        ry = camera_pos[1] + c.round_to_x(dy, 5 * c.SPRITE_SCALE)
 
-        # Move the ui and set the viewport.
-        self.ui_elements.move(-rx, -ry)
-        arcade.set_viewport(self.window.view_x, self.window.view_x + c.SCREEN_WIDTH,
-                            self.window.view_y, self.window.view_y + c.SCREEN_HEIGHT)
+        # move the camera by this amount
+        self.game_camera.position = rx, ry
 
     def set_view(self, x, y):
-        # find the change x and y then round to fit the pixels of sprites
-        dx = c.round_to_x(x - self.window.view_x, 5 * c.SPRITE_SCALE)
-        dy = c.round_to_x(y - self.window.view_y, 5 * c.SPRITE_SCALE)
-
-        # Set the view to the rounded inputs
-        self.window.view_x = c.round_to_x(x, 5 * c.SPRITE_SCALE)
-        self.window.view_y = c.round_to_x(y, 5 * c.SPRITE_SCALE)
-
-        # Move the ui and set the viewport
-        self.ui_elements.move(dx, dy)
-        arcade.set_viewport(self.window.view_x, self.window.view_x + c.SCREEN_WIDTH,
-                            self.window.view_y, self.window.view_y + c.SCREEN_HEIGHT)
+        # Set the camera position to the rounded inputs
+        self.game_camera.position = c.round_to_x(x, 5 * c.SPRITE_SCALE), c.round_to_x(y, 5 * c.SPRITE_SCALE)
 
     def on_draw(self):
-        self.map_handler.map.vision_handler.draw_prep()
-        arcade.start_render()
+        self.clear()
+        with self.game_camera.activate():
+            self.map_handler.map.vision_handler.draw_prep()
 
-        c.GROUND_LIST.draw()
+            c.GROUND_LIST.draw()
 
-        # Middle Shaders Between floor and other isometric sprites
-        if self.map_handler is not None:
-            self.map_handler.draw()
+            # Middle Shaders Between floor and other isometric sprites
+            if self.map_handler is not None:
+                self.map_handler.draw()
 
-        c.ISO_LIST.draw()
+            c.ISO_LIST.draw()
 
-        self.turn_handler.on_draw()
-        if self.pending_action is not None:
-            self.pending_action.draw()
+            self.turn_handler.on_draw()
+            if self.pending_action is not None:
+                self.pending_action.draw()
 
-        for element in self.ui_elements:
-            element.draw()
+        with self.gui_camera.activate():
+            for element in self.ui_elements:
+                element.draw()
 
-        self.action_tab.draw()
+            self.action_tab.draw()
 
-        # Debugging of the map_handler
-        # self.map_handler.debug_draw(True)
+            # Debugging of the map_handler
+            # self.map_handler.debug_draw(True)
 
-        self.map_handler.debug_draw()
-        self.window.mouse.draw()
+            self.map_handler.debug_draw()
+            self.window.mouse.draw()
 
     def on_key_press(self, symbol: int, modifiers: int):
-        self.tabs[0].on_key_press(symbol, modifiers)
+        match symbol:
+            case arcade.key.A:
+                self.move_view(-10, 0)
+            case arcade.key.D:
+                self.move_view(10, 0)
+            case arcade.key.W:
+                self.move_view(0, 10)
+            case arcade.key.S:
+                self.move_view(0, -10)
+            case _:
+                self.tabs[0].on_key_press(symbol, modifiers)
 
     def on_update(self, delta_time: float):
         # Debug FPS
@@ -363,9 +341,8 @@ class GameView(arcade.View):
 
         elif len(self.pending_motion):
             self.current_motion = self.pending_motion.pop(0)
-            if abs(self.current_motion[0] - self.window.view_x) > 15 and \
-                    abs(self.current_motion[1] - self.window.view_y) > 15:
-                self.current_motion_start = (self.window.view_x, self.window.view_y)
+            if abs(self.current_motion[0]) > 15 and abs(self.current_motion[1]) > 15:
+                self.current_motion_start = (0.0, 0.0)
                 self.motion_start = time.time()
                 self.motion = True
 
@@ -520,7 +497,3 @@ class TitleView(arcade.View):
             self.state += 1
             self.timer = time.time()
 
-
-def main():
-    window = TemporumWindow()
-    arcade.run()

@@ -109,8 +109,9 @@ class TextPuzzle:
         self.letters = []
         # create the tiles.
         start = c.round_to_x(- 450 * c.SPRITE_SCALE, 5 * c.SPRITE_SCALE)
+        _texture = arcade.load_texture("assets/ui/ui_pieces.png", x=460, y=90, width=230, height=90)
         for x, char in enumerate(self.answer):
-            sprite = arcade.Sprite("assets/ui/ui_pieces.png", c.SPRITE_SCALE, 460, 90, 230, 90)
+            sprite = arcade.Sprite(_texture, c.SPRITE_SCALE)
             self.text_boxes.append(sprite)
             self.letters.append(TextBox((c.round_to_x(start + (50 * c.SPRITE_SCALE * x), 5 * c.SPRITE_SCALE),
                                          c.round_to_x(60 * c.SPRITE_SCALE, 5*c.SPRITE_SCALE)), sprite))
